@@ -1,22 +1,20 @@
-# IDEs
+__pycache__
+# Dependencies
+node_modules/
+backend/node/node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+build/
+frontend/dist/
+
+# IDE
 .vscode/
 .trae/
+.idea/
 
-# Python
-__pycache__/
-.pytest_cache/
-.env
-KnowFlow/src/backend/uploads/*
-
-# frontend
-node_modules
-dist
-dist-electron
-
-# Env files & secrets
-.env.*
-!.env.example
-backend/.env
-frontend/.env
-secrets/*
-!secrets/.gitkeep
+# Data & Uploads
+backend/uploads/
+backend/py/db.json
+*.log

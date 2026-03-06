@@ -1,0 +1,172 @@
+{
+  "knowledgeItems": [
+    {
+      "id": "1",
+      "title": "Test Knowledge Item",
+      "content": "This is a test knowledge item",
+      "clickCount": 0,
+      "starRating": 0,
+      "createdAt": "2026-03-06T10:18:07.189037"
+    },
+    {
+      "id": "2",
+      "filePath": "./uploads/ef777b80-5fa5-43a8-948f-27afd1023a19-test.txt",
+      "fileType": "text/plain",
+      "clickCount": 0,
+      "starRating": 0,
+      "createdAt": "2026-03-06T10:18:07.504190",
+      "keyValues": []
+    },
+    {
+      "id": "3",
+      "filePath": "./uploads/ea27d257-b7db-4bc8-891a-aa7e40997eb4-LICENSE",
+      "fileType": "application/octet-stream",
+      "clickCount": 0,
+      "starRating": 0,
+      "createdAt": "2026-03-06T11:08:10.283501",
+      "keyValues": []
+    },
+    {
+      "id": "4",
+      "filePath": "./uploads/13b69abd-2d02-4549-a880-82c4a7d1ffd3-njuthesis-sample.bbl",
+      "fileType": "application/octet-stream",
+      "clickCount": 0,
+      "starRating": 0,
+      "createdAt": "2026-03-06T11:30:26.638892",
+      "keyValues": []
+    }
+  ],
+  "categories": [
+    {
+      "id": "1",
+      "name": "内置 Key",
+      "parentId": null,
+      "isBuiltin": true
+    },
+    {
+      "id": "2",
+      "name": "基础属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "3",
+      "name": "统计属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "4",
+      "name": "评价属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "5",
+      "name": "时间属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "6",
+      "name": "媒体属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "7",
+      "name": "文献属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "8",
+      "name": "自定义 Key",
+      "parentId": null,
+      "isBuiltin": false
+    }
+  ],
+  "keyDefinitions": [
+    {
+      "id": "1",
+      "name": "file_path",
+      "categoryId": "2",
+      "isBuiltin": true,
+      "dataType": "string",
+      "isRequired": false,
+      "isReadOnly": true,
+      "isVisibleOnImport": false,
+      "isVisibleOnEdit": true,
+      "script": "",
+      "description": "文件路径（系统分配）"
+    },
+    {
+      "id": "2",
+      "name": "file_type",
+      "categoryId": "2",
+      "isBuiltin": true,
+      "dataType": "string",
+      "isRequired": false,
+      "isReadOnly": true,
+      "isVisibleOnImport": false,
+      "isVisibleOnEdit": true,
+      "script": "",
+      "description": "文件类型（系统分配）"
+    },
+    {
+      "id": "11",
+      "name": "file_name",
+      "categoryId": "2",
+      "isBuiltin": true,
+      "dataType": "string",
+      "isRequired": true,
+      "isReadOnly": false,
+      "isVisibleOnImport": true,
+      "isVisibleOnEdit": true,
+      "script": "",
+      "description": "文件名"
+    },
+    {
+      "id": "10",
+      "name": "star_rating",
+      "categoryId": "3",
+      "isBuiltin": true,
+      "dataType": "number",
+      "isRequired": false,
+      "isReadOnly": false,
+      "isVisibleOnImport": true,
+      "isVisibleOnEdit": true,
+      "defaultValue": 0,
+      "script": "",
+      "description": "星级评分"
+    },
+    {
+      "id": "3",
+      "name": "click_count",
+      "categoryId": "3",
+      "isBuiltin": true,
+      "dataType": "number",
+      "isRequired": false,
+      "isReadOnly": true,
+      "isVisibleOnImport": false,
+      "isVisibleOnEdit": true,
+      "defaultValue": 0,
+      "script": "",
+      "description": "点击次数（只读）"
+    },
+    {
+      "id": "12",
+      "name": "is_link_only",
+      "categoryId": "2",
+      "isBuiltin": true,
+      "dataType": "boolean",
+      "isRequired": false,
+      "isReadOnly": false,
+      "isVisibleOnImport": true,
+      "isVisibleOnEdit": true,
+      "defaultValue": false,
+      "script": "",
+      "description": "非转存文件（仅保存路径）"
+    }
+  ]
+}

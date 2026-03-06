@@ -267,25 +267,23 @@ const KeyManager: React.FC<KeyManagerProps> = ({ visible, onClose }) => {
             onClick={() => setActiveTab('keys')}
           >
             Key列表
-            <Button
-              type="text"
-              icon={<PlusOutlined />}
-              style={{ marginLeft: 8 }}
-              onClick={handleAddKey}
-            />
           </Button>
+          <Button
+            type="text"
+            icon={<PlusOutlined />}
+            onClick={handleAddKey}
+          />
           <Button
             type={activeTab === 'categories' ? 'primary' : 'default'}
             onClick={() => setActiveTab('categories')}
           >
             分类列表
-            <Button
-              type="text"
-              icon={<PlusOutlined />}
-              style={{ marginLeft: 8 }}
-              onClick={handleAddCategory}
-            />
           </Button>
+          <Button
+            type="text"
+            icon={<PlusOutlined />}
+            onClick={handleAddCategory}
+          />
         </Space>
       </div>
 
