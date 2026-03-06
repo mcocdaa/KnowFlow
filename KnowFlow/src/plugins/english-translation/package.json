@@ -1,0 +1,15 @@
+{
+  "name": "english-translation",
+  "version": "1.0.0",
+  "description": "英文文献翻译插件",
+  "author": "KnowFlow Team",
+  "type": "knowledge_processing",
+  "main": "main.js",
+  "icon": "icon.png",
+  "dependencies": ["axios"],
+  "config": {
+    "apiKey": "your-api-key",
+    "apiUrl": "https://api.doubao.com/v1/chat/completions",
+    "targetLanguage": "zh"
+  }
+}

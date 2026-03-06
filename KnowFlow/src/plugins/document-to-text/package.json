@@ -1,0 +1,13 @@
+{
+  "name": "document-to-text",
+  "version": "1.0.0",
+  "description": "文献转文字插件",
+  "author": "KnowFlow Team",
+  "type": "knowledge_processing",
+  "main": "main.js",
+  "icon": "icon.png",
+  "dependencies": ["tesseract.js", "pdf-parse"],
+  "config": {
+    "tesseractLang": "eng+chi_sim"
+  }
+}

@@ -1,0 +1,22 @@
+# IDEs
+.vscode/
+.trae/
+
+# Python
+__pycache__/
+.pytest_cache/
+.env
+KnowFlow/src/backend/uploads/*
+
+# frontend
+node_modules
+dist
+dist-electron
+
+# Env files & secrets
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+secrets/*
+!secrets/.gitkeep

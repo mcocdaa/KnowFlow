@@ -1,0 +1,13 @@
+{
+  "name": "sci-hub-download",
+  "version": "1.0.0",
+  "description": "Sci-Hub文献获取插件",
+  "author": "KnowFlow Team",
+  "type": "knowledge_source",
+  "main": "main.js",
+  "icon": "icon.png",
+  "dependencies": ["axios"],
+  "config": {
+    "baseUrl": "https://sci-hub.se"
+  }
+}

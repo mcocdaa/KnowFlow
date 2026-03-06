@@ -1,0 +1,13 @@
+{
+  "name": "波尔学术-search",
+  "version": "1.0.0",
+  "description": "波尔学术检索插件",
+  "author": "KnowFlow Team",
+  "type": "search",
+  "main": "main.js",
+  "icon": "icon.png",
+  "dependencies": ["axios"],
+  "config": {
+    "apiUrl": "https://api.波尔学术.com/v1/search"
+  }
+}

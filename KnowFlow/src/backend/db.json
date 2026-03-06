@@ -1,0 +1,161 @@
+{
+  "knowledgeItems": [
+    {
+      "id": "1",
+      "filePath": "./uploads/1772691641-93f3c957-3d92-43ea-966e-f020393e610a-SKILL.md",
+      "fileType": "application/octet-stream",
+      "clickCount": 30,
+      "starRating": 0,
+      "createdAt": "2026-03-05T14:20:41.108357",
+      "keyValues": []
+    },
+    {
+      "id": "2",
+      "filePath": "./uploads/1772720317-865208f6-ec9b-42a4-9be4-ece8baf3c61a-gitignore",
+      "fileType": "text/plain",
+      "clickCount": 6,
+      "starRating": 0,
+      "createdAt": "2026-03-05T22:18:37.721042",
+      "keyValues": []
+    }
+  ],
+  "categories": [
+    {
+      "id": "1",
+      "name": "内置 Key",
+      "parentId": null,
+      "isBuiltin": true
+    },
+    {
+      "id": "2",
+      "name": "基础属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "3",
+      "name": "统计属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "4",
+      "name": "评价属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "5",
+      "name": "时间属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "6",
+      "name": "媒体属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "7",
+      "name": "文献属性",
+      "parentId": "1",
+      "isBuiltin": true
+    },
+    {
+      "id": "8",
+      "name": "自定义 Key",
+      "parentId": null,
+      "isBuiltin": false
+    }
+  ],
+  "keyDefinitions": [
+    {
+      "id": "1",
+      "name": "file_path",
+      "categoryId": "2",
+      "isBuiltin": true,
+      "dataType": "string",
+      "script": "",
+      "description": "文件路径"
+    },
+    {
+      "id": "2",
+      "name": "file_type",
+      "categoryId": "2",
+      "isBuiltin": true,
+      "dataType": "string",
+      "script": "",
+      "description": "文件类型"
+    },
+    {
+      "id": "3",
+      "name": "click_count",
+      "categoryId": "3",
+      "isBuiltin": true,
+      "dataType": "number",
+      "script": "",
+      "description": "点击次数"
+    },
+    {
+      "id": "4",
+      "name": "star_rating",
+      "categoryId": "4",
+      "isBuiltin": true,
+      "dataType": "number",
+      "script": "",
+      "description": "星级"
+    },
+    {
+      "id": "5",
+      "name": "created_at",
+      "categoryId": "5",
+      "isBuiltin": true,
+      "dataType": "timestamp",
+      "script": "",
+      "description": "创建时间"
+    },
+    {
+      "id": "6",
+      "name": "image_resolution",
+      "categoryId": "6",
+      "isBuiltin": true,
+      "dataType": "string",
+      "script": "",
+      "description": "图片分辨率"
+    },
+    {
+      "id": "7",
+      "name": "video_duration",
+      "categoryId": "6",
+      "isBuiltin": true,
+      "dataType": "number",
+      "script": "",
+      "description": "视频时长"
+    },
+    {
+      "id": "8",
+      "name": "author",
+      "categoryId": "7",
+      "isBuiltin": true,
+      "dataType": "string",
+      "script": "",
+      "description": "作者"
+    },
+    {
+      "id": "9",
+      "name": "publication_date",
+      "categoryId": "7",
+      "isBuiltin": true,
+      "dataType": "date",
+      "script": "",
+      "description": "发表日期"
+    },
+    {
+      "id": "10",
+      "name": "twst",
+      "categoryId": "8",
+      "isBuiltin": false
+    }
+  ]
+}
