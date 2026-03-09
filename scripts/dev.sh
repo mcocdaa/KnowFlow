@@ -1,15 +1,20 @@
 #!/bin/bash
 
+ROOT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. &>/dev/null && pwd)
+pushd $ROOT_PATH
 # 启动开发环境
 
 # 启动前端开发服务器
 echo "Starting frontend development server..."
-cd frontend && npm run dev &
+pushd frontend
+    npm run dev &
+popd
 
 # 启动后端服务
 echo "Starting backend server..."
-cd ../backend/py && python app.py &
+pushd backend
+    python app.py &
+popd
 
 echo "Development environment started!"
-echo "Frontend: http://localhost:5173"
-echo "Backend: http://localhost:5000"
+popd

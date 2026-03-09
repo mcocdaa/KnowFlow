@@ -1,0 +1,23 @@
+name: rating
+version: 1.0.0
+description: 为知识项添加星级评分功能
+author: KnowFlow
+
+keys:
+  - name: rating
+    title: 星级
+    value_type: number
+    default_value: 0
+    description: 知识项的星级评分(1-5)
+    category_name: basic_category
+    is_required: false
+    is_visible: true
+    plugin_name: "rating"
+    delete_with_plugin: false
+    is_public: true
+    is_private: false
+    created_at: "2026-01-01"
+    updated_at: "2026-01-01"
+
+backend_entry: backend.py
+frontend_entry: frontend.tsx

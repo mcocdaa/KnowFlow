@@ -1,0 +1,16 @@
+- name: inner_category
+  title: "内置 Key"
+  parent_name: None
+  is_builtin: true
+- name: basic_category
+  title: "基础属性"
+  parent_name: inner_category
+  is_builtin: true
+- name: time_category
+  title: "时间属性"
+  parent_name: inner_category
+  is_builtin: true
+- name: custom_category
+  title: "自定义 Key"
+  parent_name: None
+  is_builtin: false

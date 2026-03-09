@@ -77,7 +77,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
       width={600}
       footer={null}
     >
-      <Space direction="vertical" style={{ width: '100%' }}>
+      <Space orientation="vertical" style={{ width: '100%' }}>
         <Space>
           <Button
             type={activeTab === 'search' ? 'primary' : 'default'}

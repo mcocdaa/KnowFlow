@@ -1,0 +1,7 @@
+# plugins/plugins.yaml
+# 插件启用配置
+# enabled: true 启用插件, false 禁用插件
+
+plugins:
+  rating:
+    enabled: true

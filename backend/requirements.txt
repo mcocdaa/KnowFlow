@@ -2,3 +2,10 @@ fastapi
 uvicorn
 httpx
 python-multipart
+pytest
+pytest-asyncio
+pytest-mock
+pyyaml
+motor
+pymongo
+python-dotenv
