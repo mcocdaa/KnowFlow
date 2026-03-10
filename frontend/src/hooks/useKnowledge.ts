@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { message } from 'antd';
+import useApp from 'antd/es/app/useApp';
 import type { RootState } from '../store';
 import { setItems, setSearchResults, selectItem, updateKnowledgeItem, deleteKnowledgeItem, addKnowledgeItem } from '../store/knowledgeSlice';
 import { setCategories, setDefinitions } from '../store/keySlice';
@@ -9,10 +9,11 @@ import type { KnowledgeItem } from '../types';
 
 export const useInitialData = () => {
   const dispatch = useDispatch();
-  
+  const { message } = useApp();
+
   useEffect(() => {
     let isMounted = true;
-    
+
     const loadData = async () => {
       try {
         const [items, categories, keys] = await Promise.all([
@@ -20,7 +21,7 @@ export const useInitialData = () => {
           api.fetchCategories(),
           api.fetchKeys(),
         ]);
-        
+
         if (isMounted) {
           dispatch(setItems(items));
           dispatch(setCategories(categories));
@@ -33,31 +34,32 @@ export const useInitialData = () => {
         }
       }
     };
-    
+
     loadData();
-    
+
     return () => {
       isMounted = false;
     };
-  }, [dispatch]);
+  }, [dispatch, message]);
 };
 
 export const useKnowledgeItems = () => {
   const dispatch = useDispatch();
+  const { message } = useApp();
   const { items, searchResults, selectedItem } = useSelector((state: RootState) => state.knowledge);
   const { definitionList, categories } = useSelector((state: RootState) => state.key);
-  
+
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  
+
   const handleItemClick = useCallback((item: KnowledgeItem) => {
     dispatch(selectItem(item.id));
     setSelectedItemId(item.id);
   }, [dispatch]);
-  
+
   const handleSearch = useCallback((value: string, sortBy: string) => {
     const searchTerms = value.trim().toLowerCase();
     let results = [...items];
-    
+
     if (searchTerms) {
       results = results.filter(item => {
         if (!item) return false;
@@ -66,7 +68,7 @@ export const useKnowledgeItems = () => {
         return name.includes(searchTerms) || file_path.includes(searchTerms);
       });
     }
-    
+
     if (sortBy === 'recent') {
       results.sort((a: KnowledgeItem, b: KnowledgeItem) => {
         const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -74,21 +76,21 @@ export const useKnowledgeItems = () => {
         return bTime - aTime;
       });
     }
-    
+
     dispatch(setSearchResults(results));
   }, [dispatch, items]);
-  
+
   const handleKeyClick = useCallback((keyName: string) => {
     const filteredItems = items.filter(item => {
       const value = item.keyValues?.[keyName];
       return value !== undefined && value !== null && value !== '';
     });
-    
+
     dispatch(setSearchResults(filteredItems));
     message.success(`找到 ${filteredItems.length} 个包含 "${keyName}" 的文件`);
     return filteredItems;
-  }, [dispatch, items]);
-  
+  }, [dispatch, items, message]);
+
   const handleDeleteItem = useCallback(async (itemId: string) => {
     try {
       await api.deleteItem(itemId);
@@ -98,8 +100,8 @@ export const useKnowledgeItems = () => {
       console.error('Error deleting item:', error);
       message.error('文件删除失败');
     }
-  }, [dispatch]);
-  
+  }, [dispatch, message]);
+
   const handleUpdateItem = useCallback(async (item: KnowledgeItem) => {
     try {
       const savedItem = await api.updateItem(item);
@@ -111,8 +113,8 @@ export const useKnowledgeItems = () => {
       message.error('文件参数更新失败');
       throw error;
     }
-  }, [dispatch]);
-  
+  }, [dispatch, message]);
+
   const handleUploadFile = useCallback(async (file: File, values: Record<string, unknown>) => {
     try {
       const newItem = await api.uploadFile(file, values);
@@ -124,8 +126,8 @@ export const useKnowledgeItems = () => {
       message.error((error as Error).message || '文件上传失败');
       throw error;
     }
-  }, [dispatch]);
-  
+  }, [dispatch, message]);
+
   const handleCreateItem = useCallback(async (values: Record<string, unknown>) => {
     try {
       const newItem = await api.createItem(values['name'] as string || '', values);
@@ -137,8 +139,8 @@ export const useKnowledgeItems = () => {
       message.error('添加失败');
       throw error;
     }
-  }, [dispatch]);
-  
+  }, [dispatch, message]);
+
   const getSortedItems = useCallback((sortBy: string) => {
     const sorted = [...items];
     if (sortBy === 'recent') {
@@ -150,7 +152,7 @@ export const useKnowledgeItems = () => {
     }
     return sorted;
   }, [items]);
-  
+
   const getDefaultFormValues = useCallback(() => {
     const defaultValues: Record<string, unknown> = {};
     definitionList.forEach(def => {
@@ -158,7 +160,7 @@ export const useKnowledgeItems = () => {
     });
     return defaultValues;
   }, [definitionList]);
-  
+
   return {
     items,
     searchResults,
