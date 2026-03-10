@@ -15,7 +15,7 @@ def register_routers(app: FastAPI):
     # 1. 构建完整的包路径字符串 (例如: "backend.api.v1")
     # 注意：__name__ 在这里是 "backend.api"
     version_package_name = f"{__name__}.{API_VERSION}"
-    
+
     try:
         # 2. 动态导入版本模块
         version_package = importlib.import_module(version_package_name)
@@ -26,7 +26,7 @@ def register_routers(app: FastAPI):
     if hasattr(version_package, "router"):
         app.include_router(
             version_package.router,
-            prefix="/api",
+            prefix=f"/api",
             tags=[API_VERSION.upper()] # 标签显示为 "V1"，更醒目
         )
         print(f"[Route] 已注册 API 版本: {API_VERSION}")

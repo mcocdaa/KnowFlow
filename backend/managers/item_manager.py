@@ -34,10 +34,10 @@ class ItemManager:
     async def _format_item_response(self, item: Dict) -> Dict[str, Any]:
         all_keys = await key_manager.get_all()
         key_dict = {key['name']: key for key in all_keys}
-        
+
         item_attributes = {}
         key_info = {}
-        
+
         for key_name, key_def in key_dict.items():
             if key_def.get("is_visible", True):
                 if key_name in item:
@@ -50,18 +50,21 @@ class ItemManager:
                         key_def["value_type"]
                     )
                     key_info[key_name] = key_def
-        
+
         knowflow_item = {
             "id": str(item["_id"]),
         }
-        
+
         if "name" in item:
             knowflow_item["name"] = item["name"]
-        
+
         for key_name in ["created_at", "updated_at"]:
             if key_name in item:
-                knowflow_item[key_name] = item[key_name].isoformat() if item[key_name] else None
-        
+                if hasattr(item[key_name], "isoformat"):
+                    knowflow_item[key_name] = item[key_name].isoformat()
+                else:
+                    knowflow_item[key_name] = str(item[key_name]) if item[key_name] else None
+
         return {
             "item": knowflow_item,
             "attributes": item_attributes,
@@ -73,11 +76,11 @@ class ItemManager:
         获取所有知识项
         """
         items = await db_manager.find(self.items_collection)
-        
+
         result = []
         for item in items:
             result.append(await self._format_item_response(item))
-        
+
         return result
 
     async def get_by_id(self, item_id: str) -> Optional[Dict[str, Any]]:
@@ -88,11 +91,11 @@ class ItemManager:
             oid = ObjectId(item_id)
         except:
             return None
-        
+
         item = await db_manager.find_one(self.items_collection, {"_id": oid})
         if not item:
             return None
-        
+
         return await self._format_item_response(item)
 
     async def create(self, item_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -100,26 +103,26 @@ class ItemManager:
         创建新知识项
         """
         now = datetime.now()
-        
+
         all_keys = await key_manager.get_all()
         key_dict = {key['name']: key for key in all_keys}
-        
+
         knowflow_item = {
             "created_at": now,
             "updated_at": now,
         }
-        
+
         if "name" in item_data:
             knowflow_item["name"] = item_data["name"]
-        
+
         key_values = item_data.get("keyValues", {}) or item_data.get("attributes", {})
         for key_name, value in key_values.items():
             if key_name in key_dict:
                 key_def = key_dict[key_name]
                 knowflow_item[key_name] = self._convert_to_string(value, key_def["value_type"])
-        
+
         item_id = await db_manager.insert_one(self.items_collection, knowflow_item)
-        
+
         return await self.get_by_id(str(item_id))
 
     async def update(self, item_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -130,26 +133,26 @@ class ItemManager:
             oid = ObjectId(item_id)
         except:
             return None
-        
+
         now = datetime.now()
-        
+
         existing_item = await db_manager.find_one(self.items_collection, {"_id": oid})
         if not existing_item:
             return None
-        
+
         update_fields = {}
         if "name" in updates:
             update_fields["name"] = updates["name"]
-        
+
         all_keys = await key_manager.get_all()
         key_dict = {key['name']: key for key in all_keys}
         key_values = updates.get("keyValues", {}) or updates.get("attributes", {})
-        
+
         for key_name, value in key_values.items():
             if key_name in key_dict:
                 key_def = key_dict[key_name]
                 update_fields[key_name] = self._convert_to_string(value, key_def["value_type"])
-        
+
         if update_fields:
             update_fields["updated_at"] = now
             await db_manager.update_one(
@@ -157,7 +160,7 @@ class ItemManager:
                 {"_id": oid},
                 {"$set": update_fields}
             )
-        
+
         return await self.get_by_id(item_id)
 
     async def delete(self, item_id: str) -> bool:
@@ -168,7 +171,7 @@ class ItemManager:
             oid = ObjectId(item_id)
         except:
             return False
-        
+
         deleted_count = await db_manager.delete_one(self.items_collection, {"_id": oid})
         return deleted_count > 0
 

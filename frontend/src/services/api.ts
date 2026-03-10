@@ -1,6 +1,6 @@
 import type { KnowledgeItem, KeyDefinition, CategoryDefinition } from '../types';
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = '/api/v1';
 
 interface ItemWrapper {
   item?: {
@@ -66,7 +66,7 @@ export const api = {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('data', JSON.stringify({ keyValues }));
-    
+
     const response = await fetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
       body: formData,

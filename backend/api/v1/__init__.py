@@ -12,9 +12,9 @@ router = APIRouter()
 # 2. 调用工具函数，自动加载当前目录下的所有子路由
 include_routers_from_directory(
     parent_router=router,
-    package_name=__package__,          # 传入当前包名
-    directory_path=Path(__file__).parent, # 传入当前目录
-    auto_tag=False,                      # (可选) 自动在 Swagger 文档中按模块名分组
-    auto_prefix=False,                  # (可选) 是否强制在 URL 前加模块名
-    skip_modules=[]              # (可选) 跳过不想加载的文件
+    package_name=__package__,
+    directory_path=Path(__file__).parent,
+    auto_tag=False,
+    auto_prefix=True,
+    skip_modules=[],
 )

@@ -1,5 +1,5 @@
 import { Provider } from 'react-redux';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App as AntdApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { store } from './store';
 import Layout from './components/Layout';
@@ -11,13 +11,15 @@ initializePlugins();
 
 function App() {
   return (
-    <ConfigProvider 
+    <ConfigProvider
       theme={antdTheme}
       locale={zhCN}
     >
-      <Provider store={store}>
-        <Layout />
-      </Provider>
+      <AntdApp>
+        <Provider store={store}>
+          <Layout />
+        </Provider>
+      </AntdApp>
     </ConfigProvider>
   );
 }

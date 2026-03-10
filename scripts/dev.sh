@@ -13,7 +13,7 @@ popd
 # 启动后端服务
 echo "Starting backend server..."
 pushd backend
-    python app.py &
+    docker-compose up -d &
 popd
 
 echo "Development environment started!"

@@ -17,12 +17,11 @@ class RatingUpdate(BaseModel):
 async def update_rating(item_id: str, data: RatingUpdate) -> Dict[str, Any]:
     if not 1 <= data.rating <= 5:
         raise HTTPException(status_code=400, detail="星级必须在1-5之间")
-    
-    from managers.item_manager import ItemManager
-    manager = ItemManager()
-    
+
+    from managers.item_manager import item_manager
+
     try:
-        await manager.update_item(item_id, {"rating": data.rating})
+        await item_manager.update(item_id, {"attributes": {"rating": data.rating}})
         return {"success": True, "rating": data.rating}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -30,11 +29,10 @@ async def update_rating(item_id: str, data: RatingUpdate) -> Dict[str, Any]:
 
 @router.get("/items/{item_id}/rating")
 async def get_rating(item_id: str) -> Dict[str, Any]:
-    from managers.item_manager import ItemManager
-    manager = ItemManager()
-    
+    from managers.item_manager import item_manager
+
     try:
-        item = await manager.get_item(item_id)
+        item = await item_manager.get_by_id(item_id)
         rating = item.get("attributes", {}).get("rating", 0)
         return {"rating": rating}
     except Exception as e:
