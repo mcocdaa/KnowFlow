@@ -15,6 +15,6 @@ include_routers_from_directory(
     package_name=__package__,
     directory_path=Path(__file__).parent,
     auto_tag=False,
-    auto_prefix=True,
+    auto_prefix=False,
     skip_modules=[],
 )

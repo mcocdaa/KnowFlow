@@ -70,10 +70,20 @@ npm run test
 
 ### 测试文件
 
-测试文件位于 `frontend/src/test/` 目录：
+测试文件位于 `frontend/tests/` 目录：
 
-- `App.test.tsx`: 组件测试
 - `setup.ts`: 测试配置
+- `App.test.tsx`: 组件测试
+- `plugins/loader.test.tsx`: 插件加载器测试
+- `plugins/StarRating.test.tsx`: 星级评分插件测试
+
+### 测试框架
+
+- **Vitest**: 测试运行器
+- **@testing-library/react**: React 组件测试工具
+- **@testing-library/jest-dom**: DOM 匹配器
+- **@testing-library/user-event**: 用户事件模拟
+- **jsdom**: DOM 环境模拟
 
 ## Lint
 
@@ -105,7 +115,11 @@ Vitest 测试框架配置。
 
 ### TypeScript 配置
 
-TypeScript 配置文件。
+TypeScript 配置文件：
+
+- `tsconfig.json`: 主配置
+- `tsconfig.app.json`: 应用配置
+- `tsconfig.node.json`: Node.js 配置
 
 ## 开发流程
 
@@ -119,7 +133,7 @@ TypeScript 配置文件。
 1. **后端依赖**: 前端需要后端服务运行在 `http://localhost:3000`
 2. **CORS**: 后端已配置 CORS 允许跨域请求
 3. **API Key**: AI 功能需要在后端配置 API Key
-4. **数据备份**: 定期备份后端的 `db.json` 和 `uploads/` 目录
+4. **数据备份**: 定期备份后端的数据库和上传文件
 5. **Electron**: 桌面应用打包需要安装 Electron 依赖
 
 ## 故障排查
@@ -141,3 +155,21 @@ TypeScript 配置文件。
 - 运行 `npm run lint` 检查代码错误
 - 确保 TypeScript 类型检查通过
 - 检查依赖版本兼容性
+
+### 测试失败
+
+- 检查测试环境配置 (`tests/setup.ts`)
+- 确保所有依赖正确安装
+- 检查 jsdom 环境是否正确配置
+
+## 项目脚本
+
+| 脚本 | 命令 | 说明 |
+|------|------|------|
+| dev | `vite` | 启动开发服务器 |
+| build | `tsc -b && vite build` | 构建生产版本 |
+| lint | `eslint .` | 运行代码检查 |
+| preview | `vite preview` | 预览构建结果 |
+| test | `vitest` | 运行测试 |
+| electron:dev | `electron .` | 启动 Electron 开发模式 |
+| electron:build | `electron-builder` | 打包 Electron 应用 |

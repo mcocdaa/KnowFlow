@@ -51,8 +51,8 @@ def include_routers_from_directory(
                 kwargs = {"prefix": f"/{base_name}"}
                 if auto_tag:
                     kwargs["tags"] = [module_name]
-                # if auto_prefix:
-                #     kwargs["prefix"] += f"/{module_name}"
+                if auto_prefix:
+                    kwargs["prefix"] += f"/{module_name}"
 
                 parent_router.include_router(sub_router, **kwargs)
                 print(f"[RouterLoader] 已挂载: {package_name}.{module_name}, **{kwargs}")

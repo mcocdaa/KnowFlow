@@ -2,184 +2,56 @@
 
 ## 基础信息
 
-- **Base URL**: `http://localhost:3000`
-- **CORS**: 已启用跨域支持，允许所有来源
+- **Base URL**: `http://localhost:3000/api/v1`
+- **CORS**: 已启用跨域支持
 
-## 接口列表
+---
 
-### 1. 健康检查
+## 接口模块
 
-检查后端服务是否正常运行。
+| 模块 | 说明 | 文档 |
+|------|------|------|
+| 健康检查 | 服务状态检查 | [health.md](./api/health.md) |
+| 知识项管理 | 知识项 CRUD | [items.md](./api/items.md) |
+| 文件上传 | 文件上传处理 | [upload.md](./api/upload.md) |
+| 分类管理 | 分类 CRUD | [categories.md](./api/categories.md) |
+| Key 管理 | Key 定义 CRUD | [keys.md](./api/keys.md) |
+| 插件系统 | 插件相关接口 | [plugins.md](./api/plugins.md) |
 
-```http
-GET /api/health
-```
+---
 
-**响应示例**:
+## 快速参考
+
+### HTTP 状态码
+
+| 状态码 | 说明 |
+|--------|------|
+| 200 | 请求成功 |
+| 400 | 请求参数无效 |
+| 404 | 资源不存在 |
+| 500 | 服务器内部错误 |
+
+### 错误响应格式
+
 ```json
 {
-  "status": "ok"
+  "detail": "错误描述信息"
 }
 ```
 
----
+### 数据类型
 
-### 2. 知识项管理
-
-#### 获取所有知识项
-
-```http
-GET /api/knowledge
-```
-
-**响应**: 知识项数组，包含自动数据迁移（将旧格式数据迁移到 keyValues）。
-
-**响应示例**:
-```json
-[
-  {
-    "id": "1",
-    "title": "Test Item",
-    "createdAt": "2026-03-06T10:18:07.189037",
-    "keyValues": [
-      {
-        "keyId": "1",
-        "value": "./uploads/test.txt"
-      },
-      {
-        "keyId": "3",
-        "value": 0
-      }
-    ]
-  }
-]
-```
-
-#### 添加知识项
-
-```http
-POST /api/knowledge
-Content-Type: application/json
-
-{
-  "title": "新知识项",
-  "content": "内容",
-  "keyValues": [...]
-}
-```
-
-**响应**: 新创建的知识项对象。
-
-#### 更新知识项
-
-```http
-PUT /api/knowledge/{id}
-Content-Type: application/json
-
-{
-  "title": "更新后的标题"
-}
-```
-
-**路径参数**:
-- `id`: 知识项 ID
-
-**响应**: 更新后的知识项对象。
-
-#### 获取单个知识项
-
-```http
-GET /api/knowledge/{id}
-```
-
-**路径参数**:
-- `id`: 知识项 ID
-
-**响应**: 单个知识项对象。
-
-**错误响应**:
-- `404`: 知识项不存在
-
-#### 删除知识项
-
-```http
-DELETE /api/knowledge/{id}
-```
-
-**路径参数**:
-- `id`: 知识项 ID
-
-**响应**:
-```json
-{
-  "message": "Item deleted successfully"
-}
-```
-
-**错误响应**:
-- `404`: 知识项不存在
+| 类型 | 说明 | 示例 |
+|------|------|------|
+| `string` | 字符串 | `"hello"` |
+| `number` | 数字 | `123` |
+| `boolean` | 布尔值 | `true` |
+| `array` | 数组 | `["a", "b"]` |
+| `object` | 对象 | `{"key": "value"}` |
 
 ---
 
-### 3. 文件上传
+## 相关文档
 
-```http
-POST /api/upload
-Content-Type: multipart/form-data
-
-file: [文件二进制数据]
-```
-
-**响应**: 自动创建的知识项对象，包含文件路径、类型等信息。
-
----
-
-### 4. 分类管理
-
-#### 获取所有分类
-
-```http
-GET /api/categories
-```
-
-**响应**: 分类数组。
-
----
-
-### 5. Key 定义管理
-
-#### 获取所有 Key 定义
-
-```http
-GET /api/keys
-```
-
-**响应**: Key 定义数组。
-
----
-
-### 6. AI 检索
-
-```http
-POST /api/ai/search
-Content-Type: application/json
-
-{
-  "query": "搜索关键词"
-}
-```
-
-**响应**: 
-- 成功时返回豆包 AI 的响应
-- 失败时降级为本地关键词匹配，返回匹配的知识项数组
-
----
-
-## 数据迁移
-
-获取知识项接口 (`GET /api/knowledge`) 会自动执行以下数据迁移：
-
-- `starRating` → `keyValues` 中的 `keyId: "10"`
-- `clickCount` → `keyValues` 中的 `keyId: "3"`
-- `filePath` → `keyValues` 中的 `keyId: "1"`
-- `fileType` → `keyValues` 中的 `keyId: "2"`
+- [后端概述](./overview.md)
+- [数据库结构](./database.md)

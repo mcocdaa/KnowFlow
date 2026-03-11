@@ -19,6 +19,9 @@ export const store = configureStore({
     knowledge: knowledgeReducer,
   },
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 ```
 
 ### knowledgeSlice (知识项状态)
@@ -39,12 +42,11 @@ interface KnowledgeState {
 
 | Action | 说明 |
 |--------|------|
+| `setItems` | 设置知识项列表 |
 | `clearKnowledgeItems` | 清空所有知识项 |
 | `addKnowledgeItem` | 添加知识项 |
 | `updateKnowledgeItem` | 更新知识项 |
 | `deleteKnowledgeItem` | 删除知识项 |
-| `incrementClickCount` | 增加点击次数 |
-| `setStarRating` | 设置星级评分 |
 | `setSearchResults` | 设置搜索结果 |
 | `selectItem` | 选中知识项 |
 
@@ -56,8 +58,9 @@ interface KnowledgeState {
 
 ```typescript
 interface KeyState {
-  categories: KeyCategory[];
-  definitions: KeyDefinition[];
+  categories: CategoryDefinition[];
+  definitions: Record<string, KeyDefinition>;
+  definitionList: KeyDefinition[];
 }
 ```
 
@@ -65,25 +68,148 @@ interface KeyState {
 
 | Action | 说明 |
 |--------|------|
-| `addCategory` | 添加分类 |
-| `updateCategory` | 更新分类 |
-| `deleteCategory` | 删除分类（级联删除子分类） |
 | `setCategories` | 设置分类列表 |
-| `addKeyDefinition` | 添加 Key 定义 |
-| `updateKeyDefinition` | 更新 Key 定义 |
-| `deleteKeyDefinition` | 删除 Key 定义 |
 | `setDefinitions` | 设置 Key 定义列表 |
+
+## 自定义 Hooks
+
+**文件**: [frontend/src/hooks/useKnowledge.ts](../../frontend/src/hooks/useKnowledge.ts)
+
+### useInitialData
+
+初始化数据加载 Hook，在组件挂载时自动加载知识项、分类和 Key 定义。
+
+```typescript
+export const useInitialData = () => {
+  // 自动加载 items, categories, keys
+  // 错误处理并显示提示消息
+};
+```
+
+### useKnowledgeItems
+
+知识项操作 Hook，提供完整的 CRUD 操作和搜索功能。
+
+#### 返回值
+
+| 属性/方法 | 类型 | 说明 |
+|-----------|------|------|
+| `items` | KnowledgeItem[] | 知识项列表 |
+| `searchResults` | KnowledgeItem[] | 搜索结果 |
+| `selectedItem` | KnowledgeItem \| null | 选中的知识项 |
+| `selectedItemId` | string \| null | 选中的知识项 ID |
+| `handleItemClick` | (item: KnowledgeItem) => void | 处理知识项点击 |
+| `handleSearch` | (value: string, sortBy: string) => void | 处理搜索 |
+| `handleKeyClick` | (keyName: string) => void | 处理 Key 点击筛选 |
+| `handleDeleteItem` | (itemId: string) => Promise<void> | 删除知识项 |
+| `handleUpdateItem` | (item: KnowledgeItem) => Promise<KnowledgeItem> | 更新知识项 |
+| `handleUploadFile` | (file: File, values: Record<string, unknown>) => Promise<KnowledgeItem> | 上传文件 |
+| `handleCreateItem` | (values: Record<string, unknown>) => Promise<KnowledgeItem> | 创建知识项 |
+| `getSortedItems` | (sortBy: string) => KnowledgeItem[] | 获取排序后的列表 |
+| `getDefaultFormValues` | () => Record<string, unknown> | 获取表单默认值 |
+
+## API 服务层
+
+**文件**: [frontend/src/services/api.ts](../../frontend/src/services/api.ts)
+
+### 数据转换
+
+`transformItemData` 函数负责将后端返回的数据格式转换为前端使用的格式：
+
+```typescript
+export const transformItemData = (itemWrapper: ItemWrapper): KnowledgeItem => ({
+  id: itemWrapper.item?.id || itemWrapper.id || '',
+  name: itemWrapper.item?.name || itemWrapper.name || itemWrapper.attributes?.name || '',
+  keyValues: (itemWrapper.attributes || itemWrapper.keyValues || {}) as Record<string, unknown>,
+  createdAt: itemWrapper.item?.created_at || itemWrapper.attributes?.created_at || '',
+});
+```
+
+### API 方法
+
+| 方法 | 说明 |
+|------|------|
+| `api.fetchItems()` | 获取知识项列表 |
+| `api.fetchCategories()` | 获取分类列表 |
+| `api.fetchKeys()` | 获取 Key 定义列表 |
+| `api.updateItem(item)` | 更新知识项 |
+| `api.deleteItem(id)` | 删除知识项 |
+| `api.uploadFile(file, keyValues)` | 上传文件 |
+| `api.createItem(name, keyValues)` | 创建知识项 |
+
+## 插件系统
+
+### 插件加载器
+
+**文件**: [frontend/src/plugins/loader.tsx](../../frontend/src/plugins/loader.tsx)
+
+#### 核心接口
+
+```typescript
+export interface PluginManifest {
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  frontend_entry: string;
+  path: string;
+}
+
+export interface PluginComponentProps {
+  value: unknown;
+  itemId: string;
+  keyDefinition: {
+    name: string;
+    title: string;
+    value_type: string;
+  };
+  onUpdate: (value: unknown) => void;
+  readOnly?: boolean;
+}
+```
+
+#### 核心函数
+
+| 函数 | 说明 |
+|------|------|
+| `registerPluginComponent(name, component)` | 注册插件组件 |
+| `getPluginComponent(name)` | 获取插件组件 |
+| `hasPluginComponent(name)` | 检查插件组件是否存在 |
+| `fetchPluginManifests()` | 从后端获取插件清单 |
+
+#### PluginRenderer 组件
+
+用于渲染插件组件的包装器：
+
+```tsx
+<PluginRenderer
+  pluginName="rating"
+  value={value}
+  itemId={itemId}
+  keyDefinition={keyDefinition}
+  onUpdate={onUpdate}
+  readOnly={readOnly}
+/>
+```
+
+### 插件入口
+
+**文件**: [frontend/src/plugins/index.tsx](../../frontend/src/plugins/index.tsx)
+
+`initializePlugins()` 函数在应用启动时注册内置插件组件：
+
+- `rating`: 星级评分插件
 
 ## 数据流
 
 ### 数据加载流程
 
-1. `Layout` 组件挂载
-2. 调用 `loadData()` 函数
-3. 依次请求后端 API：
-   - `GET /api/knowledge` → 加载知识项
-   - `GET /api/categories` → 加载分类
-   - `GET /api/keys` → 加载 Key 定义
+1. `App` 组件挂载，调用 `initializePlugins()` 初始化插件
+2. `Layout` 组件挂载，调用 `useInitialData()` Hook
+3. Hook 内部并行请求后端 API：
+   - `GET /api/v1/item` → 加载知识项
+   - `GET /api/v1/categories` → 加载分类
+   - `GET /api/v1/keys` → 加载 Key 定义
 4. 通过 dispatch 更新 Redux store
 
 ### 用户交互流程
@@ -91,107 +217,122 @@ interface KeyState {
 以"点击知识项"为例：
 
 1. 用户点击知识项卡片
-2. 触发 `handleItemClick(itemId)`
-3. dispatch `selectItem(itemId)` 更新选中状态
-4. 从当前项的 keyValues 中获取 click_count
-5. 更新 keyValues 中的 click_count 值
-6. 调用 `PUT /api/knowledge/{id}` 更新后端
-7. dispatch `incrementClickCount(itemId)` 更新前端状态
-8. 右侧抽屉显示知识项详情
+2. 触发 `handleItemClick(item)`
+3. dispatch `selectItem(item.id)` 更新选中状态
+4. 右侧抽屉显示知识项详情
 
 ## 组件层次
 
 ```
 App.tsx
-└── Provider (Redux Store)
-    └── Layout.tsx
-        ├── Header
-        │   ├── Logo
-        │   └── AI 助手按钮
-        ├── Sider (侧边栏)
-        │   └── Menu (分类菜单)
-        └── Content
-            ├── Tabs (推荐/全部/高级搜索)
-            ├── SearchSection (搜索区域)
-            │   ├── StyledSearch (搜索框)
-            │   ├── Select (排序选择器)
-            │   ├── Select (分类筛选)
-            │   └── Select (搜索字段)
-            ├── UploadSection (上传区域)
-            │   ├── Upload.Dragger (拖拽上传)
-            │   └── Button (添加知识记录)
-            ├── FileCard[] (文件卡片列表)
-            │   ├── 文件图标
-            │   ├── 文件路径
-            │   ├── 点击次数/评分
-            │   └── 删除按钮
-            └── DetailDrawer (详情抽屉)
-                ├── 文件图标和路径
-                ├── DetailCard (基本信息)
-                │   ├── 点击次数
-                │   ├── 评分
-                │   └── 添加时间
-                ├── DetailCard (知识属性)
-                │   └── KeyValueItem[] (动态属性)
-                └── ActionButtons (操作按钮)
-                    ├── 打开所在文件夹
-                    ├── 编辑参数
-                    ├── 删除文件
-                    └── 预览 (媒体文件)
+└── ConfigProvider (Ant Design 主题)
+    └── AntdApp (Ant Design 上下文)
+        └── Provider (Redux Store)
+            └── Layout.tsx
+                ├── GlobalStyle (全局样式)
+                ├── StyledLayout
+                │   ├── StyledHeader
+                │   │   ├── Logo
+                │   │   └── AI 助手按钮
+                │   ├── AntLayout
+                │   │   ├── StyledSider (侧边栏)
+                │   │   │   └── StyledMenu (分类菜单)
+                │   │   └── Content
+                │   │       ├── StyledTabs (推荐/全部/搜索)
+                │   │       ├── SearchSection (搜索区域)
+                │   │       ├── UploadSection (上传区域)
+                │   │       ├── ResultsSection (结果列表)
+                │   │       │   └── FileCard[] (文件卡片)
+                │   │       └── DetailDrawer (详情抽屉)
+                │   └── Modal (编辑表单弹窗)
+                ├── KeyManager (Key 管理弹窗)
+                ├── AIAssistant (AI 助手弹窗)
+                └── MediaPreview (媒体预览弹窗)
 ```
 
-## API 通信
+## 类型定义
 
-### 基础配置
+**文件**: [frontend/src/types/index.ts](../../frontend/src/types/index.ts)
 
-- 后端地址: `http://localhost:3000`
-- 通信方式: `fetch` API
+### 核心类型
 
-### API 调用示例
-
-**加载知识项**:
 ```typescript
-const response = await fetch('http://localhost:3000/api/knowledge');
-const data = await response.json();
+export type ValueType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+
+export interface KeyDefinition {
+  name: string;
+  title: string;
+  value_type: ValueType;
+  default_value: any;
+  description: string;
+  category_name: string;
+  is_required: boolean;
+  is_visible: boolean;
+  plugin_name: string;
+  delete_with_plugin: boolean;
+  is_public: boolean;
+  is_private: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CategoryDefinition {
+  name: string;
+  title: string;
+  parent_name: string | null;
+  is_builtin: boolean;
+}
+
+export interface KnowledgeItem {
+  id: string;
+  name: string;
+  keyValues: Record<string, unknown>;
+  createdAt?: string;
+}
 ```
 
-**上传文件**:
-```typescript
-const formData = new FormData();
-formData.append('file', file);
-const response = await fetch('http://localhost:3000/api/upload', {
-  method: 'POST',
-  body: formData,
-});
-```
+## 主题系统
 
-**更新知识项**:
-```typescript
-const response = await fetch(`http://localhost:3000/api/knowledge/${id}`, {
-  method: 'PUT',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(updatedItem),
-});
-```
+**文件**: [frontend/src/theme/index.ts](../../frontend/src/theme/index.ts)
 
-## 搜索语法
+### 设计令牌
 
-支持 `key:pattern; key:pattern` 格式的搜索语法。
+主题系统导出以下设计令牌：
 
-### 示例
+- `COLORS`: 颜色规范
+- `SPACING`: 间距规范
+- `BORDER_RADIUS`: 圆角规范
+- `FONT_SIZES`: 字体大小
+- `FONT_WEIGHTS`: 字体粗细
+- `SHADOWS`: 阴影规范
+- `TRANSITIONS`: 过渡动画
 
-| 搜索语句 | 说明 |
-|----------|------|
-| `file_name:test` | 搜索文件名包含 "test" 的项 |
-| `star_rating:5` | 搜索星级为 5 的项 |
-| `click_count` | 搜索有点击次数的项 |
-| `file_type:image; star_rating:3` | 搜索图片类型且星级为 3 的项 |
+### Ant Design 主题配置
+
+`antdTheme` 对象配置了 Ant Design 组件的主题定制，包括：
+
+- 品牌色、背景色、文字色
+- 边框、状态色
+- 圆角、阴影
+- 字体、间距
+- 各组件的特定样式覆盖
+
+## 搜索功能
 
 ### 搜索流程
 
-1. 解析搜索语句，按 `;` 分割为多个 term
-2. 对每个 term 按 `:` 分割为 key 和 pattern
-3. 查找对应的 Key 定义
-4. 在知识项的 keyValues 中匹配
-5. 应用排序（按点击次数或星级）
-6. 更新搜索结果
+1. 用户输入搜索关键词
+2. 触发 `handleSearch(value, sortBy)`
+3. 过滤知识项列表：
+   - 匹配 `name` 字段
+   - 匹配 `keyValues.file_path` 字段
+4. 应用排序（按最近添加）
+5. dispatch `setSearchResults(results)` 更新搜索结果
+
+### Key 点击筛选
+
+点击侧边栏的 Key 时：
+
+1. 触发 `handleKeyClick(keyName)`
+2. 过滤包含该 Key 值的知识项
+3. 更新搜索结果并切换到搜索 Tab
