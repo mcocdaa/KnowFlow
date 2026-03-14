@@ -175,6 +175,72 @@ class ItemManager:
         deleted_count = await db_manager.delete_one(self.items_collection, {"_id": oid})
         return deleted_count > 0
 
+    async def search(
+        self,
+        q: str = "",
+        category: str = None,
+        key: str = None,
+        key_value: str = None,
+        sort: str = "recent",
+        page: int = 1,
+        page_size: int = 20
+    ) -> Dict[str, Any]:
+        """
+        搜索知识项
+        """
+        query = {}
+
+        if q:
+            all_keys = await key_manager.get_all()
+            search_fields = ["name"]
+            for k in all_keys:
+                search_fields.append(k["name"])
+
+            or_conditions = []
+            for field in search_fields:
+                or_conditions.append({field: {"$regex": q, "$options": "i"}})
+            query["$or"] = or_conditions
+
+        if category:
+            query["category"] = category
+
+        if key and key_value:
+            query[key] = {"$regex": key_value, "$options": "i"}
+
+        sort_options = []
+        if sort == "recent":
+            sort_options = [("created_at", -1)]
+        elif sort == "rating":
+            sort_options = [("rating", -1)]
+        elif sort == "clickCount":
+            sort_options = [("click_count", -1)]
+        elif sort == "name":
+            sort_options = [("name", 1)]
+
+        skip = (page - 1) * page_size
+
+        items = await db_manager.find(
+            self.items_collection,
+            query=query,
+            sort=sort_options,
+            limit=page_size,
+            skip=skip
+        )
+
+        total = await db_manager.count_documents(self.items_collection, query)
+
+        result = []
+        for item in items:
+            result.append(await self._format_item_response(item))
+
+        return {
+            "items": result,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size
+        }
+
 
 # 全局知识项管理实例
 item_manager = ItemManager()

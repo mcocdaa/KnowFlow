@@ -5,3 +5,5 @@
 plugins:
   rating:
     enabled: true
+  knowflow_openclaw:
+    enabled: true

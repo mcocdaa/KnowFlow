@@ -55,11 +55,11 @@ class PluginLoader:
         plugin_name = plugin_config.get("name", plugin_dir.name)
         print(f"[PluginLoader] 加载插件: {plugin_name}")
 
-        await self._register_keys(plugin_config.get("keys", []), plugin_name)
-
         backend_entry = plugin_config.get("backend_entry")
         if backend_entry:
             await self._load_backend(plugin_dir / backend_entry, plugin_name)
+
+        await self._register_keys(plugin_config.get("keys", []), plugin_name)
 
         self.loaded_plugins[plugin_name] = {
             "config": plugin_config,

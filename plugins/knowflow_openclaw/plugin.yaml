@@ -1,0 +1,98 @@
+name: knowflow_openclaw
+version: 1.0.0
+description: KnowFlow OpenClaw桥接插件，提供与OpenClaw系统的集成能力
+author: KnowFlow
+
+keys:
+  - name: openclaw_project_id
+    title: 项目ID
+    value_type: string
+    default_value: ""
+    description: 项目唯一ID（必填）按项目隔离归档，核心字段
+    category_name: openclaw_category
+    is_required: true
+    is_visible: true
+    plugin_name: "knowflow_openclaw"
+    delete_with_plugin: false
+    is_public: true
+    is_private: false
+    created_at: "2026-03-12"
+    updated_at: "2026-03-12"
+
+  - name: openclaw_archive_type
+    title: 归档类型
+    value_type: string
+    default_value: "document"
+    description: 归档类型：requirement / code / test / document / flow_record 分类归档，AI快速筛选
+    category_name: openclaw_category
+    is_required: false
+    is_visible: true
+    plugin_name: "knowflow_openclaw"
+    delete_with_plugin: false
+    is_public: true
+    is_private: false
+    created_at: "2026-03-12"
+    updated_at: "2026-03-12"
+
+  - name: openclaw_fold_level
+    title: 折叠层级
+    value_type: number
+    default_value: 3
+    description: 折叠层级：1(顶层摘要)/2(中层)/3(完整内容) 实现多层折叠，省Token
+    category_name: openclaw_category
+    is_required: false
+    is_visible: true
+    plugin_name: "knowflow_openclaw"
+    delete_with_plugin: false
+    is_public: true
+    is_private: false
+    created_at: "2026-03-12"
+    updated_at: "2026-03-12"
+
+  - name: openclaw_agent_source
+    title: 生成者
+    value_type: string
+    default_value: ""
+    description: 生成者：编码Agent / 调试Agent/AutoFlow溯源，不混乱
+    category_name: openclaw_category
+    is_required: false
+    is_visible: true
+    plugin_name: "knowflow_openclaw"
+    delete_with_plugin: false
+    is_public: true
+    is_private: false
+    created_at: "2026-03-12"
+    updated_at: "2026-03-12"
+
+  - name: openclaw_summary
+    title: 摘要
+    value_type: string
+    default_value: ""
+    description: 一句话摘要（顶层折叠内容）AI只读摘要，不读全文，极致省Token
+    category_name: openclaw_category
+    is_required: false
+    is_visible: true
+    plugin_name: "knowflow_openclaw"
+    delete_with_plugin: false
+    is_public: true
+    is_private: false
+    created_at: "2026-03-12"
+    updated_at: "2026-03-12"
+
+  - name: openclaw_flow_id
+    title: 流程ID
+    value_type: string
+    default_value: ""
+    description: AutoFlow流程ID（可选）关联自动化流程
+    category_name: openclaw_category
+    is_required: false
+    is_visible: true
+    plugin_name: "knowflow_openclaw"
+    delete_with_plugin: false
+    is_public: true
+    is_private: false
+    created_at: "2026-03-12"
+    updated_at: "2026-03-12"
+
+backend_entry: backend.py
+frontend_entry: frontend.tsx

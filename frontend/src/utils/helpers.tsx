@@ -23,9 +23,9 @@ export const formatDate = (dateString: string): string => {
 
 export const openFileLocation = (filePath: string, fallbackToCopy: (path: string) => void): void => {
   if (!filePath) return;
-  
+
   const isElectron = window.require && window.require('electron');
-  
+
   if (isElectron) {
     try {
       const { shell } = window.require('electron');
@@ -52,26 +52,35 @@ export const buildCategoryTree = (
   definitionList: Array<{ name: string; title: string; category_name: string }>,
   onKeyClick: (keyName: string) => void
 ): MenuItem[] => {
+  const normalizeParentName = (parentName: string | null): string | null => {
+    if (parentName === null || parentName === 'null' || parentName === undefined || parentName === 'None') {
+      return null;
+    }
+    return parentName;
+  };
+
   const buildTree = (parentName: string | null): MenuItem[] => {
+    const normalizedParent = normalizeParentName(parentName);
     return categories
-      .filter(cat => cat.parent_name === parentName)
+      .filter(cat => normalizeParentName(cat.parent_name) === normalizedParent)
       .map(cat => {
-        const hasChildCategories = categories.some(c => c.parent_name === cat.name);
+        const normalizedCatName = normalizeParentName(cat.name);
+        const hasChildCategories = categories.some(c => normalizeParentName(c.parent_name) === normalizedCatName);
         const categoryKeys = definitionList.filter(def => def.category_name === cat.name);
-        
+
         const children: MenuItem[] = [];
-        
+
         if (hasChildCategories) {
-          children.push(...buildTree(cat.name));
+          children.push(...buildTree(normalizedCatName));
         }
-        
+
         if (categoryKeys.length > 0) {
           children.push(...categoryKeys.map(keyDef => ({
             key: `key-${keyDef.name}`,
             label: (
-              <span style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              <span style={{
+                display: 'flex',
+                alignItems: 'center',
                 gap: '8px',
                 color: '#52c41a',
               }}>
@@ -88,7 +97,7 @@ export const buildCategoryTree = (
             },
           })));
         }
-        
+
         return {
           key: `cat-${cat.name}`,
           label: cat.title,
@@ -102,6 +111,6 @@ export const buildCategoryTree = (
         };
       });
   };
-  
+
   return buildTree(null);
 };

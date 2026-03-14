@@ -42,7 +42,7 @@ class DBManager:
         if not self.client:
             self.client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URL)
             self.db = self.client[MONGODB_DB_NAME]
-            
+
             await self._create_indexes()
 
     async def reconnect(self):
@@ -71,6 +71,9 @@ class DBManager:
         await self.db["categories"].create_index([("name", 1)], unique=True)
         await self.db["keys"].create_index([("name", 1)], unique=True)
         await self.db["items"].create_index([("name", 1)])
+        await self.db["items"].create_index([("created_at", -1)])
+        await self.db["items"].create_index([("category", 1)])
+        await self.db["items"].create_index([("name", "text"), ("file_path", "text")])
 
     @retry_on_connection_error
     async def insert_one(self, collection: str, document: Dict[str, Any]) -> Any:
@@ -96,7 +99,7 @@ class DBManager:
         return await self.db[collection].find_one(query)
 
     @retry_on_connection_error
-    async def find(self, collection: str, query: Dict[str, Any] = None, sort: list = None, limit: int = 0) -> list[Dict[str, Any]]:
+    async def find(self, collection: str, query: Dict[str, Any] = None, sort: list = None, limit: int = 0, skip: int = 0) -> list[Dict[str, Any]]:
         """
         查询多个文档
         """
@@ -104,6 +107,8 @@ class DBManager:
         cursor = self.db[collection].find(query)
         if sort:
             cursor = cursor.sort(sort)
+        if skip:
+            cursor = cursor.skip(skip)
         if limit:
             cursor = cursor.limit(limit)
         return await cursor.to_list(length=limit if limit > 0 else None)
