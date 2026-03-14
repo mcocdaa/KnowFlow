@@ -1,0 +1,44 @@
+schema: spec-driven
+context: |
+  KnowFlow 是一个智能知识管理系统（v1.0.3），技术栈：
+  - 后端: Python (FastAPI) + MongoDB (motor异步驱动)
+  - 前端: React (TypeScript) + Electron
+  - 插件系统: YAML声明 + Python后端 + React前端
+  - 当前运行在 http://localhost:3000/
+  
+  本次开发在 openclaw 分支上进行。
+  目标：开发 OpenClaw 桥接工具，让 OpenClaw Agent 能方便地调用 KnowFlow API 进行结构化文档记录。
+  桥接工具以 OpenClaw 技能（SKILL.md）形式存在，通过 HTTP 调用 KnowFlow REST API。
+  
+  KnowFlow API 端点：
+  - POST /api/v1/item — 创建知识项
+  - GET /api/v1/item — 列出所有知识项
+  - GET /api/v1/item/{id} — 获取单个知识项
+  - PUT /api/v1/item/{id} — 更新知识项
+  - DELETE /api/v1/item/{id} — 删除知识项
+  - GET /api/v1/item/search?q=&category=&key=&key_value=&sort=&page=&page_size= — 搜索
+  - GET /api/v1/categories — 分类列表
+  - GET /api/v1/keys — Key定义列表
+  - PUT /api/v1/items/{id}/openclaw — 更新OpenClaw属性
+  - GET /api/v1/items/{id}/openclaw — 获取OpenClaw属性
+  - PATCH /api/v1/items/{id}/openclaw — 部分更新OpenClaw属性
+  
+  OpenClaw 插件 Key 字段：
+  - openclaw_project_id (必填) — 项目ID
+  - openclaw_archive_type — 归档类型: requirement/code/test/document/flow_record
+  - openclaw_fold_level — 折叠层级: 1(摘要)/2(中层)/3(完整)
+  - openclaw_agent_source — 生成者Agent
+  - openclaw_summary — 一句话摘要
+  - openclaw_flow_id — AutoFlow流程ID
+rules:
+  proposal:
+    - 明确桥接工具的功能边界
+    - 考虑 Agent 调用的便捷性（最少参数完成最常用操作）
+  specs:
+    - 使用 Given/When/Then 格式
+    - 覆盖所有 API 端点的调用场景
+  design:
+    - 技能文件结构遵循 OpenClaw AgentSkills 规范
+    - HTTP 调用使用 PowerShell 或 curl
+  tasks:
+    - 每个任务可独立完成和验证

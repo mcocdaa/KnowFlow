@@ -14,6 +14,29 @@ async def get_item():
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/item/search")
+async def search_items(
+    q: str = "",
+    category: str = None,
+    key: str = None,
+    key_value: str = None,
+    sort: str = "recent",
+    page: int = 1,
+    page_size: int = 20
+):
+    try:
+        return await item_manager.search(
+            q=q,
+            category=category,
+            key=key,
+            key_value=key_value,
+            sort=sort,
+            page=page,
+            page_size=page_size
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.get("/item/{item_id}")
 async def get_item_item(item_id: str):
     try:
@@ -50,26 +73,3 @@ async def delete_item(item_id: str):
         return {"message": "Item deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-
-@router.get("/item/search")
-async def search_items(
-    q: str = "",
-    category: str = None,
-    key: str = None,
-    key_value: str = None,
-    sort: str = "recent",
-    page: int = 1,
-    page_size: int = 20
-):
-    try:
-        return await item_manager.search(
-            q=q,
-            category=category,
-            key=key,
-            key_value=key_value,
-            sort=sort,
-            page=page,
-            page_size=page_size
-        )
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
