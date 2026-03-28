@@ -1,5 +1,6 @@
 name: knowflow_openclaw
 version: 1.0.0
+type: integration
 description: KnowFlow OpenClaw桥接插件，提供与OpenClaw系统的集成能力
 author: KnowFlow
 
@@ -95,4 +96,5 @@ keys:
     updated_at: "2026-03-12"
 
 backend_entry: backend.py
+hooks_entry: hooks.py
 frontend_entry: frontend.tsx

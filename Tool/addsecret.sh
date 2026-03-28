@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SECRETS_DIR="$(dirname "$0")/../backend/.secrets"
+SECRETS_DIR="$(dirname "$0")/../secrets"
 
 mkdir -p "$SECRETS_DIR"
 

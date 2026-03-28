@@ -10,7 +10,7 @@ from api import register_routers
 from managers.db_manager import db_manager
 from managers.category_manager import category_manager
 from managers.key_manager import key_manager
-from core.plugin_loader import PluginLoader, plugin_loader
+from core import plugin_manager
 
 
 @asynccontextmanager
@@ -18,12 +18,12 @@ async def lifespan(app: FastAPI):
     await db_manager.initialize()
     await category_manager.initialize()
     await key_manager.initialize()
-    
-    plugin_loader.initialize(app)
-    await plugin_loader.load_all_plugins()
-    
+
+    plugin_manager.initialize(app)
+    await plugin_manager.load_all_plugins()
+
     yield
-    
+
     await db_manager.close()
 
 
@@ -36,6 +36,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get(f"/api/{API_VERSION}/health")
+async def health_check():
+    return {"status": "ok"}
 
 register_routers(app)
 

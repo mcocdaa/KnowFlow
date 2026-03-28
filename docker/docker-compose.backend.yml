@@ -1,0 +1,13 @@
+# ============================================
+# KnowFlow 后端模式
+# 使用: docker-compose -f docker-compose.backend.yml -p knowflow up
+# ============================================
+
+services:
+  backend:
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+
+networks:
+  knowflow-network:
+    external: false

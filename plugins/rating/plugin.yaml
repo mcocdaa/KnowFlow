@@ -1,5 +1,6 @@
 name: rating
 version: 1.0.0
+type: rating
 description: 为知识项添加星级评分功能
 author: KnowFlow
 
@@ -20,4 +21,5 @@ keys:
     updated_at: "2026-01-01"
 
 backend_entry: backend.py
+hooks_entry: hooks.py
 frontend_entry: frontend.tsx
