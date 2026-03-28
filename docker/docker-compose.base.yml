@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: knowflow-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - knowflow-network
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: knowflow-backend
+    restart: unless-stopped
+    volumes:
+      - knowflow-data:/app/data
+      - ../backend/uploads:/app/uploads
+      - ../plugins:/app/plugins:ro
+    environment:
+      - API_VERSION=${API_VERSION:-v1}
+      - DATA_DIR=${DATA_DIR:-./data}
+      - UPLOAD_DIR=${UPLOAD_DIR:-./data/uploads}
+      - PLUGINS_DIR=${PLUGINS_DIR:-./plugins}
+      - MONGODB_URL_FILE=/run/secrets/mongodb_url
+      - MONGODB_DB_NAME=${MONGODB_DB_NAME:-knowflow}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - DOUBAO_BASE_URL=${DOUBAO_BASE_URL}
+      - DOUBAO_MODEL=${DOUBAO_MODEL}
+      - DOUBAO_API_KEY_FILE=/run/secrets/doubao_api_key
+    secrets:
+      - mongodb_url
+      - doubao_api_key
+    depends_on:
+      - mongodb
+    networks:
+      - knowflow-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  knowflow-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    driver: local
+  knowflow-data:
+    driver: local
+
+secrets:
+  mongodb_url:
+    file: ../secrets/mongodb_url.txt
+  doubao_api_key:
+    file: ../secrets/doubao_api_key.txt

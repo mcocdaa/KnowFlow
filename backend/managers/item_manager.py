@@ -7,6 +7,15 @@ from datetime import datetime
 from bson import ObjectId
 from .db_manager import db_manager
 from .key_manager import key_manager
+from core import hook_manager
+from core.hooks import (
+    ITEM_CREATE_BEFORE, ITEM_CREATE_AFTER,
+    ITEM_UPDATE_BEFORE, ITEM_UPDATE_AFTER,
+    ITEM_DELETE_BEFORE, ITEM_DELETE_AFTER,
+    ITEM_GET_BEFORE, ITEM_GET_AFTER,
+    ITEM_LIST_BEFORE, ITEM_LIST_AFTER,
+    SEARCH_BEFORE, SEARCH_AFTER,
+)
 
 
 class ItemManager:
@@ -71,6 +80,7 @@ class ItemManager:
             "key_info": key_info
         }
 
+    @hook_manager.wrap_hooks(before=ITEM_LIST_BEFORE, after=ITEM_LIST_AFTER)
     async def get_all(self) -> List[Dict[str, Any]]:
         """
         获取所有知识项
@@ -83,6 +93,7 @@ class ItemManager:
 
         return result
 
+    @hook_manager.wrap_hooks(before=ITEM_GET_BEFORE, after=ITEM_GET_AFTER)
     async def get_by_id(self, item_id: str) -> Optional[Dict[str, Any]]:
         """
         根据ID获取知识项
@@ -98,6 +109,7 @@ class ItemManager:
 
         return await self._format_item_response(item)
 
+    @hook_manager.wrap_hooks(before=ITEM_CREATE_BEFORE, after=ITEM_CREATE_AFTER)
     async def create(self, item_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         创建新知识项
@@ -125,6 +137,7 @@ class ItemManager:
 
         return await self.get_by_id(str(item_id))
 
+    @hook_manager.wrap_hooks(before=ITEM_UPDATE_BEFORE, after=ITEM_UPDATE_AFTER)
     async def update(self, item_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         更新知识项
@@ -163,6 +176,7 @@ class ItemManager:
 
         return await self.get_by_id(item_id)
 
+    @hook_manager.wrap_hooks(before=ITEM_DELETE_BEFORE, after=ITEM_DELETE_AFTER)
     async def delete(self, item_id: str) -> bool:
         """
         删除知识项
@@ -175,6 +189,7 @@ class ItemManager:
         deleted_count = await db_manager.delete_one(self.items_collection, {"_id": oid})
         return deleted_count > 0
 
+    @hook_manager.wrap_hooks(before=SEARCH_BEFORE, after=SEARCH_AFTER)
     async def search(
         self,
         q: str = "",

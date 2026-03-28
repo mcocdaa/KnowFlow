@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  dev:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    container_name: knowflow-dev
+    volumes:
+      - ..:/workspace:cached
+      # 挂载 Docker socket 以便在容器内使用 Docker
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    command: sleep infinity
+    # 开发环境暴露常用端口
+    ports:
+      - "3000:3000"    # 后端
+      - "5173:5173"    # 前端 Vite
+      - "27017:27017"  # MongoDB（如果本地运行）
+    environment:
+      - NODE_ENV=development

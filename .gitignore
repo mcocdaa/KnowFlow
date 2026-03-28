@@ -16,8 +16,17 @@ frontend/dist/
 
 # Data & Uploads
 backend/uploads/
+backend/data/
 backend/py/db.json
 *.log
 
+# Environment files
+.env
+backend/.env
+frontend/.env
+
 # Secrets
 backend/.secrets/
+secrets/
+*.key
+*.pem
