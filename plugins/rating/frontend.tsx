@@ -7,28 +7,28 @@ interface StarRatingProps {
   readOnly?: boolean;
 }
 
-const StarRating: React.FC<StarRatingProps> = ({ 
-  value = 0, 
-  itemId, 
+const StarRating: React.FC<StarRatingProps> = ({
+  value = 0,
+  itemId,
   onUpdate,
-  readOnly = false 
+  readOnly = false
 }) => {
   const [rating, setRating] = useState(value || 0);
   const [hover, setHover] = useState(0);
 
   const handleClick = async (star: number) => {
     if (readOnly) return;
-    
+
     setRating(star);
     onUpdate(star);
-    
+
     try {
       const response = await fetch(`/api/v1/plugins/rating/items/${itemId}/rating`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating: star }),
       });
-      
+
       if (!response.ok) {
         console.error('Failed to update rating');
       }

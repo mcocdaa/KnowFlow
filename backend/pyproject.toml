@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+# B904: API 层刻意用 HTTPException 做错误映射，原始异常已记录日志
+ignore = ["B008", "B904"]
+
+[tool.ruff.lint.per-file-ignores]
+"test/*" = ["B"]
+"plugins/*" = []

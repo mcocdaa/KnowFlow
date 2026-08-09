@@ -18,10 +18,6 @@ const knowledgeSlice = createSlice({
   name: 'knowledge',
   initialState,
   reducers: {
-    clearKnowledgeItems: (state) => {
-      state.items = [];
-      state.searchResults = [];
-    },
     addKnowledgeItem: (state, action: PayloadAction<KnowledgeItem>) => {
       state.items.push(action.payload);
     },
@@ -57,13 +53,12 @@ const knowledgeSlice = createSlice({
   },
 });
 
-export const { 
-  clearKnowledgeItems, 
-  addKnowledgeItem, 
-  updateKnowledgeItem, 
-  deleteKnowledgeItem, 
-  setSearchResults, 
-  selectItem, 
-  setItems 
+export const {
+  addKnowledgeItem,
+  updateKnowledgeItem,
+  deleteKnowledgeItem,
+  setSearchResults,
+  selectItem,
+  setItems
 } = knowledgeSlice.actions;
 export default knowledgeSlice.reducer;

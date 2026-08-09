@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select } from 'antd';
-import { SearchOutlined, SortAscendingOutlined, FilterOutlined } from '@ant-design/icons';
+import { SearchOutlined, SortAscendingOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { SearchSectionWrapper, StyledSearch } from './layout-styles';
 import { COLORS, BORDER_RADIUS, SHADOWS, TRANSITIONS } from '../../theme';
@@ -87,30 +87,16 @@ interface SearchSectionProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onSearch: (value: string) => void;
-  activeTab: string;
   sortBy: string;
   onSortByChange: (value: string) => void;
-  searchKey: string;
-  onSearchKeyChange: (value: string) => void;
-  categories: any[];
-  selectedCategory: string;
-  onCategoryChange: (value: string) => void;
-  definitionList: any[];
 }
 
 const SearchSection: React.FC<SearchSectionProps> = ({
   searchQuery,
   onSearchChange,
   onSearch,
-  activeTab,
   sortBy,
   onSortByChange,
-  searchKey,
-  onSearchKeyChange,
-  categories,
-  selectedCategory,
-  onCategoryChange,
-  definitionList,
 }) => {
   return (
     <SearchSectionWrapper>
@@ -141,55 +127,10 @@ const SearchSection: React.FC<SearchSectionProps> = ({
               onChange={onSortByChange}
               style={{ width: 150 }}
             >
-              <Option value="clickCount">点击次数</Option>
               <Option value="recent">最近添加</Option>
               <Option value="rating">评分</Option>
             </Select>
           </SelectWrapper>
-
-          {activeTab === 'all' && (
-            <>
-              <IconWrapper>
-                <FilterOutlined />
-                分类
-              </IconWrapper>
-              <SelectWrapper>
-                <Select
-                  value={selectedCategory}
-                  onChange={onCategoryChange}
-                  style={{ width: 150 }}
-                  placeholder="选择分类"
-                >
-                  <Option value="">全部分类</Option>
-                  {categories.map(cat => (
-                    <Option key={cat.id} value={cat.name}>{cat.name}</Option>
-                  ))}
-                </Select>
-              </SelectWrapper>
-            </>
-          )}
-
-          {activeTab === 'advanced' && (
-            <>
-              <IconWrapper>
-                <FilterOutlined />
-                字段
-              </IconWrapper>
-              <SelectWrapper>
-                <Select
-                  value={searchKey}
-                  onChange={onSearchKeyChange}
-                  style={{ width: 200 }}
-                  placeholder="选择搜索字段"
-                >
-                  <Option value="">所有字段</Option>
-                  {definitionList.map(def => (
-                    <Option key={def.id} value={def.id}>{def.name}</Option>
-                  ))}
-                </Select>
-              </SelectWrapper>
-            </>
-          )}
         </FilterGroup>
       </SearchContainer>
     </SearchSectionWrapper>

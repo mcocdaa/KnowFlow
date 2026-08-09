@@ -2,8 +2,10 @@
 # @brief API v1 模块导出
 # @create 2026-03-06 10:00:00
 
-from fastapi import APIRouter
 from pathlib import Path
+
+from fastapi import APIRouter
+
 from core.router_loader import include_routers_from_directory
 
 # 1. 创建父路由
@@ -14,7 +16,5 @@ include_routers_from_directory(
     parent_router=router,
     package_name=__package__,
     directory_path=Path(__file__).parent,
-    auto_tag=False,
-    auto_prefix=False,
     skip_modules=[],
 )

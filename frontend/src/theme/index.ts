@@ -7,9 +7,6 @@ export {
   SHADOWS,
   TRANSITIONS,
   FONT_FAMILY,
-  designTokens,
 } from './tokens';
 
 export { antdTheme } from './antd';
-
-export { default as theme } from './tokens';

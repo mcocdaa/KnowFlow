@@ -118,7 +118,7 @@ const clickCountKv = item.keyValues?.find((kv: any) => kv.keyId === '3');
 const currentClickCount = clickCountKv?.value || 0;
 const newClickCount = currentClickCount + 1;
 
-const updatedKeyValues = item.keyValues?.map((kv: any) => 
+const updatedKeyValues = item.keyValues?.map((kv: any) =>
   kv.keyId === '3' ? { ...kv, value: newClickCount } : kv
 ) || [{ keyId: '3', value: newClickCount }];
 ```

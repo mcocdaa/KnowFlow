@@ -2,18 +2,17 @@
 # @brief 插件管理器 - 负责插件注册和加载
 # @create 2026-03-27
 
+import importlib.util
+import logging
 import os
 import sys
-import yaml
-import logging
-import importlib.util
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any
+
+import yaml
 from fastapi import FastAPI
 
-from core import hook_manager
-from config.settings import PLUGINS_DIR, API_VERSION
-
+from config.settings import API_VERSION, PLUGINS_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +27,12 @@ class PluginManager:
     4. 集成钩子系统
     """
 
-    @hook_manager.wrap_hooks("plugin_manager_construct_before", "plugin_manager_construct_after")
     def __init__(self):
-        self.plugins_dir: Optional[Path] = Path(PLUGINS_DIR)
-        self.plugins: Dict[str, Any] = {}
-        self.loaded_plugins: Dict[str, Any] = {}
-        self.plugin_modules: Dict[str, Any] = {}
-        self.app: Optional[FastAPI] = None
+        self.plugins_dir: Path | None = Path(PLUGINS_DIR)
+        self.plugins: dict[str, Any] = {}
+        self.loaded_plugins: dict[str, Any] = {}
+        self.plugin_modules: dict[str, Any] = {}
+        self.app: FastAPI | None = None
 
     def initialize(self, app: FastAPI):
         """初始化插件管理器"""
@@ -44,7 +42,6 @@ class PluginManager:
         for key, info in self.plugins.items():
             logger.info(f"  - {key} ({info['type']})")
 
-    @hook_manager.wrap_hooks("plugin_manager_init_before", "plugin_manager_init_after")
     async def load_all_plugins(self):
         """加载所有启用的插件"""
         if not self.plugins_dir:
@@ -57,14 +54,13 @@ class PluginManager:
             except Exception as e:
                 logger.error(f"加载插件 {key} 失败: {e}", exc_info=True)
 
-    async def _load_plugin(self, key: str, info: Dict[str, Any]):
+    async def _load_plugin(self, key: str, info: dict[str, Any]):
         """加载单个插件"""
         plugin_path = Path(info["path"])
         manifest = info["manifest"]
 
         logger.info(f"[PluginManager] 正在加载插件: {info['name']} ({key})")
 
-        module_file = None
         backend_entry = manifest.get("backend_entry", "backend.py")
         hooks_entry = manifest.get("hooks_entry", "hooks.py")
 
@@ -73,21 +69,19 @@ class PluginManager:
             hooks_file = plugin_path / hooks_entry
 
             if backend_file.exists():
-                module_file = backend_file
-            elif hooks_file.exists():
-                module_file = hooks_file
-        elif plugin_path.is_file() and plugin_path.suffix == ".py":
-            module_file = plugin_path
+                await self._load_plugin_module(key, backend_file, manifest)
 
-        if module_file:
-            await self._load_plugin_module(key, module_file, manifest)
+            if hooks_file.exists():
+                await self._load_plugin_module(f"{key}.hooks", hooks_file, manifest)
+        elif plugin_path.is_file() and plugin_path.suffix == ".py":
+            await self._load_plugin_module(key, plugin_path, manifest)
 
         await self._register_keys(manifest.get("keys", []), key)
 
         self.loaded_plugins[key] = info
         logger.info(f"[PluginManager] 成功加载插件: {info['name']} ({key})")
 
-    async def _load_plugin_module(self, key: str, module_file: Path, manifest: Dict[str, Any]):
+    async def _load_plugin_module(self, key: str, module_file: Path, manifest: dict[str, Any]):
         """加载插件模块"""
         module_name = f"plugins.{key.replace(os.sep, '.').replace('/', '.')}"
         logger.debug(f"正在从文件加载插件: {module_file}")
@@ -102,22 +96,22 @@ class PluginManager:
         spec.loader.exec_module(module)
         self.plugin_modules[key] = module
 
-        if hasattr(module, 'router') and self.app:
-            self.app.include_router(
-                module.router,
-                prefix=f"/api/{API_VERSION}/plugins/{key}",
-                tags=[f"plugin/{key}"]
-            )
+        if hasattr(module, "router") and self.app:
+            self.app.include_router(module.router, prefix=f"/api/{API_VERSION}/plugins/{key}", tags=[f"plugin/{key}"])
             logger.info(f"[PluginManager] 注册路由: /api/{API_VERSION}/plugins/{key}")
 
-        if hasattr(module, 'on_load'):
+        if hasattr(module, "on_load"):
             import asyncio
-            if asyncio.iscoroutinefunction(module.on_load):
-                await module.on_load()
-            else:
-                module.on_load()
 
-    async def _register_keys(self, keys: List[Dict], plugin_name: str):
+            try:
+                if asyncio.iscoroutinefunction(module.on_load):
+                    await module.on_load()
+                else:
+                    module.on_load()
+            except Exception as e:
+                logger.error(f"插件 {key} on_load 执行失败: {e}", exc_info=True)
+
+    async def _register_keys(self, keys: list[dict], plugin_name: str):
         """注册插件定义的 Key"""
         from managers.key_manager import key_manager
 
@@ -136,7 +130,7 @@ class PluginManager:
             except Exception as e:
                 logger.error(f"[PluginManager] 注册 Key {key_def['name']} 失败: {e}")
 
-    def _load_registry(self) -> Dict[str, Any]:
+    def _load_registry(self) -> dict[str, Any]:
         """加载插件注册表
 
         Returns:
@@ -153,7 +147,7 @@ class PluginManager:
             return {}
 
         try:
-            with open(registry_path, 'r', encoding='utf-8') as f:
+            with open(registry_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
         except Exception as e:
             logger.error(f"读取插件注册表失败: {e}", exc_info=True)
@@ -188,17 +182,13 @@ class PluginManager:
                         continue
 
                     try:
-                        with open(plugin_yaml, 'r', encoding='utf-8') as f:
+                        with open(plugin_yaml, encoding="utf-8") as f:
                             manifest = yaml.safe_load(f) or {}
                     except Exception as e:
                         logger.error(f"读取插件清单失败 ({key}): {e}", exc_info=True)
                         continue
                 elif path.suffix == ".py":
-                    manifest = {
-                        "name": path.stem,
-                        "type": "unknown",
-                        "backend_entry": path.name
-                    }
+                    manifest = {"name": path.stem, "type": "unknown", "backend_entry": path.name}
                 else:
                     logger.warning(f"插件路径既不是目录也不是 .py 文件: {path}，跳过插件 {key}")
                     continue
@@ -225,17 +215,17 @@ class PluginManager:
         if plugin_name not in self.loaded_plugins:
             return False
 
-        plugin_data = self.loaded_plugins[plugin_name]
-
         module = self.plugin_modules.get(plugin_name)
-        if module and hasattr(module, 'on_unload'):
+        if module and hasattr(module, "on_unload"):
             import asyncio
+
             if asyncio.iscoroutinefunction(module.on_unload):
                 await module.on_unload()
             else:
                 module.on_unload()
 
         from managers.key_manager import key_manager
+
         deleted_count = await key_manager.delete_by_plugin(plugin_name)
         logger.info(f"[PluginManager] 删除了 {deleted_count} 个 Key")
 
@@ -246,48 +236,22 @@ class PluginManager:
         logger.info(f"[PluginManager] 插件 {plugin_name} 已卸载")
         return True
 
-    def get_plugin_manifests(self) -> List[Dict]:
+    def get_plugin_manifests(self) -> list[dict]:
         """获取所有已加载插件的清单"""
         manifests = []
         for plugin_name, plugin_data in self.loaded_plugins.items():
             manifest = plugin_data["manifest"]
-            manifests.append({
-                "name": manifest.get("name", plugin_name),
-                "version": manifest.get("version", "1.0.0"),
-                "description": manifest.get("description", ""),
-                "author": manifest.get("author", ""),
-                "frontend_entry": manifest.get("frontend_entry"),
-                "path": plugin_data["path"],
-            })
+            manifests.append(
+                {
+                    "name": manifest.get("name", plugin_name),
+                    "version": manifest.get("version", "1.0.0"),
+                    "description": manifest.get("description", ""),
+                    "author": manifest.get("author", ""),
+                    "frontend_entry": manifest.get("frontend_entry"),
+                    "path": plugin_data["path"],
+                }
+            )
         return manifests
-
-    def get_plugin_config(self, plugin_name: str) -> Optional[Dict]:
-        """获取插件配置"""
-        if plugin_name in self.loaded_plugins:
-            return self.loaded_plugins[plugin_name]["manifest"]
-        return None
-
-    def get_plugin_frontend_code(self, plugin_name: str) -> Optional[str]:
-        """获取插件前端代码"""
-        plugin_data = self.loaded_plugins.get(plugin_name)
-        if not plugin_data:
-            return None
-
-        manifest = plugin_data["manifest"]
-        frontend_entry = manifest.get("frontend_entry")
-        if not frontend_entry:
-            return None
-
-        frontend_path = Path(plugin_data["path"]) / frontend_entry
-        if not frontend_path.exists():
-            return None
-
-        with open(frontend_path, 'r', encoding='utf-8') as f:
-            return f.read()
-
-    def get_all(self) -> List[Dict]:
-        """获取所有已加载插件的信息"""
-        return list(self.loaded_plugins.values())
 
 
 plugin_manager = PluginManager()

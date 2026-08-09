@@ -2,11 +2,12 @@
 # @brief Hook 管理器 - 实现动作钩子模式
 # @create 2026-03-27
 
-from collections import defaultdict
 import asyncio
+import inspect
 import logging
+from collections import defaultdict
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Any
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +15,6 @@ logger = logging.getLogger(__name__)
 class HookManager:
     def __init__(self):
         self._hooks = defaultdict(list)
-
-    def clear(self):
-        """清除所有钩子（用于测试）"""
-        self._hooks.clear()
 
     def register(self, hook_name: str, callback: Callable, priority: int = 100):
         """手动注册钩子（priority 越小越先执行）"""
@@ -61,10 +58,19 @@ class HookManager:
             def my_hook(item_data):
                 pass
         """
+
         def decorator(callback: Callable):
             self.register(hook_name, callback, priority)
             return callback
+
         return decorator
+
+    def _strip_self(self, func: Callable, args: tuple) -> tuple:
+        """去掉绑定方法的 self/cls 参数，钩子回调只接收业务参数"""
+        params = list(inspect.signature(func).parameters.values())
+        if params and params[0].name in ("self", "cls") and args:
+            return args[1:]
+        return args
 
     def wrap_hooks(self, before: str = None, after: str = None):
         """装饰器：给核心服务的方法加钩子，自动在方法前后执行
@@ -74,32 +80,40 @@ class HookManager:
                 @hook_manager.wrap_hooks(before="item_create_before", after="item_create_after")
                 async def create(self, item_data):
                     pass
+
+        钩子回调签名：
+            前置钩子: fn(*业务参数)         —— 不含 self
+            后置钩子: fn(result, *业务参数)
         """
+
         def decorator(func: Callable):
             @wraps(func)
             async def async_wrapper(*args, **kwargs):
+                hook_args = self._strip_self(func, args)
                 if before:
-                    await self.run(before, *args, **kwargs)
+                    await self.run(before, *hook_args, **kwargs)
                 result = await func(*args, **kwargs)
                 if after:
-                    await self.run(after, result, *args, **kwargs)
+                    await self.run(after, result, *hook_args, **kwargs)
                 return result
 
             @wraps(func)
             def sync_wrapper(*args, **kwargs):
+                hook_args = self._strip_self(func, args)
                 if before:
-                    self.run_sync(before, *args, **kwargs)
+                    self.run_sync(before, *hook_args, **kwargs)
 
                 result = func(*args, **kwargs)
 
                 if after:
-                    self.run_sync(after, result, *args, **kwargs)
+                    self.run_sync(after, result, *hook_args, **kwargs)
                 return result
 
             if asyncio.iscoroutinefunction(func):
                 return async_wrapper
             else:
                 return sync_wrapper
+
         return decorator
 
 

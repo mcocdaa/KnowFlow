@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
       port: 5177,
       proxy: {
         '/api': {
-          target: process.env.VITE_API_BASE_URL || 'http://localhost:3002',
+          target: process.env.VITE_API_BASE_URL || 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
         },
@@ -26,7 +26,19 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      emptyOutDir: true
+      emptyOutDir: true,
+      // antd 组件库固有体积较大（约 1.2MB minified），vendor 已拆分，此处设合理阈值
+      chunkSizeWarningLimit: 1300,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-redux', '@reduxjs/toolkit'],
+            antd: ['antd'],
+            icons: ['@ant-design/icons'],
+            styled: ['styled-components'],
+          },
+        },
+      },
     }
   }
 })

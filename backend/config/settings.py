@@ -4,45 +4,45 @@
 
 import os
 import sys
-from enum import Enum
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-class Environment(Enum):
-    DEVELOPMENT = "development"
-    PRODUCTION = "production"
-
-
-# Secrets 配置：定义每个 secret 的重要性级别
+# Secrets 配置：定义每个 secret 的重要性级别与默认值
 SECRETS_CONFIG = {
     "MONGODB_URL": {
         "required": True,
+        "default": "mongodb://localhost:27017",
         "error_msg": "MongoDB 连接 URL 未配置",
-        "warning_msg": "MongoDB 连接 URL 未配置"
+        "warning_msg": "MongoDB 连接 URL 未配置",
     },
     "DOUBAO_API_KEY": {
         "required": False,
-        "warning_msg": "AI 功能（语义搜索）将不可用。如需启用，请配置 DOUBAO_API_KEY"
-    }
+        "default": "",
+        "warning_msg": "AI 功能（语义搜索）将不可用。如需启用，请配置 DOUBAO_API_KEY",
+    },
 }
 
 
 def read_secret(secret_name: str, default: str = "") -> str:
-    """读取 secret 支持 _FILE 后缀从环境变量指定文件读取"""
+    """读取 secret，优先级：{NAME}_FILE 环境变量 > secrets/{name}.txt > secrets/{name} > 环境变量 > default"""
     file_env_var = f"{secret_name}_FILE"
     if file_env_var in os.environ:
         file_path = os.environ[file_env_var]
         if os.path.exists(file_path):
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 return f.read().strip()
 
     secrets_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "secrets")
-    secret_path = os.path.join(secrets_dir, secret_name)
-    if os.path.exists(secret_path):
-        with open(secret_path, "r") as f:
-            return f.read().strip()
+    for secret_path in (
+        os.path.join(secrets_dir, f"{secret_name.lower()}.txt"),
+        os.path.join(secrets_dir, secret_name),
+    ):
+        if os.path.exists(secret_path):
+            with open(secret_path) as f:
+                return f.read().strip()
 
     if secret_name in os.environ:
         return os.environ[secret_name]
@@ -60,7 +60,7 @@ def validate_secrets():
     errors = []
 
     for secret_name, config in SECRETS_CONFIG.items():
-        secret_value = read_secret(secret_name, "")
+        secret_value = read_secret(secret_name, config.get("default", ""))
         is_missing = not secret_value.strip()
 
         if is_missing:
@@ -81,9 +81,7 @@ def validate_secrets():
     if errors:
         raise RuntimeError(
             "\n" + "=" * 60 + "\n"
-            "❌ 缺少必需的 Secrets 配置：\n" +
-            "\n".join(errors) +
-            "\n\n请通过以下方式之一配置：\n"
+            "❌ 缺少必需的 Secrets 配置：\n" + "\n".join(errors) + "\n\n请通过以下方式之一配置：\n"
             "1. Docker: 设置 {SECRET_NAME}_FILE 环境变量指向 secret 文件\n"
             "2. 本地: 在 secrets/ 目录下创建对应文件\n"
             "3. 环境变量: 直接设置 {SECRET_NAME} 环境变量\n"
@@ -103,9 +101,7 @@ PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
 DATA_DIR = os.getenv("DATA_DIR", "./data")
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./data/uploads")
 
-KEYS_PATH = os.getenv("KEYS_PATH", os.path.join(DATA_DIR, "keys.yaml"))
 DEFAULT_KEYS_PATH = os.getenv("DEFAULT_KEYS_PATH", os.path.join(DATA_DIR, "default", "keys.yaml"))
-CATEGORIES_PATH = os.getenv("CATEGORIES_PATH", os.path.join(DATA_DIR, "categories.yaml"))
 DEFAULT_CATEGORIES_PATH = os.getenv("DEFAULT_CATEGORIES_PATH", os.path.join(DATA_DIR, "default", "categories.yaml"))
 
 PLUGINS_DIR = os.getenv("PLUGINS_DIR", os.path.join(PROJECT_ROOT, "plugins"))
@@ -118,17 +114,32 @@ AI_CONFIG = {
     "doubao": {
         "api_key": read_secret("DOUBAO_API_KEY", ""),
         "base_url": os.getenv("DOUBAO_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3/chat/completions"),
-        "model": os.getenv("DOUBAO_MODEL", "ep-20260304151850-xqxr9")
+        "model": os.getenv("DOUBAO_MODEL", "ep-20260304151850-xqxr9"),
     }
 }
 
 CATEGORY_STYLE = {
-    'property': ['name', 'title', 'parent_name', 'is_builtin'],
-    'default': ['inner_category', 'basic_category', 'time_category', 'custom_category'],
+    "property": ["name", "title", "parent_name", "is_builtin"],
+    "default": ["inner_category", "basic_category", "time_category", "custom_category"],
 }
 KEY_STYLE = {
-    'property': ['name', 'title', 'value_type', 'default_value', 'description', 'category_name', 'is_required', 'is_visible', 'plugin_name', 'delete_with_plugin', 'is_public', 'is_private', 'created_at', 'updated_at'],
-    'default': ['name', 'file_path', 'file_type', 'created_at'],
+    "property": [
+        "name",
+        "title",
+        "value_type",
+        "default_value",
+        "description",
+        "category_name",
+        "is_required",
+        "is_visible",
+        "plugin_name",
+        "delete_with_plugin",
+        "is_public",
+        "is_private",
+        "created_at",
+        "updated_at",
+    ],
+    "default": ["name", "file_path", "file_type", "created_at"],
 }
 
 
@@ -136,11 +147,8 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 
 __all__ = [
     "API_VERSION",
-    "DATA_DIR",
     "UPLOAD_DIR",
-    "KEYS_PATH",
     "DEFAULT_KEYS_PATH",
-    "CATEGORIES_PATH",
     "DEFAULT_CATEGORIES_PATH",
     "PLUGINS_DIR",
     "MONGODB_URL",

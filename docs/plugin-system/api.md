@@ -25,25 +25,6 @@ GET /api/v1/plugins/manifests
 
 ---
 
-## 获取插件前端代码
-
-```http
-GET /api/v1/plugins/{plugin_name}/frontend
-```
-
-**响应示例**：
-
-```json
-{
-  "code": "// 插件前端代码..."
-}
-```
-
-**错误响应**：
-- `404`: 插件或前端代码不存在
-
----
-
 ## 插件路由
 
 插件注册的路由自动挂载到：

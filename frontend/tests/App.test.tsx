@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from '../src/App';
@@ -7,20 +7,15 @@ import { configureStore } from '@reduxjs/toolkit';
 import knowledgeReducer from '../src/store/knowledgeSlice';
 import keyReducer from '../src/store/keySlice';
 
-// 模拟electron
-vi.mock('electron', () => ({
-  ipcRenderer: {
-    on: vi.fn(),
-    send: vi.fn()
-  }
-}));
-
-// 模拟API调用
-vi.mock('../src/services/api', () => ({
-  fetchKnowledge: vi.fn().mockResolvedValue([]),
-  fetchCategories: vi.fn().mockResolvedValue([]),
-  fetchKeys: vi.fn().mockResolvedValue([])
-}));
+// 模拟 API 调用（默认导出为 api 对象）
+vi.mock('../src/services/api', () => {
+  const mockApi = {
+    fetchItems: vi.fn().mockResolvedValue([]),
+    fetchCategories: vi.fn().mockResolvedValue([]),
+    fetchKeys: vi.fn().mockResolvedValue([]),
+  };
+  return { api: mockApi, default: mockApi };
+});
 
 const createTestStore = () => {
   return configureStore({
@@ -32,29 +27,31 @@ const createTestStore = () => {
 };
 
 describe('App Component', () => {
-  it('should render App component', () => {
-    const store = createTestStore();
-    
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>
-    );
-    
-    // 检查App是否渲染
-    expect(screen.getByText(/KnowFlow/i)).toBeInTheDocument();
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('should render Layout component', () => {
+  it('should render App component', async () => {
     const store = createTestStore();
-    
+
     render(
       <Provider store={store}>
         <App />
       </Provider>
     );
-    
-    // 检查Layout是否渲染（侧边栏角色是complementary）
-    expect(screen.getByRole('complementary')).toBeInTheDocument();
+
+    expect(await screen.findByText(/KnowFlow/i)).toBeInTheDocument();
+  });
+
+  it('should render Layout component', async () => {
+    const store = createTestStore();
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    );
+
+    expect(await screen.findByRole('complementary')).toBeInTheDocument();
   });
 });

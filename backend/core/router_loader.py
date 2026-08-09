@@ -1,19 +1,16 @@
 # @file backend/core/router_loader.py
 # @brief 自动路由加载器 - 非递归版 (分层负责)
-from fastapi import APIRouter
 import importlib
+import logging
 from pathlib import Path
-from typing import List, Optional
+
+from fastapi import APIRouter
+
+logger = logging.getLogger(__name__)
 
 
 def include_routers_from_directory(
-    parent_router: APIRouter,
-    package_name: str,
-    directory_path: Path,
-    *,
-    skip_modules: Optional[List[str]] = None,
-    auto_tag: bool = False,
-    auto_prefix: bool = False
+    parent_router: APIRouter, package_name: str, directory_path: Path, *, skip_modules: list[str] | None = None
 ) -> None:
     """
     非递归：仅扫描当前目录下的文件和文件夹。
@@ -46,16 +43,10 @@ def include_routers_from_directory(
 
             # 4. 检查并挂载 router
             if hasattr(module, "router"):
-                sub_router = getattr(module, "router")
-
+                sub_router = module.router
                 kwargs = {"prefix": f"/{base_name}"}
-                if auto_tag:
-                    kwargs["tags"] = [module_name]
-                if auto_prefix:
-                    kwargs["prefix"] += f"/{module_name}"
-
                 parent_router.include_router(sub_router, **kwargs)
-                print(f"[RouterLoader] 已挂载: {package_name}.{module_name}, **{kwargs}")
+                logger.info(f"[RouterLoader] 已挂载: {package_name}.{module_name}")
 
         except Exception as e:
-            print(f"[RouterLoader] 挂载失败 {module_name}: {str(e)}")
+            logger.error(f"[RouterLoader] 挂载失败 {module_name}: {e}", exc_info=True)

@@ -1,5 +1,9 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, session } = require('electron');
 const path = require('path');
+
+const DEV_SERVER_URL = 'http://localhost:5177';
+const LOAD_RETRY_MAX = 10;
+const LOAD_RETRY_INTERVAL_MS = 1000;
 
 // 确保应用只运行一个实例
 const gotTheLock = app.requestSingleInstanceLock();
@@ -17,52 +21,72 @@ if (!gotTheLock) {
 
   // 主窗口
   let mainWindow;
+  let loadRetryCount = 0;
 
   function createWindow() {
     mainWindow = new BrowserWindow({
       width: 1200,
       height: 800,
       webPreferences: {
-        preload: path.join(__dirname, '../dist/assets/preload.js'),
+        preload: path.join(__dirname, 'preload.cjs'),
         contextIsolation: true,
         nodeIntegration: false,
         defaultEncoding: 'UTF-8'
       }
     });
 
-    // 加载应用
-    const loadUrl = () => {
-      mainWindow.loadURL('http://localhost:5175')
+    // 生产环境加载构建产物，开发环境加载 Vite dev server
+    const loadApp = () => {
+      if (app.isPackaged) {
+        mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
+          .catch((error) => {
+            console.error('Failed to load app:', error);
+          });
+        return;
+      }
+
+      mainWindow.loadURL(DEV_SERVER_URL)
         .catch((error) => {
           console.error('Failed to load URL:', error);
-          // 重试加载
-          setTimeout(loadUrl, 1000);
+          if (loadRetryCount < LOAD_RETRY_MAX) {
+            loadRetryCount += 1;
+            setTimeout(loadApp, LOAD_RETRY_INTERVAL_MS);
+          } else {
+            console.error(`Vite dev server 未在 ${DEV_SERVER_URL} 启动，请在 frontend 目录运行 npm run dev`);
+          }
         });
     };
-    
-    loadUrl();
+
+    loadApp();
 
     // 打开开发者工具
     // mainWindow.webContents.openDevTools();
 
     mainWindow.on('closed', function () {
       mainWindow = null;
+      loadRetryCount = 0;
     });
   }
 
   app.whenReady().then(() => {
+    // 在资源管理器中显示文件
+    ipcMain.handle('show-item-in-folder', (event, filePath) => {
+      if (typeof filePath === 'string' && filePath) {
+        shell.showItemInFolder(filePath);
+      }
+    });
+
     // 设置 CSP 头部
-    const { session } = require('electron');
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       callback({
         responseHeaders: {
           ...details.responseHeaders,
-          // 开发环境宽松策略：允许本地资源、Vite 热更新 websocket、unsafe-eval（用于 HMR）
           'Content-Security-Policy': [
             "default-src 'self'; " +
             "script-src 'self' 'unsafe-eval' 'unsafe-inline' http://localhost:* ws://localhost:*; " +
             "style-src 'self' 'unsafe-inline'; " +
             "img-src 'self' data: blob:; " +
+            "font-src 'self' data:; " +
             "connect-src 'self' http://localhost:* ws://localhost:*"
           ]
         }
@@ -79,6 +103,4 @@ if (!gotTheLock) {
   app.on('activate', function () {
     if (mainWindow === null) createWindow();
   });
-
-
 }

@@ -5,6 +5,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -24,6 +27,7 @@ async def update_rating(item_id: str, data: RatingUpdate) -> Dict[str, Any]:
         await item_manager.update(item_id, {"attributes": {"rating": data.rating}})
         return {"success": True, "rating": data.rating}
     except Exception as e:
+        logger.error(f"更新评分失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -33,15 +37,20 @@ async def get_rating(item_id: str) -> Dict[str, Any]:
 
     try:
         item = await item_manager.get_by_id(item_id)
+        if item is None:
+            raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
         rating = item.get("attributes", {}).get("rating", 0)
         return {"rating": rating}
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"获取评分失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
 async def on_load():
-    print("[RatingPlugin] 星级评分插件已加载")
+    logger.info("[RatingPlugin] 星级评分插件已加载")
 
 
 async def on_unload():
-    print("[RatingPlugin] 星级评分插件已卸载")
+    logger.info("[RatingPlugin] 星级评分插件已卸载")

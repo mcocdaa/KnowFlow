@@ -8,11 +8,7 @@ import {
   FONT_WEIGHTS,
   TRANSITIONS,
 } from '../../../theme';
-import { buttonStyles, cardHoverStyles, glassEffectStyles } from './shared';
-
-const { Header, Sider, Content } = AntLayout;
-
-export { buttonStyles, cardHoverStyles, glassEffectStyles };
+const { Header, Sider } = AntLayout;
 
 export const StyledLayout = styled(AntLayout)`
   height: 100vh;
@@ -125,13 +121,6 @@ export const StyledMenu = styled(Menu)`
   .ant-menu-submenu-open > .ant-menu-submenu-title {
     color: ${COLORS.white} !important;
   }
-`;
-
-export const StyledContent = styled(Content)`
-  padding: ${SPACING.lg} !important;
-  overflow: auto !important;
-  background: ${COLORS.bgPage} !important;
-  min-height: calc(100vh - 64px) !important;
 `;
 
 export const StyledTabs = styled(Tabs)`

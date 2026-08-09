@@ -4,7 +4,7 @@ export interface KeyDefinition {
   name: string;
   title: string;
   value_type: ValueType;
-  default_value: any;
+  default_value: unknown;
   description: string;
   category_name: string;
   is_required: boolean;

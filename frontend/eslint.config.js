@@ -20,4 +20,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // 插件注册表模式：动态注册/查找组件，豁免 Fast Refresh 静态组件规则
+    files: ['src/plugins/**'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+      'react-hooks/static-components': 'off',
+    },
+  },
 ])

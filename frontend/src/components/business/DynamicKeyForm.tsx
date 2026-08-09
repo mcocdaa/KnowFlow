@@ -6,9 +6,8 @@ import type { KeyDefinition, ValueType } from '../../types';
 import { hasPluginComponent, getPluginComponent } from '../../plugins';
 
 interface DynamicKeyFormProps {
-  mode: 'import' | 'edit' | 'add';
-  initialValues?: Record<string, any>;
-  onSubmit: (values: Record<string, any>) => void;
+  initialValues?: Record<string, unknown>;
+  onSubmit: (values: Record<string, unknown>) => void;
   itemId?: string;
 }
 
@@ -20,14 +19,12 @@ const renderInputByType = (valueType: ValueType, key: KeyDefinition, itemId?: st
     if (PluginComponent) {
       return (
         <PluginComponent
-          value={key.default_value}
           itemId={itemId || ''}
           keyDefinition={{
             name: key.name,
             title: key.title,
             value_type: key.value_type,
           }}
-          onUpdate={() => {}}
           readOnly={false}
         />
       );
@@ -50,7 +47,7 @@ const renderInputByType = (valueType: ValueType, key: KeyDefinition, itemId?: st
   }
 };
 
-export const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ mode: _mode, initialValues, onSubmit, itemId }) => {
+export const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ initialValues, onSubmit, itemId }) => {
   const { definitionList } = useSelector((state: RootState) => state.key);
   const [form] = Form.useForm();
 
@@ -75,36 +72,19 @@ export const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ mode: _mode, ini
       onFinish={onSubmit}
       layout="vertical"
     >
-      {visibleKeys.map((key: KeyDefinition) => {
-        const hasPlugin = key.plugin_name && hasPluginComponent(key.plugin_name);
-
-        if (hasPlugin) {
-          return (
-            <Form.Item
-              key={key.name}
-              label={key.title}
-              required={key.is_required}
-              tooltip={key.description}
-            >
-              {renderInputByType(key.value_type, key, itemId)}
-            </Form.Item>
-          );
-        }
-
-        return (
-          <Form.Item
-            key={key.name}
-            name={key.name}
-            label={key.title}
-            required={key.is_required}
-            initialValue={getInitialValue(key)}
-            valuePropName={key.value_type === 'boolean' ? 'checked' : undefined}
-            tooltip={key.description}
-          >
-            {renderInputByType(key.value_type, key, itemId)}
-          </Form.Item>
-        );
-      })}
+      {visibleKeys.map((key: KeyDefinition) => (
+        <Form.Item
+          key={key.name}
+          name={key.name}
+          label={key.title}
+          required={key.is_required}
+          initialValue={getInitialValue(key)}
+          valuePropName={key.value_type === 'boolean' ? 'checked' : undefined}
+          tooltip={key.description}
+        >
+          {renderInputByType(key.value_type, key, itemId)}
+        </Form.Item>
+      ))}
       <Form.Item>
         <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
           确认

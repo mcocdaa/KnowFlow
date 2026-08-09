@@ -1,11 +1,11 @@
 fastapi
-uvicorn
 httpx
-python-multipart
+motor
+pymongo
 pytest
 pytest-asyncio
 pytest-mock
-pyyaml
-motor
-pymongo
 python-dotenv
+python-multipart
+pyyaml
+uvicorn

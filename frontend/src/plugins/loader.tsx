@@ -10,21 +10,21 @@ export interface PluginManifest {
 }
 
 export interface PluginComponentProps {
-  value: unknown;
+  value?: unknown;
   itemId: string;
   keyDefinition: {
     name: string;
     title: string;
     value_type: string;
   };
-  onUpdate: (value: unknown) => void;
+  onUpdate?: (value: unknown) => void;
   readOnly?: boolean;
 }
 
 const loadedPlugins: Record<string, ComponentType<PluginComponentProps>> = {};
 
 export function registerPluginComponent(
-  pluginName: string, 
+  pluginName: string,
   component: ComponentType<PluginComponentProps>
 ) {
   loadedPlugins[pluginName] = component;
@@ -53,7 +53,7 @@ export const PluginRenderer: React.FC<{
   readOnly?: boolean;
 }> = ({ pluginName, value, itemId, keyDefinition, onUpdate, readOnly }) => {
   const PluginComponent = getPluginComponent(pluginName);
-  
+
   if (!PluginComponent) {
     return (
       <span style={{ color: '#666' }}>
@@ -61,7 +61,7 @@ export const PluginRenderer: React.FC<{
       </span>
     );
   }
-  
+
   return (
     <Suspense fallback={<PluginLoadingFallback />}>
       <PluginComponent

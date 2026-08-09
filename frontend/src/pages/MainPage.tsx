@@ -29,7 +29,7 @@ import DetailDrawer from '../components/layout/DetailDrawer';
 import UploadSection from '../components/layout/UploadSection';
 import type { KnowledgeItem } from '../types';
 import { useInitialData, useKnowledgeItems } from '../hooks/useKnowledge';
-import { getFileIcon, formatDate, openFileLocation, buildCategoryTree } from '../utils';
+import { getFileIcon, openFileLocation, buildCategoryTree } from '../utils';
 
 const MainPage: React.FC = () => {
   const dispatch = useDispatch();
@@ -91,11 +91,13 @@ const MainPage: React.FC = () => {
   };
 
   const handleOpenFileLocation = (filePath: string) => {
-    openFileLocation(filePath, fallbackToCopyMessage);
+    void openFileLocation(filePath, fallbackToCopyMessage);
   };
 
   const handleMediaPreview = (filePath: string, fileType: string) => {
-    setMediaUrl(filePath);
+    if (!filePath) return;
+    const filename = filePath.split('/').pop() || filePath;
+    setMediaUrl(`/api/v1/uploads/${encodeURIComponent(filename)}`);
     setMediaType(fileType.includes('image') ? 'image' : 'video');
     setMediaPreviewVisible(true);
   };
@@ -106,7 +108,7 @@ const MainPage: React.FC = () => {
   };
 
   const buildMenuItems = () => {
-    const menuItems: Array<{ key: string; label: React.ReactNode; onClick?: () => void; style?: React.CSSProperties; children?: any[] }> = [
+    const menuItems: Array<{ key: string; label: React.ReactNode; onClick?: () => void; style?: React.CSSProperties; children?: Array<{ key: string; label: React.ReactNode }> }> = [
       {
         key: 'key-management',
         label: (
@@ -138,7 +140,7 @@ const MainPage: React.FC = () => {
 
   const handleEditItem = (item: KnowledgeItem) => {
     setEditingItem(item);
-    const formValues: Record<string, any> = {};
+    const formValues: Record<string, unknown> = {};
     Object.entries(item.keyValues || {}).forEach(([keyName, value]) => {
       formValues[keyName] = value;
     });
@@ -146,9 +148,9 @@ const MainPage: React.FC = () => {
     setEditFormVisible(true);
   };
 
-  const handleEditSubmit = async (values: Record<string, any>) => {
+  const handleEditSubmit = async (values: Record<string, unknown>) => {
     if (editingItem) {
-      const updatedKeyValues: Record<string, any> = { ...editingItem.keyValues };
+      const updatedKeyValues: Record<string, unknown> = { ...editingItem.keyValues };
       definitionList.forEach(def => {
         const value = values[def.name];
         if (value !== undefined) {
@@ -159,7 +161,7 @@ const MainPage: React.FC = () => {
       const updatedItem: KnowledgeItem = {
         ...editingItem,
         keyValues: updatedKeyValues,
-        name: values['name'] || editingItem.name,
+        name: (values['name'] as string) || editingItem.name,
       };
 
       try {
@@ -168,6 +170,7 @@ const MainPage: React.FC = () => {
         setEditingItem(null);
         setEditFormValues({});
       } catch (error) {
+        console.error('更新知识项失败:', error);
       }
     }
   };
@@ -249,18 +252,11 @@ const MainPage: React.FC = () => {
                     handleSearch(value, sortBy);
                     setActiveTab('search');
                   }}
-                  activeTab={activeTab}
                   sortBy={sortBy}
                   onSortByChange={(value) => {
                     setSortBy(value);
-                    handleSearch(searchQuery, sortBy);
+                    handleSearch(searchQuery, value);
                   }}
-                  searchKey={''}
-                  onSearchKeyChange={() => {}}
-                  categories={categories}
-                  selectedCategory={''}
-                  onCategoryChange={() => {}}
-                  definitionList={definitionList}
                 />
 
                 <UploadSection
@@ -348,7 +344,6 @@ const MainPage: React.FC = () => {
           onDeleteItem={handleDeleteItem}
           onMediaPreview={handleMediaPreview}
           getFileIcon={getFileIcon}
-          formatDate={formatDate}
           definitionList={definitionList}
           categories={categories}
         />
@@ -381,25 +376,18 @@ const MainPage: React.FC = () => {
           }}
         >
           <DynamicKeyForm
-            mode={editingItem ? "edit" : "add"}
             initialValues={editFormValues}
             itemId={editingItem?.id}
             onSubmit={editingItem ? handleEditSubmit : async (values) => {
               if (pendingFile) {
-                try {
-                  await handleUploadFile(pendingFile, values);
-                  setEditFormVisible(false);
-                  setEditFormValues({});
-                  setPendingFile(null);
-                } catch (error) {
-                }
+                await handleUploadFile(pendingFile, values);
+                setEditFormVisible(false);
+                setEditFormValues({});
+                setPendingFile(null);
               } else {
-                try {
-                  await handleCreateItem(values);
-                  setEditFormVisible(false);
-                  setEditFormValues({});
-                } catch (error) {
-                }
+                await handleCreateItem(values);
+                setEditFormVisible(false);
+                setEditFormValues({});
               }
             }}
           />

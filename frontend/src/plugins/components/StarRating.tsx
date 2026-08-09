@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface StarRatingProps {
-  value: number;
+  value?: number;
   itemId: string;
-  onUpdate: (value: number) => void;
+  onUpdate?: (value: number) => void;
+  onChange?: (value: number) => void;
   readOnly?: boolean;
   keyDefinition?: {
     name: string;
@@ -15,20 +16,25 @@ interface StarRatingProps {
 const StarRating: React.FC<StarRatingProps> = ({
   value = 0,
   itemId,
-  onUpdate,
+  onUpdate = () => {},
+  onChange,
   readOnly = false,
 }) => {
   const [rating, setRating] = useState<number>(value || 0);
   const [hover, setHover] = useState<number>(0);
+  const [prevValue, setPrevValue] = useState<number>(value || 0);
 
-  useEffect(() => {
-    setRating(value || 0);
-  }, [value]);
+  const normalizedValue = value || 0;
+  if (prevValue !== normalizedValue) {
+    setPrevValue(normalizedValue);
+    setRating(normalizedValue);
+  }
 
   const handleClick = async (star: number) => {
     if (readOnly) return;
 
     setRating(star);
+    onChange?.(star);
     onUpdate(star);
 
     try {

@@ -123,8 +123,8 @@ pytest test/test_category_manager.py -v
 # Key 管理器测试
 pytest test/test_key_manager.py -v
 
-# 插件加载器测试
-pytest test/test_plugin_loader.py -v
+# 插件后端测试
+pytest test/test_rating_plugin.py -v
 
 # 插件 API 测试
 pytest test/test_rating_plugin_api.py -v
@@ -138,7 +138,7 @@ pytest test/test_rating_plugin_api.py -v
 | `test_item_manager.py` | 知识项 CRUD、数据类型转换 |
 | `test_category_manager.py` | 分类 CRUD、层级关系、约束验证 |
 | `test_key_manager.py` | Key 定义 CRUD、缓存机制 |
-| `test_plugin_loader.py` | 插件加载、Key 注册、路由注册 |
+| `test_rating_plugin.py` | 插件后端逻辑测试 |
 | `test_rating_plugin_api.py` | 插件 API 端点测试 |
 
 ### 测试配置

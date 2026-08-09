@@ -53,4 +53,3 @@ SKILL.md SHALL 提供完整的 API 调用指南，让 Agent 在无脚本时也�
 - GIVEN Agent 读取了 SKILL.md
 - WHEN Agent 需要记录文档但脚本不可用
 - THEN Agent 能根据 SKILL.md 中的示例直接构造 HTTP 请求
-

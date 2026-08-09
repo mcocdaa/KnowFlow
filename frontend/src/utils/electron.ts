@@ -1,15 +1,15 @@
-export const openFileInExplorer = (filePath: string): void => {
+export const isElectron = (): boolean => {
+  return typeof window !== 'undefined' && !!window.knowflow;
+};
+
+export const openFileInExplorer = async (filePath: string): Promise<void> => {
   if (!filePath) return;
-  const isElectron = window.require && window.require('electron');
-  if (isElectron) {
-    try {
-      const electron = window.require?.('electron');
-      if (electron?.shell) {
-        electron.shell.showItemInFolder(filePath);
-      }
-    } catch (err) {
-      console.error('Electron open failed:', err);
-    }
+  if (!isElectron()) return;
+  try {
+    await window.knowflow?.showItemInFolder(filePath);
+  } catch (err) {
+    console.error('Electron open failed:', err);
+    throw err;
   }
 };
 
