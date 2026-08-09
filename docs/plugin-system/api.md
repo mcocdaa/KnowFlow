@@ -8,7 +8,7 @@
 GET /api/v1/plugins/manifests
 ```
 
-**响应示例**：
+**响应示例**（外层统一 envelope，`data` 如下）：
 
 ```json
 [
@@ -17,8 +17,7 @@ GET /api/v1/plugins/manifests
     "version": "1.0.0",
     "description": "为知识项添加星级评分功能",
     "author": "KnowFlow",
-    "frontend_entry": "frontend.tsx",
-    "path": "/path/to/plugins/rating"
+    "frontend_entry": "frontend.tsx"
   }
 ]
 ```

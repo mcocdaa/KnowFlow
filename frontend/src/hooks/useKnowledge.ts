@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import useApp from 'antd/es/app/useApp';
+import { App } from 'antd';
 import type { RootState } from '../store';
 import { setItems, setSearchResults, selectItem, updateKnowledgeItem, deleteKnowledgeItem, addKnowledgeItem } from '../store/knowledgeSlice';
 import { setCategories, setDefinitions } from '../store/keySlice';
 import api from '../services/api';
 import type { KnowledgeItem } from '../types';
+import { getErrorMessage } from '../utils';
 
 export const useInitialData = () => {
   const dispatch = useDispatch();
-  const { message } = useApp();
+  const { message } = App.useApp();
 
   useEffect(() => {
     let isMounted = true;
@@ -30,7 +31,7 @@ export const useInitialData = () => {
       } catch (error) {
         if (isMounted) {
           console.error('Error loading data:', error);
-          message.error('加载数据失败，请确保后端服务已在 http://localhost:3000 启动');
+          message.error(getErrorMessage(error, '加载数据失败，请确认后端服务已启动'));
         }
       }
     };
@@ -63,7 +64,7 @@ const sortKnowledgeItems = (items: KnowledgeItem[], sortBy: string): KnowledgeIt
 
 export const useKnowledgeItems = () => {
   const dispatch = useDispatch();
-  const { message } = useApp();
+  const { message } = App.useApp();
   const { items, searchResults, selectedItem } = useSelector((state: RootState) => state.knowledge);
   const { definitionList, categories } = useSelector((state: RootState) => state.key);
 
@@ -133,7 +134,7 @@ export const useKnowledgeItems = () => {
       return newItem;
     } catch (error) {
       console.error('Upload error:', error);
-      message.error((error as Error).message || '文件上传失败');
+      message.error(getErrorMessage(error, '文件上传失败'));
       throw error;
     }
   }, [dispatch, message]);

@@ -2,6 +2,9 @@
 
 ---
 
+> 响应统一包裹在 envelope 中（`{"code": 0, "message": "ok", "data": ...}`），错误时 `code` 为对应 HTTP 状态码；以下示例仅展示 `data` 部分。
+
+
 ## 获取所有知识项
 
 ```http
@@ -135,7 +138,9 @@ DELETE /api/v1/item/{item_id}
 
 ```json
 {
-  "message": "Item deleted successfully"
+  "code": 0,
+  "message": "Item deleted successfully",
+  "data": null
 }
 ```
 

@@ -1,12 +1,6 @@
-import React from 'react';
+import type { MenuProps } from 'antd';
 
-interface MenuItem {
-  key: string;
-  label: React.ReactNode;
-  style?: React.CSSProperties;
-  onClick?: () => void;
-  children?: MenuItem[];
-}
+export type MenuItem = Required<MenuProps>['items'][number];
 
 const normalizeParentName = (parentName: string | null): string | null => {
   if (parentName === null || parentName === 'null' || parentName === undefined || parentName === 'None') {

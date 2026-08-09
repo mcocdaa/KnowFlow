@@ -240,3 +240,26 @@ class TestKeyManager:
 
         with pytest.raises(ValueError, match="builtin keys cannot be deleted"):
             await key_manager.delete("builtin_key")
+
+    @pytest.mark.asyncio
+    async def test_delete_by_plugin(self, key_manager, mock_db_manager):
+        mock_db_manager.find.return_value = [
+            {"name": "plugin_key", "plugin_name": "rating", "delete_with_plugin": True},
+            {"name": "plugin_keep", "plugin_name": "rating", "delete_with_plugin": False},
+            {"name": "other_key", "plugin_name": "other", "delete_with_plugin": True},
+        ]
+
+        deleted = await key_manager.delete_by_plugin("rating")
+
+        assert deleted == 1
+        calls = [call.args[1]["name"] for call in mock_db_manager.delete_one.call_args_list]
+        assert calls == ["plugin_key"]
+
+    @pytest.mark.asyncio
+    async def test_delete_by_plugin_none_found(self, key_manager, mock_db_manager):
+        mock_db_manager.find.return_value = [{"name": "other_key", "plugin_name": "other", "delete_with_plugin": True}]
+
+        deleted = await key_manager.delete_by_plugin("unknown")
+
+        assert deleted == 0
+        mock_db_manager.delete_one.assert_not_called()

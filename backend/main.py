@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from api import register_routers
+from api.errors import ok, register_exception_handlers
 from config.settings import API_VERSION, CORS_ORIGINS, UPLOAD_DIR
 from core import plugin_manager
 from managers.category_manager import category_manager
@@ -32,6 +33,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="KnowFlow Python Backend", lifespan=lifespan)
 
+register_exception_handlers(app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -43,7 +46,7 @@ app.add_middleware(
 
 @app.get(f"/api/{API_VERSION}/health")
 async def health_check():
-    return {"status": "ok"}
+    return ok({"status": "ok"})
 
 
 register_routers(app)

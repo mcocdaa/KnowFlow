@@ -29,6 +29,13 @@ class KeyManager:
         self._cache = None
         self._cache_time = None
 
+    async def _load_cache(self) -> list[dict[str, Any]]:
+        if not self._is_cache_valid():
+            keys = await db_manager.find(self.collection, sort=[("name", 1)])
+            self._cache = convert_docs(keys)
+            self._cache_time = datetime.now()
+        return self._cache
+
     async def initialize(self):
         """
         初始化Key定义，从默认配置加载到数据库
@@ -86,7 +93,7 @@ class KeyManager:
         """
         根据名称获取Key定义
         """
-        keys = await self.get_all()
+        keys = await self._load_cache()
         for key in keys:
             if key["name"] == key_name:
                 return key
@@ -96,14 +103,7 @@ class KeyManager:
         """
         获取所有Key定义（带缓存）
         """
-        if self._is_cache_valid():
-            return [dict(key) for key in self._cache]
-
-        keys = await db_manager.find(self.collection, sort=[("name", 1)])
-        converted_keys = convert_docs(keys)
-        self._cache = converted_keys
-        self._cache_time = datetime.now()
-        return [dict(key) for key in converted_keys]
+        return [dict(key) for key in await self._load_cache()]
 
     async def update(self, key_name: str, update_data: dict[str, Any]) -> dict[str, Any] | None:
         """
@@ -152,6 +152,20 @@ class KeyManager:
         deleted_count = await db_manager.delete_one(self.collection, {"name": key_name})
         self._invalidate_cache()
         return deleted_count > 0
+
+    async def delete_by_plugin(self, plugin_name: str) -> int:
+        """
+        删除指定插件注册的 Key（仅删除 delete_with_plugin=True 的）
+        """
+        keys = await self.get_all()
+        deleted = 0
+        for key in keys:
+            if key.get("plugin_name") == plugin_name and key.get("delete_with_plugin", True):
+                await db_manager.delete_one(self.collection, {"name": key["name"]})
+                deleted += 1
+        if deleted:
+            self._invalidate_cache()
+        return deleted
 
 
 # 全局Key管理实例

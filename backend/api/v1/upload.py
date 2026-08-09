@@ -7,13 +7,16 @@ import logging
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from managers.item_manager import item_manager
-from managers.key_manager import key_manager
+from api.errors import ok
+from config.settings import MAX_UPLOAD_SIZE
+from managers.item_manager import extract_key_values, item_manager
 from utils.file_util import generate_file_path
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+_CHUNK_SIZE = 1024 * 1024
 
 
 @router.post("/upload")
@@ -23,18 +26,14 @@ async def upload_file(file: UploadFile = File(...), data: str = Form(...)):
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data field")
 
-    all_keys = await key_manager.get_all()
-
-    required_keys = [key for key in all_keys if key.get("is_required", False)]
-
-    key_values = item_data.get("keyValues", {}) or item_data.get("attributes", {})
+    key_values = extract_key_values(item_data)
     key_values["file_path"] = file.filename or ""
     key_values["file_type"] = file.content_type or ""
 
     if "name" not in key_values and "name" in item_data:
         key_values["name"] = item_data["name"]
 
-    for req_key in required_keys:
+    for req_key in await item_manager.get_required_key_defs():
         req_key_name = req_key["name"]
         if req_key_name not in key_values or key_values[req_key_name] is None:
             raise HTTPException(status_code=400, detail=f"Missing required key: {req_key_name}")
@@ -42,20 +41,23 @@ async def upload_file(file: UploadFile = File(...), data: str = Form(...)):
     file_path = generate_file_path(file.filename or "upload")
     try:
         with open(file_path, "wb") as f:
-            f.write(await file.read())
+            size = 0
+            while chunk := await file.read(_CHUNK_SIZE):
+                size += len(chunk)
+                if size > MAX_UPLOAD_SIZE:
+                    raise HTTPException(
+                        status_code=413, detail=f"文件大小超过上限 {MAX_UPLOAD_SIZE // (1024 * 1024)}MB"
+                    )
+                f.write(chunk)
 
         key_values["file_path"] = file_path
 
         new_item = {"name": key_values.get("name", ""), "keyValues": key_values}
 
-        return await item_manager.create(new_item)
-    except ValueError as e:
+        return ok(await item_manager.create(new_item))
+    except Exception:
         _cleanup_file(file_path)
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        _cleanup_file(file_path)
-        logger.error(f"文件上传失败: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise
 
 
 def _cleanup_file(file_path: str):

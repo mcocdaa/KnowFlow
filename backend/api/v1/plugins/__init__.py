@@ -12,9 +12,4 @@ from core.router_loader import include_routers_from_directory
 router = APIRouter()
 
 # 2. 调用工具函数，自动加载当前目录下的所有子路由
-include_routers_from_directory(
-    parent_router=router,
-    package_name=__package__,
-    directory_path=Path(__file__).parent,
-    skip_modules=[],
-)
+include_routers_from_directory(router, __package__, Path(__file__).parent)

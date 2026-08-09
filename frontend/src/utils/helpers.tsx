@@ -1,5 +1,12 @@
 import { openFileInExplorer, isElectron } from './electron';
 
+export const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return fallback;
+};
+
 export const openFileLocation = async (filePath: string, fallbackToCopy: (path: string) => void): Promise<void> => {
   if (!filePath) return;
 

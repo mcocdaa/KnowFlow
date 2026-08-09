@@ -1,10 +1,31 @@
 import React from 'react';
 import { Button, Popconfirm, Drawer } from 'antd';
 import { EditOutlined, DeleteOutlined, PictureOutlined, VideoCameraOutlined, CloseOutlined, FolderOpenOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { COLORS, SHADOWS, TRANSITIONS, BORDER_RADIUS } from '../../theme';
 import type { KnowledgeItem, KeyDefinition, CategoryDefinition } from '../../types';
-import { PluginRenderer, hasPluginComponent } from '../../plugins';
+import { PluginRenderer, hasPluginComponent, type PluginComponentProps } from '../../plugins';
+
+const GlassDrawerGlobalStyle = createGlobalStyle`
+  .glass-drawer .ant-drawer-content-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .glass-drawer .ant-drawer-content {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .glass-drawer .ant-drawer-body {
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  .glass-drawer .ant-drawer-wrapper-body {
+    background: transparent !important;
+  }
+  .glass-drawer .ant-drawer-section {
+    background: transparent !important;
+  }
+`;
 
 const DrawerContent = styled.div`
   width: 100%;
@@ -373,24 +394,19 @@ const DetailDrawer: React.FC<DetailDrawerProps> = ({
   definitionList,
   categories,
 }) => {
-  const visibleKeys = definitionList.filter(def => def.is_visible);
-
   const keysByCategory = React.useMemo(() => {
     const map = new Map<string, KeyDefinition[]>();
 
-    visibleKeys.forEach(def => {
+    definitionList.filter(def => def.is_visible).forEach(def => {
       const value = selectedItem?.keyValues?.[def.name];
       if (value !== undefined && value !== null && value !== '') {
         const catName = def.category_name || 'other';
-        if (!map.has(catName)) {
-          map.set(catName, []);
-        }
-        map.get(catName)!.push(def);
+        map.set(catName, [...(map.get(catName) ?? []), def]);
       }
     });
 
     return map;
-  }, [visibleKeys, selectedItem?.keyValues]);
+  }, [definitionList, selectedItem?.keyValues]);
 
   if (!selectedItem) return null;
 
@@ -405,28 +421,7 @@ const DetailDrawer: React.FC<DetailDrawerProps> = ({
 
   return (
     <>
-      <style>
-        {`
-          .glass-drawer .ant-drawer-content-wrapper {
-            background: transparent !important;
-            box-shadow: none !important;
-          }
-          .glass-drawer .ant-drawer-content {
-            background: transparent !important;
-            box-shadow: none !important;
-          }
-          .glass-drawer .ant-drawer-body {
-            background: transparent !important;
-            padding: 0 !important;
-          }
-          .glass-drawer .ant-drawer-wrapper-body {
-            background: transparent !important;
-          }
-          .glass-drawer .ant-drawer-section {
-            background: transparent !important;
-          }
-        `}
-      </style>
+      <GlassDrawerGlobalStyle />
       <Drawer
         title={null}
         placement="right"
@@ -531,7 +526,7 @@ const DetailDrawer: React.FC<DetailDrawerProps> = ({
                                   name: def.name,
                                   title: def.title,
                                   value_type: def.value_type,
-                                }}
+                                } as PluginComponentProps['keyDefinition']}
                                 onUpdate={() => {}}
                                 readOnly={true}
                               />

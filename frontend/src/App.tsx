@@ -2,7 +2,8 @@ import { Provider } from 'react-redux';
 import { ConfigProvider, App as AntdApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { store } from './store';
-import { MainPage } from './pages';
+import MainPage from './pages/MainPage';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import { antdTheme } from './theme';
 import { initializePlugins } from './plugins';
 import './styles/App.css';
@@ -17,7 +18,9 @@ function App() {
     >
       <AntdApp>
         <Provider store={store}>
-          <MainPage />
+          <ErrorBoundary>
+            <MainPage />
+          </ErrorBoundary>
         </Provider>
       </AntdApp>
     </ConfigProvider>

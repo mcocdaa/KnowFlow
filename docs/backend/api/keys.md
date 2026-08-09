@@ -2,6 +2,9 @@
 
 ---
 
+> 响应统一包裹在 envelope 中（`{"code": 0, "message": "ok", "data": ...}`），错误时 `code` 为对应 HTTP 状态码；以下示例仅展示 `data` 部分。
+
+
 ## 获取所有 Key 定义
 
 ```http
@@ -112,7 +115,9 @@ DELETE /api/v1/keys/{key_name}
 
 ```json
 {
-  "message": "Key deleted successfully"
+  "code": 0,
+  "message": "Key deleted successfully",
+  "data": null
 }
 ```
 

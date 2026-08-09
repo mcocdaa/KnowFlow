@@ -3,7 +3,7 @@ import { registerPluginComponent, type PluginComponentProps } from './loader';
 import StarRating from './components/StarRating';
 
 export { PluginRenderer, hasPluginComponent, getPluginComponent } from './loader';
-export type { PluginManifest, PluginComponentProps } from './loader';
+export type { PluginComponentProps } from './loader';
 
 const StarRatingWrapper: React.FC<PluginComponentProps> = (props) => {
   return (

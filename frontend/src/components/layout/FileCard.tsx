@@ -130,13 +130,13 @@ const DeleteButton = styled(Button)`
   }
 `;
 
-const FileCard: React.FC<FileCardProps> = ({
+const FileCard: React.FC<FileCardProps> = React.memo(function FileCard({
   item,
   isSelected,
   onSelect,
   onDelete,
   getFileIcon,
-}) => {
+}) {
   const displayPath = (item.keyValues?.['file_path'] as string) || item.name || '未命名文件';
   const displayType = (item.keyValues?.['file_type'] as string) || '';
 
@@ -175,6 +175,6 @@ const FileCard: React.FC<FileCardProps> = ({
       </FileHeader>
     </FileCardWrapper>
   );
-};
+});
 
 export default FileCard;

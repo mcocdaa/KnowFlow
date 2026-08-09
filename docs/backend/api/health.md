@@ -10,11 +10,15 @@
 GET /api/v1/health
 ```
 
-**响应示例**:
+**响应示例**（外层统一 envelope，`data` 如下）:
 
 ```json
 {
-  "status": "ok"
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "status": "ok"
+  }
 }
 ```
 

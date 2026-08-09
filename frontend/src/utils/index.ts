@@ -1,4 +1,5 @@
-export { openFileInExplorer, copyToClipboard, isElectron } from './electron';
-export { getFileIcon, formatDate } from './file';
+export { API_BASE_URL } from '../services/api';
+export { openFileInExplorer, isElectron } from './electron';
+export { getFileIcon } from './file';
 export { buildCategoryTree } from './menu';
-export { openFileLocation } from './helpers';
+export { openFileLocation, getErrorMessage } from './helpers';

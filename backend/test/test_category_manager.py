@@ -68,21 +68,19 @@ class TestCategoryManager:
         from bson import ObjectId
 
         test_oid = ObjectId("507f1f77bcf86cd799439011")
-        expected_category = {"_id": test_oid, "name": "test_category"}
-        mock_db_manager.find_one.return_value = expected_category
+        mock_db_manager.find_one.return_value = {"_id": test_oid, "name": "test_category"}
 
         result = await category_manager.get_by_id(str(test_oid))
 
-        assert result == expected_category
+        assert result == {"id": str(test_oid), "name": "test_category"}
 
     @pytest.mark.asyncio
     async def test_get_by_name_success(self, category_manager, mock_db_manager):
-        expected_category = {"_id": "test_id", "name": "test_category"}
-        mock_db_manager.find_one.return_value = expected_category
+        mock_db_manager.find_one.return_value = {"_id": "test_id", "name": "test_category"}
 
         result = await category_manager.get_by_name("test_category")
 
-        assert result == expected_category
+        assert result == {"id": "test_id", "name": "test_category"}
         mock_db_manager.find_one.assert_called_once_with("categories", {"name": "test_category"})
 
     @pytest.mark.asyncio

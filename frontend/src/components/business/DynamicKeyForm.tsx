@@ -47,7 +47,7 @@ const renderInputByType = (valueType: ValueType, key: KeyDefinition, itemId?: st
   }
 };
 
-export const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ initialValues, onSubmit, itemId }) => {
+const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ initialValues, onSubmit, itemId }) => {
   const { definitionList } = useSelector((state: RootState) => state.key);
   const [form] = Form.useForm();
 

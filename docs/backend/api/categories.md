@@ -2,6 +2,9 @@
 
 ---
 
+> 响应统一包裹在 envelope 中（`{"code": 0, "message": "ok", "data": ...}`），错误时 `code` 为对应 HTTP 状态码；以下示例仅展示 `data` 部分。
+
+
 ## 获取所有分类
 
 ```http
@@ -108,7 +111,9 @@ DELETE /api/v1/categories/{category_id}
 
 ```json
 {
-  "message": "Category deleted successfully"
+  "code": 0,
+  "message": "Category deleted successfully",
+  "data": null
 }
 ```
 

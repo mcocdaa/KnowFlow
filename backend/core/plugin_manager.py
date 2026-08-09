@@ -2,6 +2,7 @@
 # @brief 插件管理器 - 负责插件注册和加载
 # @create 2026-03-27
 
+import asyncio
 import importlib.util
 import logging
 import os
@@ -101,8 +102,6 @@ class PluginManager:
             logger.info(f"[PluginManager] 注册路由: /api/{API_VERSION}/plugins/{key}")
 
         if hasattr(module, "on_load"):
-            import asyncio
-
             try:
                 if asyncio.iscoroutinefunction(module.on_load):
                     await module.on_load()
@@ -217,8 +216,6 @@ class PluginManager:
 
         module = self.plugin_modules.get(plugin_name)
         if module and hasattr(module, "on_unload"):
-            import asyncio
-
             if asyncio.iscoroutinefunction(module.on_unload):
                 await module.on_unload()
             else:
@@ -248,7 +245,6 @@ class PluginManager:
                     "description": manifest.get("description", ""),
                     "author": manifest.get("author", ""),
                     "frontend_entry": manifest.get("frontend_entry"),
-                    "path": plugin_data["path"],
                 }
             )
         return manifests

@@ -2,14 +2,31 @@
 # @brief KnowFlow OpenClaw桥接插件后端，提供OpenClaw属性的CRUD接口
 # @create 2026-03-12 10:00:00
 
+import logging
+from typing import Any, Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
-import logging
+
+from api.errors import ok
+from managers.item_manager import item_manager
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+ARCHIVE_TYPES = ["requirement", "code", "test", "document", "flow_record"]
+MIN_FOLD_LEVEL = 1
+MAX_FOLD_LEVEL = 3
+
+OPENCLAW_FIELDS = [
+    "openclaw_project_id",
+    "openclaw_archive_type",
+    "openclaw_fold_level",
+    "openclaw_agent_source",
+    "openclaw_summary",
+    "openclaw_flow_id",
+]
 
 
 class OpenClawAttributes(BaseModel):
@@ -21,112 +38,77 @@ class OpenClawAttributes(BaseModel):
     openclaw_flow_id: Optional[str] = ""
 
 
-@router.put("/items/{item_id}/openclaw")
-async def update_openclaw_attributes(item_id: str, data: OpenClawAttributes) -> Dict[str, Any]:
-    if not data.openclaw_project_id.strip():
+def _validate_openclaw_fields(data: dict[str, Any]):
+    """校验 OpenClaw 字段合法性"""
+    if "openclaw_project_id" in data and not str(data["openclaw_project_id"]).strip():
         raise HTTPException(status_code=400, detail="openclaw_project_id不能为空")
 
-    if data.openclaw_archive_type not in ["requirement", "code", "test", "document", "flow_record"]:
-        raise HTTPException(status_code=400, detail="归档类型必须是requirement / code / test / document / flow_record之一")
+    if "openclaw_archive_type" in data and data["openclaw_archive_type"] not in ARCHIVE_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="归档类型必须是requirement / code / test / document / flow_record之一",
+        )
 
-    if not 1 <= data.openclaw_fold_level <= 3:
-        raise HTTPException(status_code=400, detail="折叠层级必须在1-3之间")
+    if "openclaw_fold_level" in data:
+        fold_level = data["openclaw_fold_level"]
+        if not isinstance(fold_level, int) or not MIN_FOLD_LEVEL <= fold_level <= MAX_FOLD_LEVEL:
+            raise HTTPException(status_code=400, detail="折叠层级必须是1-3之间的整数")
 
-    from managers.item_manager import item_manager
 
-    try:
-        attributes = {
-            "openclaw_project_id": data.openclaw_project_id,
-            "openclaw_archive_type": data.openclaw_archive_type,
-            "openclaw_fold_level": data.openclaw_fold_level,
-            "openclaw_agent_source": data.openclaw_agent_source,
-            "openclaw_summary": data.openclaw_summary,
-            "openclaw_flow_id": data.openclaw_flow_id
-        }
+@router.put("/items/{item_id}/openclaw")
+async def update_openclaw_attributes(item_id: str, data: OpenClawAttributes) -> dict[str, Any]:
+    _validate_openclaw_fields(data.model_dump())
 
-        await item_manager.update(item_id, {"attributes": attributes})
-        return {"success": True, "data": attributes}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    attributes = {field: getattr(data, field) for field in OPENCLAW_FIELDS}
+
+    updated = await item_manager.update(item_id, {"attributes": attributes})
+    if updated is None:
+        raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
+    return ok(attributes)
 
 
 @router.get("/items/{item_id}/openclaw")
-async def get_openclaw_attributes(item_id: str) -> Dict[str, Any]:
-    from managers.item_manager import item_manager
+async def get_openclaw_attributes(item_id: str) -> dict[str, Any]:
+    item = await item_manager.get_by_id(item_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
+    attributes = item.get("attributes", {})
 
-    try:
-        item = await item_manager.get_by_id(item_id)
-        if item is None:
-            raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
-        attributes = item.get("attributes", {})
+    result = {field: attributes.get(field, "") for field in OPENCLAW_FIELDS}
+    result["openclaw_archive_type"] = attributes.get("openclaw_archive_type", "document")
+    result["openclaw_fold_level"] = attributes.get("openclaw_fold_level", 3)
 
-        result = {
-            "openclaw_project_id": attributes.get("openclaw_project_id", ""),
-            "openclaw_archive_type": attributes.get("openclaw_archive_type", "document"),
-            "openclaw_fold_level": attributes.get("openclaw_fold_level", 3),
-            "openclaw_agent_source": attributes.get("openclaw_agent_source", ""),
-            "openclaw_summary": attributes.get("openclaw_summary", ""),
-            "openclaw_flow_id": attributes.get("openclaw_flow_id", "")
-        }
-
-        return {"success": True, "data": result}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"获取 OpenClaw 属性失败: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+    return ok(result)
 
 
 @router.patch("/items/{item_id}/openclaw")
-async def patch_openclaw_attributes(item_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    if "openclaw_project_id" in data and not data["openclaw_project_id"].strip():
-        raise HTTPException(status_code=400, detail="openclaw_project_id不能为空")
+async def patch_openclaw_attributes(item_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    _validate_openclaw_fields(data)
 
-    if "openclaw_archive_type" in data and data["openclaw_archive_type"] not in ["requirement", "code", "test", "document", "flow_record"]:
-        raise HTTPException(status_code=400, detail="归档类型必须是requirement / code / test / document / flow_record之一")
+    update_data = {k: v for k, v in data.items() if k in OPENCLAW_FIELDS}
 
-    if "openclaw_fold_level" in data and not 1 <= data["openclaw_fold_level"] <= 3:
-        raise HTTPException(status_code=400, detail="折叠层级必须在1-3之间")
+    if not update_data:
+        raise HTTPException(status_code=400, detail="没有有效的更新字段")
 
-    from managers.item_manager import item_manager
-
-    try:
-        allowed_fields = [
-            "openclaw_project_id",
-            "openclaw_archive_type",
-            "openclaw_fold_level",
-            "openclaw_agent_source",
-            "openclaw_summary",
-            "openclaw_flow_id"
-        ]
-
-        update_data = {k: v for k, v in data.items() if k in allowed_fields}
-
-        if not update_data:
-            raise HTTPException(status_code=400, detail="没有有效的更新字段")
-
-        await item_manager.update(item_id, {"attributes": update_data})
-        return {"success": True, "data": update_data}
-    except Exception as e:
-        logger.error(f"更新 OpenClaw 属性失败: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+    updated = await item_manager.update(item_id, {"attributes": update_data})
+    if updated is None:
+        raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
+    return ok(update_data)
 
 
 async def register_openclaw_category():
     """注册openclaw_category分类"""
     from managers.category_manager import category_manager
 
-    # 检查分类是否已存在
     existing = await category_manager.get_by_name("openclaw_category")
     if existing:
         logger.info("[KnowFlowOpenClawPlugin] openclaw_category分类已存在，跳过创建")
         return
 
-    # 创建新分类（使用category_manager确保数据格式正确）
     category_data = {
         "name": "openclaw_category",
         "title": "OpenClaw集成",
-        "parent_name": None,  # 根分类
+        "parent_name": None,
         "is_builtin": False,
     }
 

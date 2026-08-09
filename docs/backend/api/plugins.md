@@ -2,6 +2,9 @@
 
 ---
 
+> 响应统一包裹在 envelope 中（`{"code": 0, "message": "ok", "data": ...}`），错误时 `code` 为对应 HTTP 状态码；以下示例仅展示 `data` 部分。
+
+
 ## 获取插件清单
 
 ```http

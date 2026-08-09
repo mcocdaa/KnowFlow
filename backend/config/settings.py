@@ -98,8 +98,8 @@ API_VERSION = os.getenv("API_VERSION", "v1")
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
 
-DATA_DIR = os.getenv("DATA_DIR", "./data")
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./data/uploads")
+DATA_DIR = os.getenv("DATA_DIR", os.path.join(PROJECT_ROOT, "data"))
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", os.path.join(DATA_DIR, "uploads"))
 
 DEFAULT_KEYS_PATH = os.getenv("DEFAULT_KEYS_PATH", os.path.join(DATA_DIR, "default", "keys.yaml"))
 DEFAULT_CATEGORIES_PATH = os.getenv("DEFAULT_CATEGORIES_PATH", os.path.join(DATA_DIR, "default", "categories.yaml"))
@@ -108,7 +108,19 @@ PLUGINS_DIR = os.getenv("PLUGINS_DIR", os.path.join(PROJECT_ROOT, "plugins"))
 
 MONGODB_URL = read_secret("MONGODB_URL", "mongodb://localhost:27017")
 MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "knowflow")
-DB_RETRY_COUNT = int(os.getenv("DB_RETRY_COUNT", "3"))
+
+
+def env_int(name: str, default: int) -> int:
+    """读取整数环境变量，非法值回退默认"""
+    try:
+        return int(os.getenv(name, default))
+    except ValueError:
+        return default
+
+
+DB_RETRY_COUNT = env_int("DB_RETRY_COUNT", 3)
+
+MAX_UPLOAD_SIZE = env_int("MAX_UPLOAD_SIZE", 10 * 1024 * 1024)
 
 AI_CONFIG = {
     "doubao": {
@@ -143,7 +155,9 @@ KEY_STYLE = {
 }
 
 
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+CORS_ORIGINS = [
+    origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:5177").split(",") if origin.strip()
+]
 
 __all__ = [
     "API_VERSION",
@@ -154,6 +168,7 @@ __all__ = [
     "MONGODB_URL",
     "MONGODB_DB_NAME",
     "DB_RETRY_COUNT",
+    "MAX_UPLOAD_SIZE",
     "AI_CONFIG",
     "CORS_ORIGINS",
     "CATEGORY_STYLE",

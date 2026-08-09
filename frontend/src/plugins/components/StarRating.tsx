@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { App } from 'antd';
+import api from '../../services/api';
 
 interface StarRatingProps {
   value?: number;
@@ -6,11 +8,6 @@ interface StarRatingProps {
   onUpdate?: (value: number) => void;
   onChange?: (value: number) => void;
   readOnly?: boolean;
-  keyDefinition?: {
-    name: string;
-    title: string;
-    value_type: string;
-  };
 }
 
 const StarRating: React.FC<StarRatingProps> = ({
@@ -20,6 +17,7 @@ const StarRating: React.FC<StarRatingProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  const { message } = App.useApp();
   const [rating, setRating] = useState<number>(value || 0);
   const [hover, setHover] = useState<number>(0);
   const [prevValue, setPrevValue] = useState<number>(value || 0);
@@ -38,20 +36,10 @@ const StarRating: React.FC<StarRatingProps> = ({
     onUpdate(star);
 
     try {
-      const response = await fetch(
-        `/api/v1/plugins/rating/items/${itemId}/rating`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rating: star }),
-        }
-      );
-
-      if (!response.ok) {
-        console.error('Failed to update rating');
-      }
+      await api.updatePluginRating(itemId, star);
     } catch (error) {
       console.error('Error updating rating:', error);
+      message.error('评分更新失败');
     }
   };
 

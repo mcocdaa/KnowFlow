@@ -140,16 +140,3 @@ export const PrimaryButton = styled(Button)`
     background: ${COLORS.primaryActive} !important;
   }
 `;
-
-export const GhostButton = styled(Button)`
-  ${buttonStyles}
-  background: transparent !important;
-  border: 1px solid ${COLORS.primary} !important;
-  color: ${COLORS.primary} !important;
-
-  &:hover {
-    background: ${COLORS.primaryLight} !important;
-    border-color: ${COLORS.primaryHover} !important;
-    color: ${COLORS.primaryHover} !important;
-  }
-`;

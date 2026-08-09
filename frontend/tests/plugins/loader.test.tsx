@@ -5,7 +5,6 @@ import {
   registerPluginComponent,
   getPluginComponent,
   hasPluginComponent,
-  fetchPluginManifests,
   PluginRenderer,
 } from '../../src/plugins/loader';
 
@@ -62,42 +61,6 @@ describe('Plugin Loader', () => {
 
     it('should return false for unregistered plugin', () => {
       expect(hasPluginComponent('nonexistent')).toBe(false);
-    });
-  });
-
-  describe('fetchPluginManifests', () => {
-    it('should fetch manifests successfully', async () => {
-      const mockManifests = [
-        { name: 'rating', version: '1.0.0', description: 'Rating plugin' }
-      ];
-
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockManifests),
-      });
-
-      const manifests = await fetchPluginManifests();
-
-      expect(manifests).toEqual(mockManifests);
-      expect(global.fetch).toHaveBeenCalledWith('/api/v1/plugins/manifests');
-    });
-
-    it('should return empty array on fetch error', async () => {
-      global.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'));
-
-      const manifests = await fetchPluginManifests();
-
-      expect(manifests).toEqual([]);
-    });
-
-    it('should return empty array on non-ok response', async () => {
-      global.fetch = vi.fn().mockResolvedValueOnce({
-        ok: false,
-      });
-
-      const manifests = await fetchPluginManifests();
-
-      expect(manifests).toEqual([]);
     });
   });
 
