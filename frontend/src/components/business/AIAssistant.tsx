@@ -27,7 +27,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/ai/search', {
+      const response = await fetch('/api/v1/ai/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,12 +35,17 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
         body: JSON.stringify({ query, items }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || '语义检索失败');
+      }
+
       const searchResults = await response.json();
       dispatch(setSearchResults(searchResults));
       message.success('语义检索完成');
     } catch (error) {
       console.error('Semantic search error:', error);
-      message.error('语义检索失败');
+      message.error((error as Error).message || '语义检索失败');
     } finally {
       setLoading(false);
     }
@@ -49,7 +54,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
   const handleAutoTag = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/ai/auto-tag', {
+      const response = await fetch('/api/v1/ai/auto-tag', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,11 +62,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
         body: JSON.stringify({ items }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || '自动打标签失败');
+      }
+
       await response.json();
       message.success('自动打标签完成');
     } catch (error) {
       console.error('Auto tag error:', error);
-      message.error('自动打标签失败');
+      message.error((error as Error).message || '自动打标签失败');
     } finally {
       setLoading(false);
     }

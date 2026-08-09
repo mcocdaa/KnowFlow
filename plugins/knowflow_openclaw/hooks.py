@@ -10,37 +10,38 @@ logger = logging.getLogger(__name__)
 
 
 @hook_manager.hook(ITEM_CREATE_AFTER)
-async def on_item_create_after(item: dict) -> None:
+async def on_item_create_after(result, *args, **kwargs) -> None:
     """
     知识项创建后钩子
 
     Args:
-        item: 知识项数据
+        result: 创建结果
     """
-    logger.debug(f"[KnowFlowOpenClawHook] 知识项已创建: {item.get('id')}")
+    if result and isinstance(result, dict):
+        logger.debug(f"[KnowFlowOpenClawHook] 知识项已创建: {result.get('item', {}).get('id')}")
 
 
 @hook_manager.hook(ITEM_UPDATE_AFTER)
-async def on_item_update_after(old_item: dict, new_item: dict) -> None:
+async def on_item_update_after(result, *args, **kwargs) -> None:
     """
     知识项更新后钩子
 
     Args:
-        old_item: 更新前的知识项
-        new_item: 更新后的知识项
+        result: 更新结果
     """
-    logger.debug(f"[KnowFlowOpenClawHook] 知识项已更新: {new_item.get('id')}")
+    if result and isinstance(result, dict):
+        logger.debug(f"[KnowFlowOpenClawHook] 知识项已更新: {result.get('item', {}).get('id')}")
 
 
 @hook_manager.hook(ITEM_DELETE_BEFORE)
-async def on_item_delete_before(item: dict) -> None:
+async def on_item_delete_before(item_id, *args, **kwargs) -> None:
     """
     知识项删除前钩子
 
     Args:
-        item: 要删除的知识项
+        item_id: 要删除的知识项 ID
     """
-    logger.debug(f"[KnowFlowOpenClawHook] 知识项即将删除: {item.get('id')}")
+    logger.debug(f"[KnowFlowOpenClawHook] 知识项即将删除: {item_id}")
 
 
 async def register_hooks() -> None:

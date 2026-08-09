@@ -44,4 +44,3 @@ The plugin SHALL have a valid openclaw.plugin.json with configSchema for baseUrl
 - GIVEN the plugin is installed
 - WHEN user sets config.baseUrl to a custom URL
 - THEN all API calls use that URL instead of default
-

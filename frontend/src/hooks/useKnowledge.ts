@@ -43,6 +43,24 @@ export const useInitialData = () => {
   }, [dispatch, message]);
 };
 
+const sortKnowledgeItems = (items: KnowledgeItem[], sortBy: string): KnowledgeItem[] => {
+  const sorted = [...items];
+  if (sortBy === 'recent') {
+    sorted.sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  } else if (sortBy === 'rating') {
+    sorted.sort((a, b) => {
+      const aRating = Number(a.keyValues?.['rating']) || 0;
+      const bRating = Number(b.keyValues?.['rating']) || 0;
+      return bRating - aRating;
+    });
+  }
+  return sorted;
+};
+
 export const useKnowledgeItems = () => {
   const dispatch = useDispatch();
   const { message } = useApp();
@@ -69,15 +87,7 @@ export const useKnowledgeItems = () => {
       });
     }
 
-    if (sortBy === 'recent') {
-      results.sort((a: KnowledgeItem, b: KnowledgeItem) => {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bTime - aTime;
-      });
-    }
-
-    dispatch(setSearchResults(results));
+    dispatch(setSearchResults(sortKnowledgeItems(results, sortBy)));
   }, [dispatch, items]);
 
   const handleKeyClick = useCallback((keyName: string) => {
@@ -142,15 +152,7 @@ export const useKnowledgeItems = () => {
   }, [dispatch, message]);
 
   const getSortedItems = useCallback((sortBy: string) => {
-    const sorted = [...items];
-    if (sortBy === 'recent') {
-      sorted.sort((a, b) => {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bTime - aTime;
-      });
-    }
-    return sorted;
+    return sortKnowledgeItems(items, sortBy);
   }, [items]);
 
   const getDefaultFormValues = useCallback(() => {

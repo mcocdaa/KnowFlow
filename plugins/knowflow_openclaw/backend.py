@@ -5,6 +5,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -53,6 +56,8 @@ async def get_openclaw_attributes(item_id: str) -> Dict[str, Any]:
 
     try:
         item = await item_manager.get_by_id(item_id)
+        if item is None:
+            raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
         attributes = item.get("attributes", {})
 
         result = {
@@ -65,7 +70,10 @@ async def get_openclaw_attributes(item_id: str) -> Dict[str, Any]:
         }
 
         return {"success": True, "data": result}
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"获取 OpenClaw 属性失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -100,6 +108,7 @@ async def patch_openclaw_attributes(item_id: str, data: Dict[str, Any]) -> Dict[
         await item_manager.update(item_id, {"attributes": update_data})
         return {"success": True, "data": update_data}
     except Exception as e:
+        logger.error(f"更新 OpenClaw 属性失败: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -110,7 +119,7 @@ async def register_openclaw_category():
     # 检查分类是否已存在
     existing = await category_manager.get_by_name("openclaw_category")
     if existing:
-        print("[KnowFlowOpenClawPlugin] openclaw_category分类已存在，跳过创建")
+        logger.info("[KnowFlowOpenClawPlugin] openclaw_category分类已存在，跳过创建")
         return
 
     # 创建新分类（使用category_manager确保数据格式正确）
@@ -122,14 +131,14 @@ async def register_openclaw_category():
     }
 
     await category_manager.create(category_data)
-    print("[KnowFlowOpenClawPlugin] 成功创建openclaw_category分类")
+    logger.info("[KnowFlowOpenClawPlugin] 成功创建openclaw_category分类")
 
 
 async def on_load():
-    print("[KnowFlowOpenClawPlugin] KnowFlow OpenClaw桥接插件加载中...")
+    logger.info("[KnowFlowOpenClawPlugin] KnowFlow OpenClaw桥接插件加载中...")
     await register_openclaw_category()
-    print("[KnowFlowOpenClawPlugin] KnowFlow OpenClaw桥接插件已加载")
+    logger.info("[KnowFlowOpenClawPlugin] KnowFlow OpenClaw桥接插件已加载")
 
 
 async def on_unload():
-    print("[KnowFlowOpenClawPlugin] KnowFlow OpenClaw桥接插件已卸载")
+    logger.info("[KnowFlowOpenClawPlugin] KnowFlow OpenClaw桥接插件已卸载")

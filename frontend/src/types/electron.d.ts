@@ -1,7 +1,6 @@
-// 扩展Window接口，添加electron相关
+// 扩展Window接口，添加 Electron preload 暴露的 API
 interface Window {
-  electronAPI?: {
-    openFileLocation: (filePath: string) => void;
+  knowflow?: {
+    showItemInFolder: (filePath: string) => Promise<void>;
   };
-  require?: (module: string) => any;
 }

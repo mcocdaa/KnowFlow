@@ -4,14 +4,14 @@ import '@testing-library/jest-dom';
 // 模拟ResizeObserver
 if (typeof window !== 'undefined' && !window.ResizeObserver) {
   window.ResizeObserver = class ResizeObserver {
-    constructor(callback: ResizeObserverCallback) {
-      this.callback = callback;
+    constructor(_callback: ResizeObserverCallback) {
+      this.callback = _callback;
     }
     callback: ResizeObserverCallback;
-    observe(target: Element) {
+    observe() {
       // 模拟观察元素
     }
-    unobserve(target: Element) {
+    unobserve() {
       // 模拟取消观察
     }
     disconnect() {

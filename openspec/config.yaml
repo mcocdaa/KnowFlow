@@ -5,11 +5,11 @@ context: |
   - 前端: React (TypeScript) + Electron
   - 插件系统: YAML声明 + Python后端 + React前端
   - 当前运行在 http://localhost:3000/
-  
+
   本次开发在 openclaw 分支上进行。
   目标：开发 OpenClaw 桥接工具，让 OpenClaw Agent 能方便地调用 KnowFlow API 进行结构化文档记录。
   桥接工具以 OpenClaw 技能（SKILL.md）形式存在，通过 HTTP 调用 KnowFlow REST API。
-  
+
   KnowFlow API 端点：
   - POST /api/v1/item — 创建知识项
   - GET /api/v1/item — 列出所有知识项
@@ -22,7 +22,7 @@ context: |
   - PUT /api/v1/items/{id}/openclaw — 更新OpenClaw属性
   - GET /api/v1/items/{id}/openclaw — 获取OpenClaw属性
   - PATCH /api/v1/items/{id}/openclaw — 部分更新OpenClaw属性
-  
+
   OpenClaw 插件 Key 字段：
   - openclaw_project_id (必填) — 项目ID
   - openclaw_archive_type — 归档类型: requirement/code/test/document/flow_record

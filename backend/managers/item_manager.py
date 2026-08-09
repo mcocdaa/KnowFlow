@@ -2,47 +2,76 @@
 # @brief 知识项管理核心逻辑（MongoDB 版）
 # @create 2026-03-07 10:00:00
 
-from typing import Dict, Any, List, Optional
+import json
+import re
 from datetime import datetime
+from typing import Any
+
 from bson import ObjectId
-from .db_manager import db_manager
-from .key_manager import key_manager
+from bson.errors import InvalidId
+
 from core import hook_manager
 from core.hooks import (
-    ITEM_CREATE_BEFORE, ITEM_CREATE_AFTER,
-    ITEM_UPDATE_BEFORE, ITEM_UPDATE_AFTER,
-    ITEM_DELETE_BEFORE, ITEM_DELETE_AFTER,
-    ITEM_GET_BEFORE, ITEM_GET_AFTER,
-    ITEM_LIST_BEFORE, ITEM_LIST_AFTER,
-    SEARCH_BEFORE, SEARCH_AFTER,
+    ITEM_CREATE_AFTER,
+    ITEM_CREATE_BEFORE,
+    ITEM_DELETE_AFTER,
+    ITEM_DELETE_BEFORE,
+    ITEM_GET_AFTER,
+    ITEM_GET_BEFORE,
+    ITEM_LIST_AFTER,
+    ITEM_LIST_BEFORE,
+    ITEM_UPDATE_AFTER,
+    ITEM_UPDATE_BEFORE,
+    SEARCH_AFTER,
+    SEARCH_BEFORE,
 )
+
+from .db_manager import db_manager
+from .key_manager import key_manager
 
 
 class ItemManager:
     def __init__(self):
         self.items_collection = "items"
 
-    def _convert_value(self, value: str, value_type: str) -> Any:
-        if value_type == "int":
-            return int(value)
-        elif value_type == "float":
-            return round(float(value), 2)
-        elif value_type == "bool":
-            return value.lower() in ("true", "1", "yes")
-        elif value_type == "rating":
-            return int(value)
-        return value
+    def _convert_value(self, value: Any, value_type: str) -> Any:
+        """将存储值转换为 value_type 对应的 Python 类型"""
+        if value_type == "number":
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                try:
+                    return float(value)
+                except (ValueError, TypeError):
+                    return value
+        elif value_type == "boolean":
+            if isinstance(value, str):
+                return value.lower() in ("true", "1", "yes")
+            return bool(value)
+        elif value_type in ("array", "object"):
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except (ValueError, TypeError):
+                    return value
+            return value
+        return str(value) if value is not None else ""
 
     def _convert_to_string(self, value: Any, value_type: str) -> str:
-        if value_type in ("int", "float", "rating"):
-            return str(value)
-        elif value_type == "bool":
+        """将输入值按 value_type 规范化为存储字符串"""
+        if value_type == "boolean":
+            if isinstance(value, str):
+                return value.lower()
             return "true" if value else "false"
-        return str(value)
+        elif value_type in ("array", "object"):
+            if isinstance(value, str):
+                return value
+            return json.dumps(value, ensure_ascii=False)
+        return str(value) if value is not None else ""
 
-    async def _format_item_response(self, item: Dict) -> Dict[str, Any]:
+    async def _format_item_response(self, item: dict) -> dict[str, Any]:
         all_keys = await key_manager.get_all()
-        key_dict = {key['name']: key for key in all_keys}
+        key_dict = {key["name"]: key for key in all_keys}
 
         item_attributes = {}
         key_info = {}
@@ -51,13 +80,10 @@ class ItemManager:
             if key_def.get("is_visible", True):
                 if key_name in item:
                     value = item[key_name]
-                    item_attributes[key_name] = self._convert_value(str(value), key_def["value_type"])
+                    item_attributes[key_name] = self._convert_value(value, key_def["value_type"])
                     key_info[key_name] = key_def
                 elif key_def.get("is_required", False):
-                    item_attributes[key_name] = self._convert_value(
-                        key_def["default_value"],
-                        key_def["value_type"]
-                    )
+                    item_attributes[key_name] = self._convert_value(key_def["default_value"], key_def["value_type"])
                     key_info[key_name] = key_def
 
         knowflow_item = {
@@ -68,20 +94,16 @@ class ItemManager:
             knowflow_item["name"] = item["name"]
 
         for key_name in ["created_at", "updated_at"]:
-            if key_name in item:
+            if key_name in item and item[key_name]:
                 if hasattr(item[key_name], "isoformat"):
                     knowflow_item[key_name] = item[key_name].isoformat()
                 else:
-                    knowflow_item[key_name] = str(item[key_name]) if item[key_name] else None
+                    knowflow_item[key_name] = str(item[key_name])
 
-        return {
-            "item": knowflow_item,
-            "attributes": item_attributes,
-            "key_info": key_info
-        }
+        return {"item": knowflow_item, "attributes": item_attributes, "key_info": key_info}
 
     @hook_manager.wrap_hooks(before=ITEM_LIST_BEFORE, after=ITEM_LIST_AFTER)
-    async def get_all(self) -> List[Dict[str, Any]]:
+    async def get_all(self) -> list[dict[str, Any]]:
         """
         获取所有知识项
         """
@@ -94,13 +116,13 @@ class ItemManager:
         return result
 
     @hook_manager.wrap_hooks(before=ITEM_GET_BEFORE, after=ITEM_GET_AFTER)
-    async def get_by_id(self, item_id: str) -> Optional[Dict[str, Any]]:
+    async def get_by_id(self, item_id: str) -> dict[str, Any] | None:
         """
         根据ID获取知识项
         """
         try:
             oid = ObjectId(item_id)
-        except:
+        except (ValueError, TypeError, InvalidId):
             return None
 
         item = await db_manager.find_one(self.items_collection, {"_id": oid})
@@ -110,14 +132,14 @@ class ItemManager:
         return await self._format_item_response(item)
 
     @hook_manager.wrap_hooks(before=ITEM_CREATE_BEFORE, after=ITEM_CREATE_AFTER)
-    async def create(self, item_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create(self, item_data: dict[str, Any]) -> dict[str, Any]:
         """
         创建新知识项
         """
         now = datetime.now()
 
         all_keys = await key_manager.get_all()
-        key_dict = {key['name']: key for key in all_keys}
+        key_dict = {key["name"]: key for key in all_keys}
 
         knowflow_item = {
             "created_at": now,
@@ -138,13 +160,13 @@ class ItemManager:
         return await self.get_by_id(str(item_id))
 
     @hook_manager.wrap_hooks(before=ITEM_UPDATE_BEFORE, after=ITEM_UPDATE_AFTER)
-    async def update(self, item_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def update(self, item_id: str, updates: dict[str, Any]) -> dict[str, Any] | None:
         """
         更新知识项
         """
         try:
             oid = ObjectId(item_id)
-        except:
+        except (ValueError, TypeError, InvalidId):
             return None
 
         now = datetime.now()
@@ -158,7 +180,7 @@ class ItemManager:
             update_fields["name"] = updates["name"]
 
         all_keys = await key_manager.get_all()
-        key_dict = {key['name']: key for key in all_keys}
+        key_dict = {key["name"]: key for key in all_keys}
         key_values = updates.get("keyValues", {}) or updates.get("attributes", {})
 
         for key_name, value in key_values.items():
@@ -168,11 +190,7 @@ class ItemManager:
 
         if update_fields:
             update_fields["updated_at"] = now
-            await db_manager.update_one(
-                self.items_collection,
-                {"_id": oid},
-                {"$set": update_fields}
-            )
+            await db_manager.update_one(self.items_collection, {"_id": oid}, {"$set": update_fields})
 
         return await self.get_by_id(item_id)
 
@@ -183,7 +201,7 @@ class ItemManager:
         """
         try:
             oid = ObjectId(item_id)
-        except:
+        except (ValueError, TypeError, InvalidId):
             return False
 
         deleted_count = await db_manager.delete_one(self.items_collection, {"_id": oid})
@@ -193,13 +211,12 @@ class ItemManager:
     async def search(
         self,
         q: str = "",
-        category: str = None,
         key: str = None,
         key_value: str = None,
         sort: str = "recent",
         page: int = 1,
-        page_size: int = 20
-    ) -> Dict[str, Any]:
+        page_size: int = 20,
+    ) -> dict[str, Any]:
         """
         搜索知识项
         """
@@ -211,36 +228,26 @@ class ItemManager:
             for k in all_keys:
                 search_fields.append(k["name"])
 
+            escaped_q = re.escape(q)
             or_conditions = []
             for field in search_fields:
-                or_conditions.append({field: {"$regex": q, "$options": "i"}})
+                or_conditions.append({field: {"$regex": escaped_q, "$options": "i"}})
             query["$or"] = or_conditions
 
-        if category:
-            query["category"] = category
-
         if key and key_value:
-            query[key] = {"$regex": key_value, "$options": "i"}
+            query[key] = {"$regex": re.escape(key_value), "$options": "i"}
 
         sort_options = []
         if sort == "recent":
             sort_options = [("created_at", -1)]
         elif sort == "rating":
             sort_options = [("rating", -1)]
-        elif sort == "clickCount":
-            sort_options = [("click_count", -1)]
         elif sort == "name":
             sort_options = [("name", 1)]
 
         skip = (page - 1) * page_size
 
-        items = await db_manager.find(
-            self.items_collection,
-            query=query,
-            sort=sort_options,
-            limit=page_size,
-            skip=skip
-        )
+        items = await db_manager.find(self.items_collection, query=query, sort=sort_options, limit=page_size, skip=skip)
 
         total = await db_manager.count_documents(self.items_collection, query)
 
@@ -253,7 +260,7 @@ class ItemManager:
             "total": total,
             "page": page,
             "page_size": page_size,
-            "total_pages": (total + page_size - 1) // page_size
+            "total_pages": (total + page_size - 1) // page_size,
         }
 
 

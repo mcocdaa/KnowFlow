@@ -13,12 +13,12 @@
 import { Type, Static } from '@sinclair/typebox';
 
 const KnowflowRecordSchema = Type.Object({
-  name: Type.String({ 
+  name: Type.String({
     description: '记录名称/标题',
     minLength: 1,
     maxLength: 200
   }),
-  projectId: Type.String({ 
+  projectId: Type.String({
     description: '项目ID（必填），用于按项目隔离归档',
     minLength: 1
   }),
@@ -28,34 +28,34 @@ const KnowflowRecordSchema = Type.Object({
     Type.Literal('test'),
     Type.Literal('document'),
     Type.Literal('flow_record')
-  ], { 
+  ], {
     description: '归档类型：requirement/code/test/document/flow_record',
     default: 'document'
   }),
-  summary: Type.String({ 
+  summary: Type.String({
     description: '一句话摘要（顶层折叠内容），AI只读摘要省Token',
     default: ''
   }),
-  content: Type.String({ 
+  content: Type.String({
     description: '完整内容（支持Markdown）',
     default: ''
   }),
-  agent: Type.String({ 
+  agent: Type.String({
     description: '生成者：编码Agent/调试Agent/AutoFlow溯源',
     default: ''
   }),
-  foldLevel: Type.Number({ 
+  foldLevel: Type.Number({
     description: '折叠层级：1(顶层摘要)/2(中层)/3(完整内容)',
     default: 3,
     minimum: 1,
     maximum: 3
   }),
-  flowId: Type.String({ 
+  flowId: Type.String({
     description: 'AutoFlow流程ID（可选），关联自动化流程',
     default: ''
   })
-}, { 
-  additionalProperties: false 
+}, {
+  additionalProperties: false
 });
 
 type KnowflowRecordParams = Static<typeof KnowflowRecordSchema>;
@@ -72,12 +72,12 @@ type KnowflowRecordParams = Static<typeof KnowflowRecordSchema>;
 **参数 (JSON Schema)**:
 ```typescript
 const KnowflowSearchSchema = Type.Object({
-  query: Type.String({ 
+  query: Type.String({
     description: '搜索关键词，匹配名称、摘要、内容',
     minLength: 1,
     maxLength: 500
   }),
-  projectId: Type.Optional(Type.String({ 
+  projectId: Type.Optional(Type.String({
     description: '按项目ID筛选（可选）'
   })),
   type: Type.Optional(Type.Union([
@@ -86,20 +86,20 @@ const KnowflowSearchSchema = Type.Object({
     Type.Literal('test'),
     Type.Literal('document'),
     Type.Literal('flow_record')
-  ], { 
+  ], {
     description: '按归档类型筛选（可选）'
   })),
-  agent: Type.Optional(Type.String({ 
+  agent: Type.Optional(Type.String({
     description: '按生成者筛选（可选）'
   })),
-  limit: Type.Number({ 
+  limit: Type.Number({
     description: '返回结果数量限制',
     default: 10,
     minimum: 1,
     maximum: 50
   })
-}, { 
-  additionalProperties: false 
+}, {
+  additionalProperties: false
 });
 
 type KnowflowSearchParams = Static<typeof KnowflowSearchSchema>;
@@ -116,7 +116,7 @@ type KnowflowSearchParams = Static<typeof KnowflowSearchSchema>;
 **参数 (JSON Schema)**:
 ```typescript
 const KnowflowListSchema = Type.Object({
-  projectId: Type.Optional(Type.String({ 
+  projectId: Type.Optional(Type.String({
     description: '按项目ID筛选（可选）'
   })),
   type: Type.Optional(Type.Union([
@@ -125,22 +125,22 @@ const KnowflowListSchema = Type.Object({
     Type.Literal('test'),
     Type.Literal('document'),
     Type.Literal('flow_record')
-  ], { 
+  ], {
     description: '按归档类型筛选（可选）'
   })),
-  limit: Type.Number({ 
+  limit: Type.Number({
     description: '返回结果数量限制',
     default: 10,
     minimum: 1,
     maximum: 100
   }),
-  offset: Type.Number({ 
+  offset: Type.Number({
     description: '分页偏移量',
     default: 0,
     minimum: 0
   })
-}, { 
-  additionalProperties: false 
+}, {
+  additionalProperties: false
 });
 
 type KnowflowListParams = Static<typeof KnowflowListSchema>;
@@ -157,17 +157,17 @@ type KnowflowListParams = Static<typeof KnowflowListSchema>;
 **参数 (JSON Schema)**:
 ```typescript
 const KnowflowGetSchema = Type.Object({
-  id: Type.String({ 
+  id: Type.String({
     description: '记录ID（必填）',
     minLength: 1
   }),
-  foldLevel: Type.Optional(Type.Number({ 
+  foldLevel: Type.Optional(Type.Number({
     description: '返回内容的折叠层级：1(仅摘要)/2(中层)/3(完整内容)，不传则按记录设置返回',
     minimum: 1,
     maximum: 3
   }))
-}, { 
-  additionalProperties: false 
+}, {
+  additionalProperties: false
 });
 
 type KnowflowGetParams = Static<typeof KnowflowGetSchema>;
@@ -274,10 +274,10 @@ execute(params: KnowflowListParams):
        offset: params.offset,
        sort_by: "created_at",
        sort_order: "desc",
-       ...(params.projectId && { 
+       ...(params.projectId && {
          attributes: JSON.stringify({ openclaw_project_id: params.projectId })
        }),
-       ...(params.type && { 
+       ...(params.type && {
          attributes: JSON.stringify({ openclaw_archive_type: params.type })
        })
      }
@@ -476,7 +476,7 @@ KnowFlow 是一个知识管理归档系统，用于 Agent 工作成果的持久�
 2. **写清晰的 summary**: 方便AI快速了解内容，省Token
 3. **选择合适的 type**: 便于后续分类检索
 4. **设置 agent 字段**: 便于溯源和问题排查
-5. **合理使用 foldLevel**: 
+5. **合理使用 foldLevel**:
    - Level 1: 仅摘要，适合快速浏览
    - Level 2: 中层详情，适合概览
    - Level 3: 完整内容，适合深度阅读
@@ -561,7 +561,7 @@ knowflow-openclaw-plugin/           # 插件根目录（git submodule 挂载点�
 
 ### 5. 配置设计
 - **决策**: baseUrl 为必填，其他为可选（带默认值）
-- **理由**: 
+- **理由**:
   - baseUrl 是连接 KnowFlow 的必需信息
   - apiKey 预留认证扩展
   - defaultProjectId 提供便利，但不强制
@@ -574,7 +574,7 @@ knowflow-openclaw-plugin/           # 插件根目录（git submodule 挂载点�
 
 ### 7. 返回值设计
 - **决策**: 所有工具返回格式统一的 JSON 文本
-- **理由**: 
+- **理由**:
   - 便于 Agent 解析和处理
   - 包含 URL 方便人工查看
   - 包含元数据便于后续操作

@@ -321,34 +321,35 @@ interface DetailDrawerProps {
   onDeleteItem: (id: string) => void;
   onMediaPreview: (url: string, type: string) => void;
   getFileIcon: (fileType?: string) => React.ReactNode;
-  formatDate?: (dateString: string) => string;
   definitionList: KeyDefinition[];
   categories: CategoryDefinition[];
 }
 
-const formatValueByType = (value: any, valueType: string): React.ReactNode => {
+const formatValueByType = (value: unknown, valueType: string): React.ReactNode => {
   if (value === undefined || value === null || value === '') return <span style={{ color: COLORS.textLight }}>-</span>;
 
   switch (valueType) {
     case 'boolean':
-      return <BooleanValue $value={value}>{value ? '✓ 是' : '✗ 否'}</BooleanValue>;
+      return <BooleanValue $value={Boolean(value)}>{value ? '✓ 是' : '✗ 否'}</BooleanValue>;
     case 'number':
       return <NumberValue>{String(value)}</NumberValue>;
     case 'array':
-    case 'object':
+    case 'object': {
       try {
         const jsonStr = JSON.stringify(value, null, 2);
         return <CodeValue>{jsonStr}</CodeValue>;
       } catch {
         return <span>{String(value)}</span>;
       }
+    }
     case 'string':
-    default:
+    default: {
       const strValue = String(value);
       if (strValue.length > 200) {
         return <span>{strValue.substring(0, 200)}...</span>;
       }
       return strValue;
+    }
   }
 };
 
@@ -372,19 +373,13 @@ const DetailDrawer: React.FC<DetailDrawerProps> = ({
   definitionList,
   categories,
 }) => {
-  if (!selectedItem) return null;
-
-  const displayPath = (selectedItem.keyValues?.['file_path'] as string) || '';
-  const displayType = (selectedItem.keyValues?.['file_type'] as string) || '';
-  const isMedia = displayType.includes('image') || displayType.includes('video');
-
   const visibleKeys = definitionList.filter(def => def.is_visible);
 
   const keysByCategory = React.useMemo(() => {
     const map = new Map<string, KeyDefinition[]>();
 
     visibleKeys.forEach(def => {
-      const value = selectedItem.keyValues?.[def.name];
+      const value = selectedItem?.keyValues?.[def.name];
       if (value !== undefined && value !== null && value !== '') {
         const catName = def.category_name || 'other';
         if (!map.has(catName)) {
@@ -395,7 +390,13 @@ const DetailDrawer: React.FC<DetailDrawerProps> = ({
     });
 
     return map;
-  }, [visibleKeys, selectedItem.keyValues]);
+  }, [visibleKeys, selectedItem?.keyValues]);
+
+  if (!selectedItem) return null;
+
+  const displayPath = (selectedItem.keyValues?.['file_path'] as string) || '';
+  const displayType = (selectedItem.keyValues?.['file_type'] as string) || '';
+  const isMedia = displayType.includes('image') || displayType.includes('video');
 
   const getCategoryTitle = (categoryName: string): string => {
     const cat = categories.find(c => c.name === categoryName);

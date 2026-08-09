@@ -3,10 +3,12 @@
 # @create 2026-03-06 10:00:00
 
 from fastapi import APIRouter
+
 from core import plugin_manager
 
 # 定义【子路由】：仅处理 /manifests 接口
 router = APIRouter()
+
 
 @router.get("/manifests")
 async def get_plugin_manifests():

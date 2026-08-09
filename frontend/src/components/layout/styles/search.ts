@@ -1,6 +1,5 @@
-import styled, { createGlobalStyle } from 'styled-components';
+import styled, { createGlobalStyle, css } from 'styled-components';
 import { Input, Button } from 'antd';
-import { css } from 'styled-components';
 import {
   COLORS,
   SPACING,
@@ -119,49 +118,10 @@ export const StyledSearch = styled(Search)`
   }
 `;
 
-export const StyledSelect = styled.div`
-  .ant-select {
-    min-width: 140px !important;
-
-    .ant-select-selector {
-      border-radius: ${BORDER_RADIUS.sm} !important;
-      border: 1px solid ${COLORS.border} !important;
-      height: 40px !important;
-      padding: 0 ${SPACING.sm} !important;
-      background: ${COLORS.white} !important;
-      transition: all ${TRANSITIONS.fast} !important;
-      box-shadow: none !important;
-
-      &:hover {
-        border-color: ${COLORS.primary} !important;
-      }
-    }
-
-    &.ant-select-focused .ant-select-selector {
-      border-color: ${COLORS.primary} !important;
-      box-shadow: 0 0 0 2px ${COLORS.primaryLight} !important;
-    }
-
-    .ant-select-selection-item {
-      line-height: 38px !important;
-      font-weight: ${FONT_WEIGHTS.regular} !important;
-    }
-
-    .ant-select-selection-placeholder {
-      line-height: 38px !important;
-      color: ${COLORS.textDisabled} !important;
-    }
-  }
-`;
-
-export const buttonStyles = css`
+const buttonStyles = css`
   transition: all ${TRANSITIONS.fast};
   border-radius: ${BORDER_RADIUS.sm};
   font-weight: ${FONT_WEIGHTS.medium};
-`;
-
-export const StyledButton = styled(Button)`
-  ${buttonStyles}
 `;
 
 export const PrimaryButton = styled(Button)`

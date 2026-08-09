@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import {
   registerPluginComponent,
@@ -176,7 +176,7 @@ describe('Plugin Loader', () => {
     });
 
     it('should pass props to plugin component', () => {
-      const PropsTestComponent: React.FC<any> = ({ value, itemId, readOnly }) => (
+      const PropsTestComponent: React.FC<Record<string, unknown>> = ({ value, itemId, readOnly }) => (
         <div data-testid="props-test">
           {String(value)} - {itemId} - {String(readOnly)}
         </div>
