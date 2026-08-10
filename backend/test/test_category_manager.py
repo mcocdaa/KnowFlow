@@ -2,7 +2,7 @@
 # @brief 分类管理器单元测试
 # @create 2026-03-08 10:00:00
 
-from unittest.mock import mock_open, patch
+from unittest.mock import AsyncMock, mock_open, patch
 
 import pytest
 
@@ -166,21 +166,50 @@ class TestCategoryManager:
             await category_manager.delete("parent")
 
     @pytest.mark.asyncio
-    async def test_initialize_empty_db(self, category_manager, mock_db_manager):
-        mock_db_manager.count_documents.return_value = 0
+    async def test_initialize_backfills_all_when_empty(self, category_manager, mock_db_manager):
+        mock_yaml_data = [
+            {"name": "parent1", "title": "Parent", "parent_name": None, "is_builtin": True},
+            {"name": "child1", "title": "Child", "parent_name": "parent1", "is_builtin": True},
+        ]
         mock_db_manager.find_one.return_value = None
-        mock_yaml_data = [{"name": "default1", "title": "Default 1", "parent_name": None, "is_builtin": True}]
 
         with patch("builtins.open", mock_open(read_data="")):
             with patch("yaml.safe_load", return_value=mock_yaml_data):
-                await category_manager.initialize()
+                with patch("managers.category_manager.CategoryManager.create", new_callable=AsyncMock) as mock_create:
+                    await category_manager.initialize()
 
-        mock_db_manager.count_documents.assert_called_once_with("categories")
+        assert mock_create.call_count == 2
+        names = [c.args[0]["name"] for c in mock_create.call_args_list]
+        assert names == ["parent1", "child1"]  # 父分类先于子分类
 
     @pytest.mark.asyncio
-    async def test_initialize_non_empty_db(self, category_manager, mock_db_manager):
-        mock_db_manager.count_documents.return_value = 5
+    async def test_initialize_backfills_missing_only(self, category_manager, mock_db_manager):
+        mock_yaml_data = [
+            {"name": "parent1", "title": "Parent", "parent_name": None, "is_builtin": True},
+            {"name": "child1", "title": "Child", "parent_name": "parent1", "is_builtin": True},
+        ]
+        # parent1 已存在，child1 缺失
+        mock_db_manager.find_one.side_effect = [{"name": "parent1"}, None]
 
-        await category_manager.initialize()
+        with patch("builtins.open", mock_open(read_data="")):
+            with patch("yaml.safe_load", return_value=mock_yaml_data):
+                with patch("managers.category_manager.CategoryManager.create", new_callable=AsyncMock) as mock_create:
+                    await category_manager.initialize()
 
-        mock_db_manager.count_documents.assert_called_once_with("categories")
+        mock_create.assert_called_once()
+        assert mock_create.call_args.args[0]["name"] == "child1"
+
+    @pytest.mark.asyncio
+    async def test_initialize_no_duplicates_when_all_exist(self, category_manager, mock_db_manager):
+        mock_yaml_data = [
+            {"name": "parent1", "title": "Parent", "parent_name": None, "is_builtin": True},
+            {"name": "child1", "title": "Child", "parent_name": "parent1", "is_builtin": True},
+        ]
+        mock_db_manager.find_one.return_value = {"name": "parent1"}
+
+        with patch("builtins.open", mock_open(read_data="")):
+            with patch("yaml.safe_load", return_value=mock_yaml_data):
+                with patch("managers.category_manager.CategoryManager.create", new_callable=AsyncMock) as mock_create:
+                    await category_manager.initialize()
+
+        mock_create.assert_not_called()
