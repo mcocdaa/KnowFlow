@@ -21,11 +21,12 @@ KnowFlow 采用模块化设计，前后端分离，通过 RESTful API 通信。
 
 | 模块 | 位置 | 功能 |
 |------|------|------|
-| API 路由层 | `api/v1/` | RESTful API 接口 |
-| 业务逻辑层 | `managers/` | 核心业务逻辑 |
-| 插件系统 | `core/plugin_manager.py` | 插件加载、生命周期管理 |
-| 数据存储 | `managers/db_manager.py` | MongoDB 操作封装 |
-| 配置管理 | `config/` | 环境变量、应用配置 |
+| API 路由层 | `api/v1/` | RESTful API 接口（自动路由加载） |
+| 业务逻辑层 | `managers/` | 核心业务逻辑（item/category/key/db） |
+| 插件系统 | `core/plugin_manager.py` | 插件注册表解析、加载、生命周期管理 |
+| 钩子系统 | `core/hook_manager.py` | 动作钩子模式：before/after 钩子、插件钩子注册 |
+| 数据存储 | `managers/db_manager.py` | MongoDB 操作封装（重试机制） |
+| 配置管理 | `config/` | 环境变量、secrets、应用配置 |
 
 ---
 
