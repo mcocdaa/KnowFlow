@@ -109,6 +109,11 @@ class ItemManager:
         all_keys = await key_manager.get_all()
         return [key for key in all_keys if key.get("is_required", False)]
 
+    async def _get_key_dict(self) -> dict[str, dict[str, Any]]:
+        """获取全部 Key 定义，构建 name -> key_def 映射"""
+        all_keys = await key_manager.get_all()
+        return {key["name"]: key for key in all_keys}
+
     def _format_item_response(self, item: dict, key_dict: dict[str, dict[str, Any]]) -> dict[str, Any]:
         item_attributes = {}
         key_info = {}
@@ -144,8 +149,7 @@ class ItemManager:
         """
         获取所有知识项
         """
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
 
         items = await db_manager.find(self.items_collection)
 
@@ -164,8 +168,7 @@ class ItemManager:
         if not item:
             return None
 
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
         return self._format_item_response(item, key_dict)
 
     @hook_manager.wrap_hooks(before=ITEM_CREATE_BEFORE, after=ITEM_CREATE_AFTER)
@@ -175,8 +178,7 @@ class ItemManager:
         """
         now = datetime.now()
 
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
 
         knowflow_item = {
             "created_at": now,
@@ -215,8 +217,7 @@ class ItemManager:
         if "name" in updates:
             update_fields["name"] = updates["name"]
 
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
         key_values = extract_key_values(updates)
 
         for key_name, value in key_values.items():
@@ -259,8 +260,7 @@ class ItemManager:
         if sort not in VALID_SORTS:
             raise ValueError(f"invalid sort option: {sort}")
 
-        all_keys = await key_manager.get_all()
-        key_dict = {k["name"]: k for k in all_keys}
+        key_dict = await self._get_key_dict()
 
         query = {}
 
