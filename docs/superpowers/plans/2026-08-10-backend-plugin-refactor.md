@@ -285,7 +285,7 @@ git commit -m "refactor: extract item_manager._to_object_id helper"
 
 ---
 
-### Task 3: item_manager `_get_key_dict` 抽取
+### Task 3: item_manager `_get_key_dict` 抽取 ✅
 
 **Files:**
 - Modify: `backend/managers/item_manager.py`（get_all `:137-138`、get_by_id `:158-159`、create `:169-170`、update `:210-211`、search `:255-256`）
@@ -558,7 +558,7 @@ git commit -m "refactor: split plugin registry path resolution and manifest load
 
 ---
 
-### Task 5: plugin_manager 路由前缀常量与模块清理抽取
+### Task 5: plugin_manager 路由前缀常量与模块清理抽取 ✅
 
 **Files:**
 - Modify: `backend/core/plugin_manager.py:100-101`（路由注册）、`:231-235`（路由移除）、`:243-252`（模块清理）
@@ -670,7 +670,7 @@ git commit -m "refactor: extract plugin route prefix helper and module cleanup"
 
 ---
 
-### Task 6: category_manager 幂等补齐初始化
+### Task 6: category_manager 幂等补齐初始化 ✅
 
 **Files:**
 - Modify: `backend/managers/category_manager.py:19-42`（initialize）
@@ -796,7 +796,7 @@ git commit -m "refactor: category initialize idempotent backfill"
 
 ---
 
-### Task 7: category_manager bson 导入风格统一
+### Task 7: category_manager bson 导入风格统一 ✅
 
 **Files:**
 - Modify: `backend/managers/category_manager.py:5-12`（模块顶部）、`:78-90`（get_by_id）
@@ -1075,7 +1075,7 @@ git commit -m "docs: sync plugin-system and modules docs with refactored code"
 
 ---
 
-### Task 10: 全量验证
+### Task 10: 全量验证 ✅
 
 **Files:** 无（验证任务）
 
