@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Popconfirm, Drawer } from 'antd';
-import { EditOutlined, DeleteOutlined, PictureOutlined, VideoCameraOutlined, CloseOutlined, FolderOpenOutlined } from '@ant-design/icons';
+import { Button, Popconfirm, Drawer, Modal, Typography } from 'antd';
+import { EditOutlined, DeleteOutlined, PictureOutlined, VideoCameraOutlined, CloseOutlined, FolderOpenOutlined, ExpandOutlined } from '@ant-design/icons';
 import styled, { createGlobalStyle } from 'styled-components';
 import { COLORS, SHADOWS, TRANSITIONS, BORDER_RADIUS } from '../../theme';
 import type { KnowledgeItem, KeyDefinition, CategoryDefinition } from '../../types';
@@ -367,11 +367,60 @@ const formatValueByType = (value: unknown, valueType: string): React.ReactNode =
     default: {
       const strValue = String(value);
       if (strValue.length > 200) {
-        return <span>{strValue.substring(0, 200)}...</span>;
+        return <LongTextValue value={strValue} />;
       }
       return strValue;
     }
   }
+};
+
+const LongTextValue: React.FC<{ value: string }> = ({ value }) => {
+  const [expanded, setExpanded] = React.useState(false);
+  const [modalOpen, setModalOpen] = React.useState(false);
+
+  if (expanded) {
+    return (
+      <span>
+        {value}
+        <Button
+          type="link"
+          size="small"
+          onClick={() => setExpanded(false)}
+          style={{ padding: 0, marginLeft: 8 }}
+        >
+          收起
+        </Button>
+      </span>
+    );
+  }
+
+  return (
+    <span>
+      {value.substring(0, 200)}...
+      <Button
+        type="link"
+        size="small"
+        icon={<ExpandOutlined />}
+        onClick={() => setModalOpen(true)}
+        style={{ padding: 0, marginLeft: 8 }}
+      >
+        展开
+      </Button>
+      <Modal
+        title="完整内容"
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        footer={null}
+        width={720}
+      >
+        <Typography.Paragraph
+          style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '60vh', overflowY: 'auto' }}
+        >
+          {value}
+        </Typography.Paragraph>
+      </Modal>
+    </span>
+  );
 };
 
 const getCategoryIcon = (categoryName: string): string => {

@@ -134,7 +134,7 @@ async def ai_search(payload: AISearchRequest):
 
 @router.post("/ai/auto-tag")
 async def auto_tag(payload: AITagRequest):
-    """自动打标签：为每个知识项生成简短标签"""
+    """自动打标签：为每个知识项生成简短标签并持久化到 tags 字段"""
     items = payload.items[:MAX_ITEMS]
     if not items:
         return ok({"results": {}})
@@ -159,4 +159,27 @@ async def auto_tag(payload: AITagRequest):
         logger.warning(f"AI 打标签输出解析失败: {content[:200]}")
         return ok({"results": {}})
 
+    # 持久化生成的标签到各知识项
+    from bson import ObjectId
+    from bson.errors import InvalidId
+
+    from managers.db_manager import db_manager
+
+    saved = 0
+    for item in items:
+        tags = results.get(item.id, [])
+        if not isinstance(tags, list):
+            continue
+        try:
+            oid = ObjectId(item.id)
+        except (ValueError, TypeError, InvalidId):
+            continue
+        await db_manager.update_one(
+            "items",
+            {"_id": oid},
+            {"$set": {"tags": json.dumps(tags, ensure_ascii=False)}},
+        )
+        saved += 1
+
+    logger.info(f"AI 自动打标签完成，已保存 {saved}/{len(items)} 个知识项")
     return ok({"results": {item.id: results.get(item.id, []) for item in items}})

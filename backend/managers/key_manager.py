@@ -2,6 +2,7 @@
 # @brief Key定义管理核心逻辑（数据库版）
 # @create 2026-03-07 10:00:00
 
+import logging
 from datetime import datetime
 from typing import Any
 
@@ -11,6 +12,8 @@ from config import DEFAULT_KEYS_PATH, KEY_STYLE
 from utils.doc_util import convert_docs
 
 from .db_manager import db_manager
+
+logger = logging.getLogger(__name__)
 
 
 class KeyManager:
@@ -38,14 +41,19 @@ class KeyManager:
 
     async def initialize(self):
         """
-        初始化Key定义，从默认配置加载到数据库
+        初始化Key定义：首次加载默认配置，之后幂等补齐缺失的内置 Key（存量库也能获得新增内置 Key）
         """
-        count = await db_manager.count_documents(self.collection)
-        if count == 0:
-            with open(DEFAULT_KEYS_PATH, encoding="utf-8") as f:
-                default_keys = yaml.safe_load(f)
-                for key_def in default_keys:
-                    await self.create(key_def)
+        with open(DEFAULT_KEYS_PATH, encoding="utf-8") as f:
+            default_keys = yaml.safe_load(f)
+
+        for key_def in default_keys:
+            existing = await db_manager.find_one(self.collection, {"name": key_def["name"]})
+            if existing:
+                continue
+            try:
+                await self.create(key_def)
+            except ValueError as e:
+                logger.warning(f"初始化 Key {key_def['name']} 跳过: {e}")
 
     def validate(self, key_def: dict[str, Any]) -> bool:
         """

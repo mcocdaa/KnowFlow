@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Button, Input, Space, App } from 'antd';
+import { Modal, Button, Input, Space, App, Tag, List, Typography } from 'antd';
 import { TagOutlined, SearchOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../store';
@@ -12,15 +12,23 @@ const { TextArea } = Input;
 interface AIAssistantProps {
   visible: boolean;
   onClose: () => void;
+  onSearchResult?: () => void;
 }
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
+interface TagResult {
+  id: string;
+  name: string;
+  tags: string[];
+}
+
+const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose, onSearchResult }) => {
   const dispatch = useDispatch();
   const { message } = App.useApp();
   const { items } = useSelector((state: RootState) => state.knowledge);
   const [activeTab, setActiveTab] = useState<'tag' | 'search'>('tag');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tagResults, setTagResults] = useState<TagResult[]>([]);
 
   const handleSemanticSearch = async () => {
     if (!query) {
@@ -28,11 +36,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
       return;
     }
 
+    if (items.length > 50) {
+      message.warning(`共 ${items.length} 条，仅检索前 50 条`);
+    }
+
     setLoading(true);
     try {
       const searchResults = await api.aiSearch(query, items);
       dispatch(setSearchResults(searchResults));
-      message.success('语义检索完成');
+      message.success(`语义检索完成，找到 ${searchResults.length} 条结果`);
+      onSearchResult?.();
     } catch (error) {
       console.error('Semantic search error:', error);
       message.error(getErrorMessage(error, '语义检索失败'));
@@ -42,10 +55,27 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
   };
 
   const handleAutoTag = async () => {
+    if (items.length === 0) {
+      message.info('暂无知识项可打标签');
+      return;
+    }
+
+    if (items.length > 50) {
+      message.warning(`共 ${items.length} 条，仅处理前 50 条`);
+    }
+
     setLoading(true);
     try {
-      await api.autoTag(items);
-      message.success('自动打标签完成');
+      const results = await api.autoTag(items);
+      const list: TagResult[] = items
+        .filter(item => (results[item.id] || []).length > 0)
+        .map(item => ({
+          id: item.id,
+          name: item.name,
+          tags: results[item.id] || [],
+        }));
+      setTagResults(list);
+      message.success(`自动打标签完成，已保存 ${list.length} 个知识项`);
     } catch (error) {
       console.error('Auto tag error:', error);
       message.error(getErrorMessage(error, '自动打标签失败'));
@@ -102,7 +132,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
 
         {activeTab === 'tag' && (
           <div>
-            <p>为选中的文件自动生成标签</p>
+            <p>为知识项自动生成 2-5 个中文标签并保存</p>
             <Button
               type="primary"
               icon={<TagOutlined />}
@@ -111,6 +141,26 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
             >
               开始打标签
             </Button>
+
+            {tagResults.length > 0 && (
+              <List
+                size="small"
+                style={{ marginTop: 16 }}
+                dataSource={tagResults}
+                renderItem={item => (
+                  <List.Item>
+                    <div style={{ width: '100%' }}>
+                      <Typography.Text strong>{item.name}</Typography.Text>
+                      <div style={{ marginTop: 4 }}>
+                        {item.tags.map(tag => (
+                          <Tag key={tag} color="blue" style={{ marginBottom: 4 }}>{tag}</Tag>
+                        ))}
+                      </div>
+                    </div>
+                  </List.Item>
+                )}
+              />
+            )}
           </div>
         )}
       </Space>
