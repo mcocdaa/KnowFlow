@@ -21,8 +21,8 @@ class HookManager:
         self._hooks[hook_name].append((priority, callback))
         self._hooks[hook_name].sort(key=lambda x: x[0])
 
-    async def run(self, hook_name: str, *args, **kwargs):
-        """执行所有已注册的钩子"""
+    async def _invoke(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
+        """公共执行循环（异步版）：同步回调直接调用，异步回调 await；异常收集并记录"""
         errors = []
         for _, cb in self._hooks.get(hook_name, []):
             try:
@@ -35,6 +35,10 @@ class HookManager:
                 logger.error(f"钩子执行失败 [{hook_name}]: {cb.__name__} - {e}", exc_info=True)
         return errors
 
+    async def run(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
+        """执行所有已注册的钩子（异步环境）"""
+        return await self._invoke(hook_name, *args, **kwargs)
+
     def unregister_by_module(self, module_prefix: str):
         """注销 module_prefix 下所有已注册的钩子回调"""
         for hook_name in list(self._hooks):
@@ -44,20 +48,23 @@ class HookManager:
                 if not (getattr(cb, "__module__", "") or "").startswith(module_prefix)
             ]
 
-    def run_sync(self, hook_name: str, *args, **kwargs):
-        """同步执行钩子（给同步包装器用）"""
+    def _invoke_sync(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
+        """公共执行循环（同步版）：仅执行同步回调，异步回调跳过并告警；异常收集并记录"""
         errors = []
         for _, cb in self._hooks.get(hook_name, []):
+            if asyncio.iscoroutinefunction(cb):
+                logger.warning(f"[{hook_name}]: {cb.__name__} - 异步钩子不能在同步环境中执行")
+                continue
             try:
-                if not asyncio.iscoroutinefunction(cb):
-                    cb(*args, **kwargs)
-                else:
-                    msg = "异步钩子不能在同步环境中执行"
-                    logger.warning(f"[{hook_name}]: {cb.__name__} - {msg}")
+                cb(*args, **kwargs)
             except Exception as e:
                 errors.append((cb.__name__, e))
                 logger.error(f"钩子执行失败 [{hook_name}]: {cb.__name__} - {e}", exc_info=True)
         return errors
+
+    def run_sync(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
+        """同步执行钩子（给同步包装器用）"""
+        return self._invoke_sync(hook_name, *args, **kwargs)
 
     def hook(self, hook_name: str, priority: int = 100):
         """装饰器：自动注册钩子
