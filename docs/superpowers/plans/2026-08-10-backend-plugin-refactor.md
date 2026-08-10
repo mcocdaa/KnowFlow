@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: hook_manager 公共执行循环抽取
+### Task 1: hook_manager 公共执行循环抽取 ✅
 
 **Files:**
 - Modify: `backend/core/hook_manager.py:24-60`（run / run_sync 方法）
