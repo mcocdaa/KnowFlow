@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
+import { App } from 'antd';
 import StarRating from '../../src/plugins/components/StarRating';
+
+const renderWithApp = (ui: React.ReactElement) => render(<App>{ui}</App>);
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -21,7 +24,7 @@ describe('StarRating Component', () => {
 
   describe('Rendering', () => {
     it('should render 5 stars', () => {
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -34,7 +37,7 @@ describe('StarRating Component', () => {
     });
 
     it('should display 0 filled stars when value is 0', () => {
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -51,7 +54,7 @@ describe('StarRating Component', () => {
     });
 
     it('should display all 5 filled stars when value is 5', () => {
-      render(
+      renderWithApp(
         <StarRating
           value={5}
           itemId="test-id"
@@ -68,7 +71,7 @@ describe('StarRating Component', () => {
     });
 
     it('should handle undefined value as 0', () => {
-      render(
+      renderWithApp(
         <StarRating
           value={undefined as unknown as number}
           itemId="test-id"
@@ -85,7 +88,7 @@ describe('StarRating Component', () => {
     });
 
     it('should handle null value as 0', () => {
-      render(
+      renderWithApp(
         <StarRating
           value={null as unknown as number}
           itemId="test-id"
@@ -108,7 +111,7 @@ describe('StarRating Component', () => {
 
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -127,7 +130,7 @@ describe('StarRating Component', () => {
 
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -146,7 +149,7 @@ describe('StarRating Component', () => {
 
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -165,7 +168,7 @@ describe('StarRating Component', () => {
 
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-item-123"
@@ -189,7 +192,7 @@ describe('StarRating Component', () => {
     it('should not make API call in readOnly mode', async () => {
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -210,7 +213,7 @@ describe('StarRating Component', () => {
     it('should show hover effect on mouse enter', async () => {
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -233,7 +236,7 @@ describe('StarRating Component', () => {
     it('should not show hover effect in readOnly mode', async () => {
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -262,7 +265,7 @@ describe('StarRating Component', () => {
 
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"
@@ -284,7 +287,7 @@ describe('StarRating Component', () => {
 
       const user = userEvent.setup();
 
-      render(
+      renderWithApp(
         <StarRating
           value={0}
           itemId="test-id"

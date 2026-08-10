@@ -21,6 +21,7 @@ def mock_db_manager():
     db_manager.update_one = AsyncMock()
     db_manager.delete_one = AsyncMock()
     db_manager.count_documents = AsyncMock()
+    db_manager.aggregate = AsyncMock()
     db_manager.initialize = AsyncMock()
     db_manager.close = AsyncMock()
 

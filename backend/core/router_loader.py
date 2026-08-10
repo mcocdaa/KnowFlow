@@ -9,16 +9,11 @@ from fastapi import APIRouter
 logger = logging.getLogger(__name__)
 
 
-def include_routers_from_directory(
-    parent_router: APIRouter, package_name: str, directory_path: Path, *, skip_modules: list[str] | None = None
-) -> None:
+def include_routers_from_directory(parent_router: APIRouter, package_name: str, directory_path: Path) -> None:
     """
     非递归：仅扫描当前目录下的文件和文件夹。
     遇到文件夹时，仅尝试导入该文件夹的 __init__.py 中的 router。
     """
-    if skip_modules is None:
-        skip_modules = []
-
     base_name = package_name.split(".")[-1]
 
     for path in directory_path.iterdir():
@@ -34,7 +29,7 @@ def include_routers_from_directory(
         elif path.is_dir() and (path / "__init__.py").exists():
             module_name = path.name
 
-        if not module_name or module_name in skip_modules:
+        if not module_name:
             continue
 
         # 3. 动态导入

@@ -6,6 +6,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from api.errors import ok
 from managers.category_manager import category_manager
 
 router = APIRouter()
@@ -27,49 +28,28 @@ class CategoryUpdate(BaseModel):
 
 @router.get("/categories")
 async def get_categories():
-    try:
-        return await category_manager.get_all()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return ok(await category_manager.get_all())
 
 
 @router.get("/categories/{category_id}")
 async def get_category(category_id: str):
-    try:
-        category = await category_manager.get_by_id(category_id)
-        if category is None:
-            raise HTTPException(status_code=404, detail=f"category with id {category_id} does not exist")
-        return category
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    category = await category_manager.get_by_id(category_id)
+    if category is None:
+        raise HTTPException(status_code=404, detail=f"category with id {category_id} does not exist")
+    return ok(category)
 
 
 @router.post("/categories")
 async def create_category(category: CategoryCreate):
-    try:
-        return await category_manager.create(category.model_dump())
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return ok(await category_manager.create(category.model_dump()))
 
 
 @router.put("/categories/{category_name}")
 async def update_category(category_name: str, updates: CategoryUpdate):
-    try:
-        return await category_manager.update(category_name, updates.model_dump(exclude_none=True))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return ok(await category_manager.update(category_name, updates.model_dump(exclude_none=True)))
 
 
 @router.delete("/categories/{category_name}")
 async def delete_category(category_name: str):
-    try:
-        await category_manager.delete(category_name)
-        return {"message": "Category deleted successfully"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    await category_manager.delete(category_name)
+    return ok(None, "Category deleted successfully")

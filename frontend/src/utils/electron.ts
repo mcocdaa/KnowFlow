@@ -12,8 +12,3 @@ export const openFileInExplorer = async (filePath: string): Promise<void> => {
     throw err;
   }
 };
-
-export const copyToClipboard = async (text: string): Promise<void> => {
-  if (!text) return;
-  await navigator.clipboard.writeText(text);
-};

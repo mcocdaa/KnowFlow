@@ -100,17 +100,6 @@ export const FLOW_TRANSITIONS = {
 export const FLOW_FONT_FAMILY =
   'Inter, PingFang SC, Microsoft YaHei, sans-serif';
 
-export const designTokens = {
-  colors: FLOW_COLORS,
-  spacing: FLOW_SPACING,
-  borderRadius: FLOW_BORDER_RADIUS,
-  fontSizes: FLOW_FONT_SIZES,
-  fontWeights: FLOW_FONT_WEIGHTS,
-  shadows: FLOW_SHADOWS,
-  transitions: FLOW_TRANSITIONS,
-  fontFamily: FLOW_FONT_FAMILY,
-};
-
 export {
   FLOW_COLORS as COLORS,
   FLOW_SPACING as SPACING,
@@ -121,5 +110,3 @@ export {
   FLOW_TRANSITIONS as TRANSITIONS,
   FLOW_FONT_FAMILY as FONT_FAMILY,
 };
-
-export default designTokens;

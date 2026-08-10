@@ -79,8 +79,6 @@ class DBManager:
         await self.db["keys"].create_index([("name", 1)], unique=True)
         await self.db["items"].create_index([("name", 1)])
         await self.db["items"].create_index([("created_at", -1)])
-        await self.db["items"].create_index([("category", 1)])
-        await self.db["items"].create_index([("name", "text"), ("file_path", "text")])
 
     @retry_on_connection_error
     async def insert_one(self, collection: str, document: dict[str, Any]) -> Any:
@@ -140,6 +138,14 @@ class DBManager:
         """
         result = await self.db[collection].delete_one(query)
         return result.deleted_count
+
+    @retry_on_connection_error
+    async def aggregate(self, collection: str, pipeline: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """
+        聚合查询
+        """
+        cursor = self.db[collection].aggregate(pipeline)
+        return await cursor.to_list(length=None)
 
     @retry_on_connection_error
     async def count_documents(self, collection: str, query: dict[str, Any] = None) -> int:

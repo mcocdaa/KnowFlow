@@ -1,14 +1,5 @@
 import React, { type ComponentType, Suspense } from 'react';
 
-export interface PluginManifest {
-  name: string;
-  version: string;
-  description: string;
-  author: string;
-  frontend_entry: string;
-  path: string;
-}
-
 export interface PluginComponentProps {
   value?: unknown;
   itemId: string;
@@ -74,16 +65,3 @@ export const PluginRenderer: React.FC<{
     </Suspense>
   );
 };
-
-export async function fetchPluginManifests(): Promise<PluginManifest[]> {
-  try {
-    const response = await fetch('/api/v1/plugins/manifests');
-    if (!response.ok) {
-      throw new Error('Failed to fetch plugin manifests');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching plugin manifests:', error);
-    return [];
-  }
-}

@@ -4,6 +4,7 @@
 
 from fastapi import APIRouter
 
+from api.errors import ok
 from core import plugin_manager
 
 # 定义【子路由】：仅处理 /manifests 接口
@@ -13,4 +14,4 @@ router = APIRouter()
 @router.get("/manifests")
 async def get_plugin_manifests():
     """获取所有插件清单"""
-    return plugin_manager.get_plugin_manifests()
+    return ok(plugin_manager.get_plugin_manifests())

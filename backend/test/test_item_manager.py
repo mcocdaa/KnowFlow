@@ -70,7 +70,10 @@ class TestItemManager:
                 ]
             )
 
-            result = await item_manager._format_item_response(test_item)
+            all_keys = await mock_key_manager.get_all()
+            key_dict = {key["name"]: key for key in all_keys}
+
+            result = item_manager._format_item_response(test_item, key_dict)
 
             assert "item" in result
             assert "attributes" in result
@@ -232,3 +235,61 @@ class TestItemManager:
         result = await item_manager.delete(test_id)
 
         assert result is False
+
+    @pytest.mark.asyncio
+    async def test_search_invalid_sort_raises(self, item_manager, mock_db_manager):
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(return_value=[])
+
+            with pytest.raises(ValueError, match="invalid sort"):
+                await item_manager.search(sort="unknown")
+
+    @pytest.mark.asyncio
+    async def test_search_unknown_key_raises(self, item_manager, mock_db_manager):
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(return_value=[])
+
+            with pytest.raises(ValueError, match="unknown key"):
+                await item_manager.search(key="nonexistent", key_value="x")
+
+    @pytest.mark.asyncio
+    async def test_search_rating_uses_aggregate(self, item_manager, mock_db_manager):
+        test_id = ObjectId("507f1f77bcf86cd799439011")
+        mock_db_manager.aggregate.return_value = [{"_id": test_id, "name": "A", "rating": "5"}]
+        mock_db_manager.count_documents.return_value = 1
+
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(
+                return_value=[
+                    {
+                        "name": "rating",
+                        "title": "星级",
+                        "value_type": "number",
+                        "is_visible": True,
+                        "is_required": False,
+                    }
+                ]
+            )
+
+            result = await item_manager.search(sort="rating", page=1, page_size=20)
+
+            assert result["total"] == 1
+            assert len(result["items"]) == 1
+            assert result["items"][0]["item"]["id"] == str(test_id)
+            pipeline = mock_db_manager.aggregate.call_args.args[1]
+            assert pipeline[1]["$addFields"]["_sort_rating"]["$toDouble"]
+
+    @pytest.mark.asyncio
+    async def test_search_recent_uses_find(self, item_manager, mock_db_manager):
+        test_id = ObjectId("507f1f77bcf86cd799439011")
+        mock_db_manager.find.return_value = [{"_id": test_id, "name": "A"}]
+        mock_db_manager.count_documents.return_value = 1
+
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(return_value=[])
+
+            result = await item_manager.search(sort="recent", page=1, page_size=10)
+
+            assert result["total"] == 1
+            mock_db_manager.aggregate.assert_not_called()
+            assert mock_db_manager.find.call_args.kwargs["sort"] == [("created_at", -1)]

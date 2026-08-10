@@ -4,7 +4,6 @@ motor
 pymongo
 pytest
 pytest-asyncio
-pytest-mock
 python-dotenv
 python-multipart
 pyyaml

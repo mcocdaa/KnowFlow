@@ -29,6 +29,13 @@ from core.hooks import (
 from .db_manager import db_manager
 from .key_manager import key_manager
 
+VALID_SORTS = ("recent", "rating", "name")
+
+
+def extract_key_values(item_data: dict[str, Any]) -> dict[str, Any]:
+    """兼容 keyValues / attributes 两种字段名，统一提取键值"""
+    return item_data.get("keyValues", {}) or item_data.get("attributes", {}) or {}
+
 
 class ItemManager:
     def __init__(self):
@@ -37,12 +44,16 @@ class ItemManager:
     def _convert_value(self, value: Any, value_type: str) -> Any:
         """将存储值转换为 value_type 对应的 Python 类型"""
         if value_type == "number":
-            try:
+            if isinstance(value, bool):
                 return int(value)
-            except (ValueError, TypeError):
+            if isinstance(value, int | float):
+                return value
+            try:
+                return int(str(value).strip())
+            except ValueError:
                 try:
-                    return float(value)
-                except (ValueError, TypeError):
+                    return float(str(value).strip())
+                except ValueError:
                     return value
         elif value_type == "boolean":
             if isinstance(value, str):
@@ -69,10 +80,12 @@ class ItemManager:
             return json.dumps(value, ensure_ascii=False)
         return str(value) if value is not None else ""
 
-    async def _format_item_response(self, item: dict) -> dict[str, Any]:
+    async def get_required_key_defs(self) -> list[dict[str, Any]]:
+        """获取所有必填 Key 定义"""
         all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        return [key for key in all_keys if key.get("is_required", False)]
 
+    def _format_item_response(self, item: dict, key_dict: dict[str, dict[str, Any]]) -> dict[str, Any]:
         item_attributes = {}
         key_info = {}
 
@@ -107,13 +120,12 @@ class ItemManager:
         """
         获取所有知识项
         """
+        all_keys = await key_manager.get_all()
+        key_dict = {key["name"]: key for key in all_keys}
+
         items = await db_manager.find(self.items_collection)
 
-        result = []
-        for item in items:
-            result.append(await self._format_item_response(item))
-
-        return result
+        return [self._format_item_response(item, key_dict) for item in items]
 
     @hook_manager.wrap_hooks(before=ITEM_GET_BEFORE, after=ITEM_GET_AFTER)
     async def get_by_id(self, item_id: str) -> dict[str, Any] | None:
@@ -129,7 +141,9 @@ class ItemManager:
         if not item:
             return None
 
-        return await self._format_item_response(item)
+        all_keys = await key_manager.get_all()
+        key_dict = {key["name"]: key for key in all_keys}
+        return self._format_item_response(item, key_dict)
 
     @hook_manager.wrap_hooks(before=ITEM_CREATE_BEFORE, after=ITEM_CREATE_AFTER)
     async def create(self, item_data: dict[str, Any]) -> dict[str, Any]:
@@ -149,7 +163,7 @@ class ItemManager:
         if "name" in item_data:
             knowflow_item["name"] = item_data["name"]
 
-        key_values = item_data.get("keyValues", {}) or item_data.get("attributes", {})
+        key_values = extract_key_values(item_data)
         for key_name, value in key_values.items():
             if key_name in key_dict:
                 key_def = key_dict[key_name]
@@ -181,7 +195,7 @@ class ItemManager:
 
         all_keys = await key_manager.get_all()
         key_dict = {key["name"]: key for key in all_keys}
-        key_values = updates.get("keyValues", {}) or updates.get("attributes", {})
+        key_values = extract_key_values(updates)
 
         for key_name, value in key_values.items():
             if key_name in key_dict:
@@ -211,8 +225,8 @@ class ItemManager:
     async def search(
         self,
         q: str = "",
-        key: str = None,
-        key_value: str = None,
+        key: str | None = None,
+        key_value: str | None = None,
         sort: str = "recent",
         page: int = 1,
         page_size: int = 20,
@@ -220,40 +234,48 @@ class ItemManager:
         """
         搜索知识项
         """
+        if sort not in VALID_SORTS:
+            raise ValueError(f"invalid sort option: {sort}")
+
+        all_keys = await key_manager.get_all()
+        key_dict = {k["name"]: k for k in all_keys}
+
         query = {}
 
         if q:
-            all_keys = await key_manager.get_all()
-            search_fields = ["name"]
-            for k in all_keys:
-                search_fields.append(k["name"])
-
+            search_fields = ["name", *key_dict.keys()]
             escaped_q = re.escape(q)
-            or_conditions = []
-            for field in search_fields:
-                or_conditions.append({field: {"$regex": escaped_q, "$options": "i"}})
+            or_conditions = [{field: {"$regex": escaped_q, "$options": "i"}} for field in search_fields]
             query["$or"] = or_conditions
 
         if key and key_value:
+            if key not in key_dict:
+                raise ValueError(f"unknown key: {key}")
             query[key] = {"$regex": re.escape(key_value), "$options": "i"}
-
-        sort_options = []
-        if sort == "recent":
-            sort_options = [("created_at", -1)]
-        elif sort == "rating":
-            sort_options = [("rating", -1)]
-        elif sort == "name":
-            sort_options = [("name", 1)]
 
         skip = (page - 1) * page_size
 
-        items = await db_manager.find(self.items_collection, query=query, sort=sort_options, limit=page_size, skip=skip)
+        if sort == "rating":
+            # rating 以字符串存储，需要数值化排序（兼容存量数据）
+            items = await db_manager.aggregate(
+                self.items_collection,
+                [
+                    {"$match": query},
+                    {"$addFields": {"_sort_rating": {"$toDouble": {"$ifNull": ["$rating", "0"]}}}},
+                    {"$sort": {"_sort_rating": -1}},
+                    {"$skip": skip},
+                    {"$limit": page_size},
+                ],
+            )
+        else:
+            sort_options = [("created_at", -1)] if sort == "recent" else [("name", 1)]
+            items = await db_manager.find(
+                self.items_collection, query=query, sort=sort_options, limit=page_size, skip=skip
+            )
 
         total = await db_manager.count_documents(self.items_collection, query)
 
-        result = []
-        for item in items:
-            result.append(await self._format_item_response(item))
+        result = [self._format_item_response(item, key_dict) for item in items]
 
         return {
             "items": result,

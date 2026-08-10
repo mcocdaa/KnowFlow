@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Modal, Button, Input, Space, message } from 'antd';
+import { Modal, Button, Input, Space, App } from 'antd';
 import { TagOutlined, SearchOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../store';
 import { setSearchResults } from '../../store/knowledgeSlice';
+import api from '../../services/api';
+import { getErrorMessage } from '../../utils';
 
 const { TextArea } = Input;
 
@@ -14,6 +16,7 @@ interface AIAssistantProps {
 
 const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
   const dispatch = useDispatch();
+  const { message } = App.useApp();
   const { items } = useSelector((state: RootState) => state.knowledge);
   const [activeTab, setActiveTab] = useState<'tag' | 'search'>('tag');
   const [query, setQuery] = useState('');
@@ -27,25 +30,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/ai/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query, items }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || '语义检索失败');
-      }
-
-      const searchResults = await response.json();
+      const searchResults = await api.aiSearch(query, items);
       dispatch(setSearchResults(searchResults));
       message.success('语义检索完成');
     } catch (error) {
       console.error('Semantic search error:', error);
-      message.error((error as Error).message || '语义检索失败');
+      message.error(getErrorMessage(error, '语义检索失败'));
     } finally {
       setLoading(false);
     }
@@ -54,24 +44,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ visible, onClose }) => {
   const handleAutoTag = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/ai/auto-tag', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ items }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || '自动打标签失败');
-      }
-
-      await response.json();
+      await api.autoTag(items);
       message.success('自动打标签完成');
     } catch (error) {
       console.error('Auto tag error:', error);
-      message.error((error as Error).message || '自动打标签失败');
+      message.error(getErrorMessage(error, '自动打标签失败'));
     } finally {
       setLoading(false);
     }

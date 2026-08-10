@@ -1,5 +1,5 @@
 # @file backend/test/test_rating_plugin_api.py
-# @brief 星级插件API单元测试
+# @brief 星级评分插件 API 单元测试
 # @create 2026-03-09 10:00:00
 
 import os
@@ -10,6 +10,7 @@ import yaml
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from api.errors import register_exception_handlers
 from test.plugin_helpers import get_plugin_path, load_plugin_backend
 
 
@@ -24,133 +25,127 @@ def mock_item_manager():
 @pytest.fixture
 def app_with_rating_plugin():
     app = FastAPI()
+    register_exception_handlers(app)
     module = load_plugin_backend("rating")
     app.include_router(module.router, prefix="/plugins/rating")
-    return app
+    return app, module
 
 
 @pytest.fixture
 def client(app_with_rating_plugin):
-    return TestClient(app_with_rating_plugin)
+    app, _ = app_with_rating_plugin
+    return TestClient(app, raise_server_exceptions=False)
 
 
-class TestRatingPluginAPI:
-    def test_update_rating_valid_1(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
+@pytest.fixture
+def rating_module(app_with_rating_plugin):
+    _, module = app_with_rating_plugin
+    return module
+
+
+def patch_item_manager(rating_module, mock_item_manager):
+    return patch.object(rating_module, "item_manager", mock_item_manager)
+
+
+class TestUpdateRating:
+    @pytest.mark.parametrize("rating", [1, 3, 5])
+    def test_update_rating_valid(self, client, rating_module, mock_item_manager, rating):
+        with patch_item_manager(rating_module, mock_item_manager):
             mock_item_manager.update.return_value = {"id": "test_id"}
 
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 1})
+            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": rating})
 
             assert response.status_code == 200
-            assert response.json()["success"] is True
-            assert response.json()["rating"] == 1
+            body = response.json()
+            assert body["code"] == 0
+            assert body["data"]["rating"] == rating
 
-    def test_update_rating_valid_5(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            mock_item_manager.update.return_value = {"id": "test_id"}
-
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 5})
-
-            assert response.status_code == 200
-            assert response.json()["success"] is True
-            assert response.json()["rating"] == 5
-
-    def test_update_rating_invalid_0(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 0})
+    @pytest.mark.parametrize("rating", [0, -1, 6, 100])
+    def test_update_rating_invalid_value(self, client, rating_module, mock_item_manager, rating):
+        with patch_item_manager(rating_module, mock_item_manager):
+            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": rating})
 
             assert response.status_code == 400
-            assert "1-5" in response.json()["detail"]
+            assert "1-5" in response.json()["message"]
 
-    def test_update_rating_invalid_6(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 6})
+    def test_update_rating_item_not_found(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            mock_item_manager.update.return_value = None
 
-            assert response.status_code == 400
-            assert "1-5" in response.json()["detail"]
-
-    def test_update_rating_invalid_negative(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": -1})
-
-            assert response.status_code == 400
-            assert "1-5" in response.json()["detail"]
-
-    def test_update_rating_invalid_100(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 100})
-
-            assert response.status_code == 400
-            assert "1-5" in response.json()["detail"]
-
-    def test_get_rating_exists(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            mock_item_manager.get_by_id.return_value = {"item": {"id": "test_id"}, "attributes": {"rating": 3}}
-
-            response = client.get("/plugins/rating/items/test_id/rating")
-
-            assert response.status_code == 200
-            assert response.json()["rating"] == 3
-
-    def test_get_rating_not_set(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            mock_item_manager.get_by_id.return_value = {"item": {"id": "test_id"}, "attributes": {}}
-
-            response = client.get("/plugins/rating/items/test_id/rating")
-
-            assert response.status_code == 200
-            assert response.json()["rating"] == 0
-
-    def test_get_rating_none_value(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            mock_item_manager.get_by_id.return_value = {"item": {"id": "test_id"}, "attributes": {"rating": None}}
-
-            response = client.get("/plugins/rating/items/test_id/rating")
-
-            assert response.status_code == 200
-            assert response.json()["rating"] is None
-
-    def test_get_rating_item_not_found(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            mock_item_manager.get_by_id.return_value = None
-
-            response = client.get("/plugins/rating/items/test_id/rating")
+            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 3})
 
             assert response.status_code == 404
 
-    def test_update_rating_manager_error(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
+    def test_update_rating_manager_error(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
             mock_item_manager.update.side_effect = Exception("Database error")
 
             response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 3})
 
             assert response.status_code == 500
 
-    def test_get_rating_manager_error(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
+    def test_update_rating_missing_body(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            response = client.put("/plugins/rating/items/test_id/rating")
+
+            assert response.status_code == 422
+
+    def test_update_rating_wrong_type(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": "five"})
+
+            assert response.status_code == 422
+
+    def test_update_rating_float_value(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 3.5})
+
+            assert response.status_code == 422
+
+
+class TestGetRating:
+    def test_get_rating_exists(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            mock_item_manager.get_by_id.return_value = {"item": {"id": "test_id"}, "attributes": {"rating": 3}}
+
+            response = client.get("/plugins/rating/items/test_id/rating")
+
+            assert response.status_code == 200
+            assert response.json()["data"]["rating"] == 3
+
+    def test_get_rating_not_set(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            mock_item_manager.get_by_id.return_value = {"item": {"id": "test_id"}, "attributes": {}}
+
+            response = client.get("/plugins/rating/items/test_id/rating")
+
+            assert response.status_code == 200
+            assert response.json()["data"]["rating"] == 0
+
+    def test_get_rating_none_value(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            mock_item_manager.get_by_id.return_value = {"item": {"id": "test_id"}, "attributes": {"rating": None}}
+
+            response = client.get("/plugins/rating/items/test_id/rating")
+
+            assert response.status_code == 200
+            assert response.json()["data"]["rating"] is None
+
+    def test_get_rating_item_not_found(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
+            mock_item_manager.get_by_id.return_value = None
+
+            response = client.get("/plugins/rating/items/test_id/rating")
+
+            assert response.status_code == 404
+
+    def test_get_rating_manager_error(self, client, rating_module, mock_item_manager):
+        with patch_item_manager(rating_module, mock_item_manager):
             mock_item_manager.get_by_id.side_effect = Exception("Database error")
 
             response = client.get("/plugins/rating/items/test_id/rating")
 
             assert response.status_code == 500
-
-    def test_update_rating_missing_body(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            response = client.put("/plugins/rating/items/test_id/rating")
-
-            assert response.status_code == 422
-
-    def test_update_rating_wrong_type(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": "five"})
-
-            assert response.status_code == 422
-
-    def test_update_rating_float_value(self, client, mock_item_manager):
-        with patch("managers.item_manager.item_manager", mock_item_manager):
-            response = client.put("/plugins/rating/items/test_id/rating", json={"rating": 3.5})
-
-            assert response.status_code == 422
 
 
 class TestRatingPluginHooks:

@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import { Layout as AntLayout, Button, Space, message, Modal } from 'antd';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Layout as AntLayout, Button, Space, App, Modal } from 'antd';
 import DynamicKeyForm from '../components/business/DynamicKeyForm';
 import { SettingOutlined, BankOutlined, CopyOutlined } from '@ant-design/icons';
-import { useDispatch } from 'react-redux';
-import { setSearchResults } from '../store/knowledgeSlice';
 import KeyManager from '../components/business/KeyManager';
 import AIAssistant from '../components/business/AIAssistant';
 import MediaPreview from '../components/business/MediaPreview';
@@ -29,10 +27,11 @@ import DetailDrawer from '../components/layout/DetailDrawer';
 import UploadSection from '../components/layout/UploadSection';
 import type { KnowledgeItem } from '../types';
 import { useInitialData, useKnowledgeItems } from '../hooks/useKnowledge';
-import { getFileIcon, openFileLocation, buildCategoryTree } from '../utils';
+import { API_BASE_URL, getFileIcon, openFileLocation, buildCategoryTree } from '../utils';
+import type { MenuItem } from '../utils/menu';
 
 const MainPage: React.FC = () => {
-  const dispatch = useDispatch();
+  const { message } = App.useApp();
 
   useInitialData();
 
@@ -78,7 +77,10 @@ const MainPage: React.FC = () => {
             size="small"
             icon={<CopyOutlined />}
             onClick={() => {
-              navigator.clipboard.writeText(path);
+              navigator.clipboard.writeText(path).catch((error) => {
+                console.error('Failed to copy to clipboard:', error);
+                message.error('复制失败');
+              });
               message.success('路径已复制到剪贴板');
             }}
           >
@@ -96,19 +98,19 @@ const MainPage: React.FC = () => {
 
   const handleMediaPreview = (filePath: string, fileType: string) => {
     if (!filePath) return;
-    const filename = filePath.split('/').pop() || filePath;
-    setMediaUrl(`/api/v1/uploads/${encodeURIComponent(filename)}`);
+    const filename = filePath.split(/[\\/]/).pop() || filePath;
+    setMediaUrl(`${API_BASE_URL}/uploads/${encodeURIComponent(filename)}`);
     setMediaType(fileType.includes('image') ? 'image' : 'video');
     setMediaPreviewVisible(true);
   };
 
-  const handleKeyClickWrapper = (keyName: string) => {
+  const handleKeyClickWrapper = useCallback((keyName: string) => {
     handleKeyClick(keyName);
     setActiveTab('search');
-  };
+  }, [handleKeyClick]);
 
-  const buildMenuItems = () => {
-    const menuItems: Array<{ key: string; label: React.ReactNode; onClick?: () => void; style?: React.CSSProperties; children?: Array<{ key: string; label: React.ReactNode }> }> = [
+  const menuItems = useMemo(() => {
+    const items: MenuItem[] = [
       {
         key: 'key-management',
         label: (
@@ -134,9 +136,9 @@ const MainPage: React.FC = () => {
       },
     ];
 
-    menuItems.push(...buildCategoryTree(categories, definitionList, handleKeyClickWrapper));
-    return menuItems;
-  };
+    items.push(...buildCategoryTree(categories, definitionList, handleKeyClickWrapper));
+    return items;
+  }, [categories, definitionList, handleKeyClickWrapper]);
 
   const handleEditItem = (item: KnowledgeItem) => {
     setEditingItem(item);
@@ -229,7 +231,7 @@ const MainPage: React.FC = () => {
           <StyledSider width={240}>
             <StyledMenu
               mode="inline"
-              items={buildMenuItems()}
+              items={menuItems}
             />
           </StyledSider>
           <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
@@ -336,7 +338,6 @@ const MainPage: React.FC = () => {
           visible={!!selectedItem && !!selectedItemId}
           onClose={() => {
             setSelectedItemId(null);
-            dispatch(setSearchResults([]));
           }}
           selectedItem={selectedItem}
           onOpenFileLocation={handleOpenFileLocation}
@@ -379,15 +380,19 @@ const MainPage: React.FC = () => {
             initialValues={editFormValues}
             itemId={editingItem?.id}
             onSubmit={editingItem ? handleEditSubmit : async (values) => {
-              if (pendingFile) {
-                await handleUploadFile(pendingFile, values);
-                setEditFormVisible(false);
-                setEditFormValues({});
-                setPendingFile(null);
-              } else {
-                await handleCreateItem(values);
-                setEditFormVisible(false);
-                setEditFormValues({});
+              try {
+                if (pendingFile) {
+                  await handleUploadFile(pendingFile, values);
+                  setEditFormVisible(false);
+                  setEditFormValues({});
+                  setPendingFile(null);
+                } else {
+                  await handleCreateItem(values);
+                  setEditFormVisible(false);
+                  setEditFormValues({});
+                }
+              } catch (error) {
+                console.error('提交失败:', error);
               }
             }}
           />

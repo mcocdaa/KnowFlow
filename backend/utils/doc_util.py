@@ -6,11 +6,13 @@ from typing import Any
 
 
 def convert_doc(doc: dict[str, Any] | None) -> dict[str, Any] | None:
-    """将 _id 转换为字符串 id 字段"""
-    if doc and "_id" in doc:
-        doc["id"] = str(doc["_id"])
-        del doc["_id"]
-    return doc
+    """将 _id 转换为字符串 id 字段（返回新 dict，不修改入参）"""
+    if not doc:
+        return None
+    converted = dict(doc)
+    if "_id" in converted:
+        converted["id"] = str(converted.pop("_id"))
+    return converted
 
 
 def convert_docs(docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
