@@ -55,6 +55,16 @@ class ItemManager:
     def __init__(self):
         self.items_collection = "items"
 
+    @staticmethod
+    def _to_object_id(item_id: str) -> ObjectId | None:
+        """将字符串 ID 解析为 ObjectId，非法输入返回 None"""
+        if item_id is None:
+            return None
+        try:
+            return ObjectId(item_id)
+        except (ValueError, TypeError, InvalidId):
+            return None
+
     def _convert_value(self, value: Any, value_type: str) -> Any:
         """将存储值转换为 value_type 对应的 Python 类型"""
         if value_type == "number":
@@ -146,9 +156,8 @@ class ItemManager:
         """
         根据ID获取知识项
         """
-        try:
-            oid = ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
+        oid = self._to_object_id(item_id)
+        if oid is None:
             return None
 
         item = await db_manager.find_one(self.items_collection, {"_id": oid})
@@ -192,9 +201,8 @@ class ItemManager:
         """
         更新知识项
         """
-        try:
-            oid = ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
+        oid = self._to_object_id(item_id)
+        if oid is None:
             return None
 
         now = datetime.now()
@@ -228,9 +236,8 @@ class ItemManager:
         """
         删除知识项
         """
-        try:
-            oid = ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
+        oid = self._to_object_id(item_id)
+        if oid is None:
             return False
 
         deleted_count = await db_manager.delete_one(self.items_collection, {"_id": oid})

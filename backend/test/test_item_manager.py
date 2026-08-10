@@ -81,6 +81,17 @@ class TestItemManager:
             assert result["item"]["id"] == "507f1f77bcf86cd799439011"
             assert result["item"]["name"] == "Test Item"
 
+    def test_to_object_id_valid(self, item_manager):
+        oid = item_manager._to_object_id("507f1f77bcf86cd799439011")
+        assert oid is not None
+        assert str(oid) == "507f1f77bcf86cd799439011"
+
+    def test_to_object_id_invalid(self, item_manager):
+        assert item_manager._to_object_id("abc") is None
+        assert item_manager._to_object_id("") is None
+        assert item_manager._to_object_id(None) is None
+        assert item_manager._to_object_id("zzzzzzzzzzzzzzzzzzzzzzzz") is None
+
     @pytest.mark.asyncio
     async def test_get_all_success(self, item_manager, mock_db_manager):
         mock_items = [
