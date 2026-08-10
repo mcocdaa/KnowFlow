@@ -58,6 +58,8 @@ const sortKnowledgeItems = (items: KnowledgeItem[], sortBy: string): KnowledgeIt
       const bRating = Number(b.keyValues?.['rating']) || 0;
       return bRating - aRating;
     });
+  } else if (sortBy === 'name') {
+    sorted.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh-Hans-CN'));
   }
   return sorted;
 };

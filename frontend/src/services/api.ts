@@ -56,6 +56,26 @@ export const api = {
     return request('/keys');
   },
 
+  async createKey(key: Partial<KeyDefinition>): Promise<KeyDefinition> {
+    return request('/keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(key),
+    });
+  },
+
+  async updateKey(keyName: string, updates: Partial<KeyDefinition>): Promise<KeyDefinition> {
+    return request(`/keys/${encodeURIComponent(keyName)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+  },
+
+  async deleteKey(keyName: string): Promise<void> {
+    await request(`/keys/${encodeURIComponent(keyName)}`, { method: 'DELETE' });
+  },
+
   async updateItem(item: KnowledgeItem): Promise<KnowledgeItem> {
     const data = await request<ItemWrapper>(`/item/${item.id}`, {
       method: 'PUT',

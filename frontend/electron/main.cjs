@@ -103,7 +103,8 @@ if (!gotTheLock) {
       return "default-src 'self'; " +
         "script-src 'self'; " +
         "style-src 'self' 'unsafe-inline'; " +
-        "img-src 'self' data: blob:; " +
+        `img-src 'self' data: blob: ${API_ORIGIN}; ` +
+        `media-src 'self' ${API_ORIGIN}; ` +
         "font-src 'self' data:; " +
         `connect-src ${connectSources}`;
     }
@@ -111,7 +112,8 @@ if (!gotTheLock) {
     return "default-src 'self'; " +
       "script-src 'self' 'unsafe-eval' 'unsafe-inline' http://localhost:* ws://localhost:*; " +
       "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: blob:; " +
+      "img-src 'self' data: blob: http://localhost:* http://127.0.0.1:*; " +
+      "media-src 'self' http://localhost:* http://127.0.0.1:*; " +
       "font-src 'self' data:; " +
       "connect-src 'self' http://localhost:* ws://localhost:*";
   }

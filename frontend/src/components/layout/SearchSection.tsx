@@ -129,6 +129,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
             >
               <Option value="recent">最近添加</Option>
               <Option value="rating">评分</Option>
+              <Option value="name">名称</Option>
             </Select>
           </SelectWrapper>
         </FilterGroup>

@@ -31,6 +31,7 @@ const StarRating: React.FC<StarRatingProps> = ({
   const handleClick = async (star: number) => {
     if (readOnly) return;
 
+    const previous = rating;
     setRating(star);
     onChange?.(star);
     onUpdate(star);
@@ -39,6 +40,9 @@ const StarRating: React.FC<StarRatingProps> = ({
       await api.updatePluginRating(itemId, star);
     } catch (error) {
       console.error('Error updating rating:', error);
+      // 失败回滚到原值，保持 UI/表单与后端一致
+      setRating(previous);
+      onChange?.(previous);
       message.error('评分更新失败');
     }
   };

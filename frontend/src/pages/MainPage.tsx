@@ -66,6 +66,7 @@ const MainPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('recommend');
   const [sortBy, setSortBy] = useState<string>('recent');
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const fallbackToCopyMessage = (path: string) => {
     message.info({
@@ -146,12 +147,17 @@ const MainPage: React.FC = () => {
     Object.entries(item.keyValues || {}).forEach(([keyName, value]) => {
       formValues[keyName] = value;
     });
+    // name 存储在 item.name（不在 keyValues），编辑表单需要回填
+    if (item.name) {
+      formValues['name'] = item.name;
+    }
     setEditFormValues(formValues);
     setEditFormVisible(true);
   };
 
   const handleEditSubmit = async (values: Record<string, unknown>) => {
     if (editingItem) {
+      // 保留所有现有属性（含无 key 定义的遗留值），仅覆盖表单提交的字段
       const updatedKeyValues: Record<string, unknown> = { ...editingItem.keyValues };
       definitionList.forEach(def => {
         const value = values[def.name];
@@ -178,6 +184,11 @@ const MainPage: React.FC = () => {
   };
 
   const handleFileUpload = async (file: File) => {
+    if (pendingFile) {
+      message.warning('已有文件待处理，请先完成或取消当前上传');
+      return;
+    }
+    if (submitting) return;
     setPendingFile(file);
     setEditFormVisible(true);
     setEditingItem(null);
@@ -202,7 +213,7 @@ const MainPage: React.FC = () => {
           key={item.id}
           item={item}
           isSelected={selectedItemId === item.id}
-          onSelect={() => handleItemClick(item)}
+          onSelect={handleItemClick}
           onDelete={handleDeleteItem}
           getFileIcon={getFileIcon}
         />
@@ -356,6 +367,7 @@ const MainPage: React.FC = () => {
         <AIAssistant
           visible={aiAssistantVisible}
           onClose={() => setAIAssistantVisible(false)}
+          onSearchResult={() => setActiveTab('search')}
         />
         <MediaPreview
           visible={mediaPreviewVisible}
@@ -379,8 +391,10 @@ const MainPage: React.FC = () => {
           <DynamicKeyForm
             initialValues={editFormValues}
             itemId={editingItem?.id}
+            submitting={submitting}
             onSubmit={editingItem ? handleEditSubmit : async (values) => {
               try {
+                setSubmitting(true);
                 if (pendingFile) {
                   await handleUploadFile(pendingFile, values);
                   setEditFormVisible(false);
@@ -393,6 +407,8 @@ const MainPage: React.FC = () => {
                 }
               } catch (error) {
                 console.error('提交失败:', error);
+              } finally {
+                setSubmitting(false);
               }
             }}
           />

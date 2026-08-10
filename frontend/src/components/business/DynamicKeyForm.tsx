@@ -9,6 +9,7 @@ interface DynamicKeyFormProps {
   initialValues?: Record<string, unknown>;
   onSubmit: (values: Record<string, unknown>) => void;
   itemId?: string;
+  submitting?: boolean;
 }
 
 const { TextArea } = AntInput;
@@ -47,7 +48,7 @@ const renderInputByType = (valueType: ValueType, key: KeyDefinition, itemId?: st
   }
 };
 
-const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ initialValues, onSubmit, itemId }) => {
+const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ initialValues, onSubmit, itemId, submitting = false }) => {
   const { definitionList } = useSelector((state: RootState) => state.key);
   const [form] = Form.useForm();
 
@@ -86,7 +87,7 @@ const DynamicKeyForm: React.FC<DynamicKeyFormProps> = ({ initialValues, onSubmit
         </Form.Item>
       ))}
       <Form.Item>
-        <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+        <Button type="primary" htmlType="submit" style={{ width: '100%' }} loading={submitting}>
           确认
         </Button>
       </Form.Item>
