@@ -200,7 +200,7 @@ git commit -m "refactor: unify hook execution loop via _invoke helpers"
 
 ---
 
-### Task 2: item_manager `_to_object_id` 抽取
+### Task 2: item_manager `_to_object_id` 抽取 ✅
 
 **Files:**
 - Modify: `backend/managers/item_manager.py:144-160`（get_by_id）、`:190-205`（update）、`:226-237`（delete）
@@ -350,7 +350,7 @@ git commit -m "refactor: extract item_manager._get_key_dict helper"
 
 ---
 
-### Task 4: plugin_manager 注册表解析拆分
+### Task 4: plugin_manager 注册表解析拆分 ✅
 
 **Files:**
 - Modify: `backend/core/plugin_manager.py:132-210`（_load_registry）
@@ -842,7 +842,7 @@ git commit -m "refactor: move bson imports to module level in category_manager"
 
 ---
 
-### Task 8: rating 插件打磨
+### Task 8: rating 插件打磨 ✅
 
 **Files:**
 - Modify: `plugins/rating/hooks.py:1-36`（延迟导入移至模块级）
@@ -966,7 +966,7 @@ git commit -m "refactor: polish rating plugin imports and manifest"
 
 ---
 
-### Task 9: 文档同步
+### Task 9: 文档同步 ✅
 
 **Files:**
 - Modify: `docs/plugin-system/structure.md`
