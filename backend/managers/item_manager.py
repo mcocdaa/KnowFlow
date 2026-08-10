@@ -37,6 +37,20 @@ def extract_key_values(item_data: dict[str, Any]) -> dict[str, Any]:
     return item_data.get("keyValues", {}) or item_data.get("attributes", {}) or {}
 
 
+def validate_required(item_data: dict[str, Any], required_keys: list[dict[str, Any]]) -> list[str]:
+    """校验必填 key 是否提供；返回缺失的 key 名列表（提取 keyValues/attributes + 顶层字段）"""
+    key_values = extract_key_values(item_data)
+    missing = []
+    for key in required_keys:
+        name = key["name"]
+        if name not in key_values and name not in item_data:
+            missing.append(name)
+        elif name in key_values and key_values[name] is None:
+            if name not in item_data or item_data.get(name) is None:
+                missing.append(name)
+    return missing
+
+
 class ItemManager:
     def __init__(self):
         self.items_collection = "items"
@@ -170,8 +184,8 @@ class ItemManager:
                 knowflow_item[key_name] = self._convert_to_string(value, key_def["value_type"])
 
         item_id = await db_manager.insert_one(self.items_collection, knowflow_item)
-
-        return await self.get_by_id(str(item_id))
+        item = await db_manager.find_one(self.items_collection, {"_id": item_id})
+        return self._format_item_response(item, key_dict)
 
     @hook_manager.wrap_hooks(before=ITEM_UPDATE_BEFORE, after=ITEM_UPDATE_AFTER)
     async def update(self, item_id: str, updates: dict[str, Any]) -> dict[str, Any] | None:
@@ -206,7 +220,8 @@ class ItemManager:
             update_fields["updated_at"] = now
             await db_manager.update_one(self.items_collection, {"_id": oid}, {"$set": update_fields})
 
-        return await self.get_by_id(item_id)
+        item = await db_manager.find_one(self.items_collection, {"_id": oid})
+        return self._format_item_response(item, key_dict) if item else None
 
     @hook_manager.wrap_hooks(before=ITEM_DELETE_BEFORE, after=ITEM_DELETE_AFTER)
     async def delete(self, item_id: str) -> bool:

@@ -105,6 +105,22 @@ class KeyManager:
         """
         return [dict(key) for key in await self._load_cache()]
 
+    # Fields allowed for client-driven update; is_builtin is server-only
+    _ALLOWED_UPDATE_FIELDS = {
+        "name",
+        "title",
+        "value_type",
+        "default_value",
+        "description",
+        "category_name",
+        "is_required",
+        "is_visible",
+        "is_public",
+        "is_private",
+        "plugin_name",
+        "delete_with_plugin",
+    }
+
     async def update(self, key_name: str, update_data: dict[str, Any]) -> dict[str, Any] | None:
         """
         更新Key定义
@@ -115,6 +131,16 @@ class KeyManager:
 
         if existing.get("is_builtin", False):
             raise ValueError("builtin keys cannot be modified")
+
+        # Reject protected fields (is_builtin / id / _id / created_at / updated_at)
+        protected = {"is_builtin", "id", "_id", "created_at", "updated_at"} & set(update_data)
+        if protected:
+            raise ValueError(f"field(s) not allowed in update: {', '.join(sorted(protected))}")
+
+        # Whitelist: only allow known fields through
+        update_data = {k: v for k, v in update_data.items() if k in self._ALLOWED_UPDATE_FIELDS}
+        if not update_data:
+            raise ValueError("no valid fields to update")
 
         merged = {**existing, **update_data}
         merged["name"] = key_name

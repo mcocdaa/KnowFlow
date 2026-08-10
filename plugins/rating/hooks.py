@@ -30,6 +30,9 @@ async def on_item_create(result, *args, **kwargs):
         return
 
     default_rating = key_def.get("default_value", 0)
+    if not default_rating:  # skip when default is 0 / None / ""
+        return
+
     await item_manager.update(item_id, {"attributes": {"rating": default_rating}})
     logger.info(f"[RatingHook] 知识项 {item_id} 已设置默认评分: {default_rating}")
 

@@ -35,6 +35,15 @@ class HookManager:
                 logger.error(f"钩子执行失败 [{hook_name}]: {cb.__name__} - {e}", exc_info=True)
         return errors
 
+    def unregister_by_module(self, module_prefix: str):
+        """注销 module_prefix 下所有已注册的钩子回调"""
+        for hook_name in list(self._hooks):
+            self._hooks[hook_name] = [
+                (priority, cb)
+                for priority, cb in self._hooks[hook_name]
+                if not (getattr(cb, "__module__", "") or "").startswith(module_prefix)
+            ]
+
     def run_sync(self, hook_name: str, *args, **kwargs):
         """同步执行钩子（给同步包装器用）"""
         errors = []

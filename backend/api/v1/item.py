@@ -5,7 +5,7 @@
 from fastapi import APIRouter, HTTPException, Query
 
 from api.errors import ok
-from managers.item_manager import extract_key_values, item_manager
+from managers.item_manager import item_manager, validate_required
 
 router = APIRouter()
 
@@ -37,12 +37,8 @@ async def get_item(item_id: str):
 
 @router.post("/item")
 async def add_item(item: dict):
-    key_values = extract_key_values(item)
-    missing = [
-        key["name"]
-        for key in await item_manager.get_required_key_defs()
-        if key["name"] not in key_values and key["name"] not in item
-    ]
+    required_keys = await item_manager.get_required_key_defs()
+    missing = validate_required(item, required_keys)
     if missing:
         raise HTTPException(status_code=400, detail=f"Missing required keys: {', '.join(missing)}")
     return ok(await item_manager.create(item))

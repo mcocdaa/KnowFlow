@@ -7,11 +7,16 @@ from functools import wraps
 from typing import Any
 
 import motor.motor_asyncio
-from pymongo.errors import AutoReconnect, ConnectionFailure
+from pymongo.errors import (
+    AutoReconnect,
+    ConnectionFailure,
+    NetworkTimeout,
+    ServerSelectionTimeoutError,
+)
 
 from config import DB_RETRY_COUNT, MONGODB_DB_NAME, MONGODB_URL
 
-CONNECTION_ERRORS = (ConnectionFailure, AutoReconnect)
+CONNECTION_ERRORS = (ConnectionFailure, AutoReconnect, NetworkTimeout, ServerSelectionTimeoutError)
 
 
 def retry_on_connection_error(func):

@@ -23,7 +23,6 @@ class CategoryUpdate(BaseModel):
     name: str | None = None
     title: str | None = None
     parent_name: str | None = None
-    is_builtin: bool | None = None
 
 
 @router.get("/categories")

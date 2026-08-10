@@ -96,5 +96,4 @@ keys:
     updated_at: "2026-03-12"
 
 backend_entry: backend.py
-hooks_entry: hooks.py
 frontend_entry: frontend.tsx
