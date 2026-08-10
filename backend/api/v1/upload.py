@@ -9,7 +9,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from api.errors import ok
 from config.settings import MAX_UPLOAD_SIZE
-from managers.item_manager import extract_key_values, item_manager
+from managers.item_manager import extract_key_values, item_manager, validate_required
 from utils.file_util import generate_file_path
 
 logger = logging.getLogger(__name__)
@@ -33,11 +33,13 @@ async def upload_file(file: UploadFile = File(...), data: str = Form(...)):
     if "name" not in key_values and "name" in item_data:
         key_values["name"] = item_data["name"]
 
-    for req_key in await item_manager.get_required_key_defs():
-        req_key_name = req_key["name"]
-        if req_key_name not in key_values or key_values[req_key_name] is None:
-            raise HTTPException(status_code=400, detail=f"Missing required key: {req_key_name}")
+    # Inject uploaded file metadata for required-key validation
+    required_keys = await item_manager.get_required_key_defs()
+    missing = validate_required({**item_data, "keyValues": key_values}, required_keys)
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing required keys: {', '.join(missing)}")
 
+    file_path: str | None = None
     file_path = generate_file_path(file.filename or "upload")
     try:
         with open(file_path, "wb") as f:

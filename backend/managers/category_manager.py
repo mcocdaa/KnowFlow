@@ -121,17 +121,39 @@ class CategoryManager:
         if existing.get("is_builtin", False):
             raise ValueError("builtin categories cannot be modified")
 
+        # Reject protected fields
+        protected = {"is_builtin", "id", "_id", "created_at", "updated_at"} & set(update_data)
+        if protected:
+            raise ValueError(f"field(s) not allowed in update: {', '.join(sorted(protected))}")
+
+        # Whitelist allowed fields
+        update_data = {k: v for k, v in update_data.items() if k in ("name", "title", "parent_name")}
+        if not update_data:
+            raise ValueError("no valid fields to update")
+
         merged = {**existing, **update_data}
         merged["name"] = category_name
         self.validate(merged)
 
         if "parent_name" in update_data and update_data["parent_name"] is not None:
-            if update_data["parent_name"] == category_name:
+            parent_name = update_data["parent_name"]
+            if parent_name == category_name:
                 raise ValueError("category cannot be its own parent")
 
-            parent = await self.get_by_name(update_data["parent_name"])
+            parent = await self.get_by_name(parent_name)
             if not parent:
-                raise ValueError(f"parent category with name {update_data['parent_name']} does not exist")
+                raise ValueError(f"parent category with name {parent_name} does not exist")
+
+            # Cycle detection: walk up ancestors (max 100)
+            cursor = parent
+            for _ in range(100):
+                if cursor.get("parent_name") in (None, "None"):
+                    break
+                if cursor["parent_name"] == category_name:
+                    raise ValueError(f"would create a cycle: {category_name} → {parent_name}")
+                cursor = await self.get_by_name(cursor["parent_name"])
+                if not cursor:
+                    break
 
         if "name" in update_data and update_data["name"] != category_name:
             new_name = update_data["name"]

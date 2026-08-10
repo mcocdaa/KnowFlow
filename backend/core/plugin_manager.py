@@ -214,6 +214,7 @@ class PluginManager:
         if plugin_name not in self.loaded_plugins:
             return False
 
+        # 1. 调用 on_unload
         module = self.plugin_modules.get(plugin_name)
         if module and hasattr(module, "on_unload"):
             if asyncio.iscoroutinefunction(module.on_unload):
@@ -221,16 +222,36 @@ class PluginManager:
             else:
                 module.on_unload()
 
+        # 2. 注销插件注册的钩子
+        from core.hook_manager import hook_manager
+
+        hook_manager.unregister_by_module(f"plugins.{plugin_name}")
+
+        # 3. 从 app 移除插件路由
+        if self.app:
+            prefix = f"/api/{API_VERSION}/plugins/{plugin_name}"
+            self.app.router.routes = [
+                r for r in self.app.router.routes if not getattr(r, "path", "").startswith(prefix)
+            ]
+
+        # 4. 清理插件注册的 key
         from managers.key_manager import key_manager
 
         deleted_count = await key_manager.delete_by_plugin(plugin_name)
         logger.info(f"[PluginManager] 删除了 {deleted_count} 个 Key")
 
+        # 5. 清理模块引用
         del self.loaded_plugins[plugin_name]
         if plugin_name in self.plugin_modules:
             del self.plugin_modules[plugin_name]
+        hook_mod_name = f"plugins.{plugin_name}.hooks"
+        if hook_mod_name in self.plugin_modules:
+            del self.plugin_modules[hook_mod_name]
+        for mod_name in list(sys.modules):
+            if mod_name.startswith(f"plugins.{plugin_name}"):
+                del sys.modules[mod_name]
 
-        logger.info(f"[PluginManager] 插件 {plugin_name} 已卸载")
+        logger.info(f"[PluginManager] 插件 {plugin_name} 已卸载（含路由、钩子、模块）")
         return True
 
     def get_plugin_manifests(self) -> list[dict]:
