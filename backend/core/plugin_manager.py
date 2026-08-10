@@ -129,6 +129,37 @@ class PluginManager:
             except Exception as e:
                 logger.error(f"[PluginManager] 注册 Key {key_def['name']} 失败: {e}")
 
+    def _resolve_plugin_path(self, key: str, cfg: dict[str, Any]) -> Path | None:
+        """解析插件路径：绝对路径原样归一化，相对路径基于插件目录解析；路径不存在返回 None"""
+        if "path" in cfg:
+            path = Path(cfg["path"])
+            path = path.resolve() if path.is_absolute() else (self.plugins_dir / path).resolve()
+        else:
+            path = (self.plugins_dir / key).resolve()
+
+        if not path.exists():
+            logger.warning(f"插件路径不存在: {path}，跳过插件 {key}")
+            return None
+        return path
+
+    def _load_manifest(self, path: Path, key: str) -> dict[str, Any] | None:
+        """加载插件清单：目录读取 plugin.yaml，单 .py 文件生成默认清单；失败返回 None"""
+        if path.is_dir():
+            plugin_yaml = path / "plugin.yaml"
+            if not plugin_yaml.exists():
+                logger.warning(f"插件清单文件不存在: {plugin_yaml}，跳过插件 {key}")
+                return None
+            try:
+                with open(plugin_yaml, encoding="utf-8") as f:
+                    return yaml.safe_load(f) or {}
+            except Exception as e:
+                logger.error(f"读取插件清单失败 ({key}): {e}", exc_info=True)
+                return None
+        if path.suffix == ".py":
+            return {"name": path.stem, "type": "unknown", "backend_entry": path.name}
+        logger.warning(f"插件路径既不是目录也不是 .py 文件: {path}，跳过插件 {key}")
+        return None
+
     def _load_registry(self) -> dict[str, Any]:
         """加载插件注册表
 
@@ -154,42 +185,19 @@ class PluginManager:
 
         plugins = {}
         for key, cfg in data.get("plugins", {}).items():
-            if cfg is None:
-                continue
-            if not cfg.get("enabled", True):
-                logger.debug(f"插件 {key} 已禁用，跳过")
-                continue
-
             try:
-                if "path" in cfg:
-                    path = Path(cfg["path"])
-                    if not path.is_absolute():
-                        path = (self.plugins_dir / path).resolve()
-                    else:
-                        path = path.resolve()
-                else:
-                    path = (self.plugins_dir / key).resolve()
-
-                if not path.exists():
-                    logger.warning(f"插件路径不存在: {path}，跳过插件 {key}")
+                if cfg is None:
+                    continue
+                if not cfg.get("enabled", True):
+                    logger.debug(f"插件 {key} 已禁用，跳过")
                     continue
 
-                if path.is_dir():
-                    plugin_yaml = path / "plugin.yaml"
-                    if not plugin_yaml.exists():
-                        logger.warning(f"插件清单文件不存在: {plugin_yaml}，跳过插件 {key}")
-                        continue
+                path = self._resolve_plugin_path(key, cfg)
+                if path is None:
+                    continue
 
-                    try:
-                        with open(plugin_yaml, encoding="utf-8") as f:
-                            manifest = yaml.safe_load(f) or {}
-                    except Exception as e:
-                        logger.error(f"读取插件清单失败 ({key}): {e}", exc_info=True)
-                        continue
-                elif path.suffix == ".py":
-                    manifest = {"name": path.stem, "type": "unknown", "backend_entry": path.name}
-                else:
-                    logger.warning(f"插件路径既不是目录也不是 .py 文件: {path}，跳过插件 {key}")
+                manifest = self._load_manifest(path, key)
+                if manifest is None:
                     continue
 
                 plugin_type = manifest.get("type", "unknown")
