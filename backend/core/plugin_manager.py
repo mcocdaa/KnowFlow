@@ -98,8 +98,9 @@ class PluginManager:
         self.plugin_modules[key] = module
 
         if hasattr(module, "router") and self.app:
-            self.app.include_router(module.router, prefix=f"/api/{API_VERSION}/plugins/{key}", tags=[f"plugin/{key}"])
-            logger.info(f"[PluginManager] 注册路由: /api/{API_VERSION}/plugins/{key}")
+            prefix = self._plugin_route_prefix(key)
+            self.app.include_router(module.router, prefix=prefix, tags=[f"plugin/{key}"])
+            logger.info(f"[PluginManager] 注册路由: {prefix}")
 
         if hasattr(module, "on_load"):
             try:
@@ -217,6 +218,23 @@ class PluginManager:
 
         return plugins
 
+    @staticmethod
+    def _plugin_route_prefix(plugin_name: str) -> str:
+        """插件路由前缀"""
+        return f"/api/{API_VERSION}/plugins/{plugin_name}"
+
+    def _cleanup_modules(self, plugin_name: str) -> None:
+        """清理插件模块引用与 sys.modules 缓存"""
+        if plugin_name in self.plugin_modules:
+            del self.plugin_modules[plugin_name]
+        # hooks 模块以 "{plugin_name}.hooks" 为 key 注册（见 _load_plugin）
+        hook_mod_name = f"{plugin_name}.hooks"
+        if hook_mod_name in self.plugin_modules:
+            del self.plugin_modules[hook_mod_name]
+        for mod_name in list(sys.modules):
+            if mod_name.startswith(f"plugins.{plugin_name}"):
+                del sys.modules[mod_name]
+
     async def unload_plugin(self, plugin_name: str) -> bool:
         """卸载插件"""
         if plugin_name not in self.loaded_plugins:
@@ -237,7 +255,7 @@ class PluginManager:
 
         # 3. 从 app 移除插件路由
         if self.app:
-            prefix = f"/api/{API_VERSION}/plugins/{plugin_name}"
+            prefix = self._plugin_route_prefix(plugin_name)
             self.app.router.routes = [
                 r for r in self.app.router.routes if not getattr(r, "path", "").startswith(prefix)
             ]
@@ -250,14 +268,7 @@ class PluginManager:
 
         # 5. 清理模块引用
         del self.loaded_plugins[plugin_name]
-        if plugin_name in self.plugin_modules:
-            del self.plugin_modules[plugin_name]
-        hook_mod_name = f"plugins.{plugin_name}.hooks"
-        if hook_mod_name in self.plugin_modules:
-            del self.plugin_modules[hook_mod_name]
-        for mod_name in list(sys.modules):
-            if mod_name.startswith(f"plugins.{plugin_name}"):
-                del sys.modules[mod_name]
+        self._cleanup_modules(plugin_name)
 
         logger.info(f"[PluginManager] 插件 {plugin_name} 已卸载（含路由、钩子、模块）")
         return True

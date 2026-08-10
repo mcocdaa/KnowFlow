@@ -64,3 +64,25 @@ class TestPluginRegistry:
 
         assert "nested" in result
         assert result["nested"]["path"] == str((tmp_path / "sub" / "demo").resolve())
+
+
+class TestPluginHelpers:
+    def test_plugin_route_prefix(self):
+        assert PluginManager._plugin_route_prefix("rating") == "/api/v1/plugins/rating"
+        assert PluginManager._plugin_route_prefix("a/b") == "/api/v1/plugins/a/b"
+
+    def test_cleanup_modules_removes_sys_modules(self):
+        import sys
+
+        mgr = PluginManager()
+        mgr.plugin_modules = {"demo": object(), "demo.hooks": object()}
+        sys.modules["plugins.demo"] = object()
+        sys.modules["plugins.demo.hooks"] = object()
+        sys.modules["plugins.demo.extra"] = object()
+
+        mgr._cleanup_modules("demo")
+
+        assert "plugins.demo" not in sys.modules
+        assert "plugins.demo.hooks" not in sys.modules
+        assert "plugins.demo.extra" not in sys.modules
+        assert mgr.plugin_modules == {}
