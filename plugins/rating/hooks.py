@@ -6,6 +6,8 @@ import logging
 
 from core import hook_manager
 from core.hooks import ITEM_CREATE_AFTER, ITEM_UPDATE_AFTER
+from managers.item_manager import item_manager
+from managers.key_manager import key_manager
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +23,6 @@ async def on_item_create(result, *args, **kwargs):
     item_id = item.get("id")
     if not item_id or "rating" in attributes:
         return
-
-    from managers.item_manager import item_manager
-    from managers.key_manager import key_manager
 
     key_def = await key_manager.get_by_name("rating")
     if not key_def:
