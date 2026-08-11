@@ -39,6 +39,22 @@ class KeyManager:
             self._cache_time = datetime.now()
         return self._cache
 
+    async def _ensure_category(self, category_name: str) -> None:
+        """校验分类存在，不存在抛 ValueError"""
+        category = await db_manager.find_one("categories", {"name": category_name})
+        if not category:
+            raise ValueError(f"category with name {category_name} does not exist")
+
+    def _stamp_timestamps(self, doc: dict[str, Any], created: bool = False) -> None:
+        """写入时间戳：created=True 时按原 create 语义补齐 created_at/updated_at（不覆盖客户端已有值），
+        created=False 时仅设置 updated_at（与原 update 语义一致）"""
+        now = datetime.now().isoformat()
+        if created:
+            doc.setdefault("created_at", now)
+            doc.setdefault("updated_at", now)
+        else:
+            doc["updated_at"] = now
+
     async def initialize(self):
         """
         初始化Key定义：首次加载默认配置，之后幂等补齐缺失的内置 Key（存量库也能获得新增内置 Key）
@@ -84,14 +100,9 @@ class KeyManager:
         if existing:
             raise ValueError(f"key with name {key_def['name']} already exists")
 
-        category = await db_manager.find_one("categories", {"name": key_def["category_name"]})
-        if not category:
-            raise ValueError(f"category with name {key_def['category_name']} does not exist")
+        await self._ensure_category(key_def["category_name"])
 
-        if "created_at" not in key_def:
-            key_def["created_at"] = datetime.now().isoformat()
-        if "updated_at" not in key_def:
-            key_def["updated_at"] = datetime.now().isoformat()
+        self._stamp_timestamps(key_def, created=True)
 
         await db_manager.insert_one(self.collection, key_def)
         self._invalidate_cache()
@@ -155,11 +166,9 @@ class KeyManager:
         self.validate(merged)
 
         if "category_name" in update_data:
-            category = await db_manager.find_one("categories", {"name": update_data["category_name"]})
-            if not category:
-                raise ValueError(f"category with name {update_data['category_name']} does not exist")
+            await self._ensure_category(update_data["category_name"])
 
-        update_data["updated_at"] = datetime.now().isoformat()
+        self._stamp_timestamps(update_data)
         if "name" in update_data and update_data["name"] != key_name:
             new_name = update_data["name"]
             name_exists = await self.get_by_name(new_name)
@@ -192,14 +201,15 @@ class KeyManager:
         删除指定插件注册的 Key（仅删除 delete_with_plugin=True 的）
         """
         keys = await self.get_all()
-        deleted = 0
-        for key in keys:
-            if key.get("plugin_name") == plugin_name and key.get("delete_with_plugin", True):
-                await db_manager.delete_one(self.collection, {"name": key["name"]})
-                deleted += 1
-        if deleted:
-            self._invalidate_cache()
-        return deleted
+        names = [
+            key["name"] for key in keys if key.get("plugin_name") == plugin_name and key.get("delete_with_plugin", True)
+        ]
+        if not names:
+            return 0
+
+        deleted_count = await db_manager.delete_many(self.collection, {"name": {"$in": names}})
+        self._invalidate_cache()
+        return deleted_count
 
 
 # 全局Key管理实例
