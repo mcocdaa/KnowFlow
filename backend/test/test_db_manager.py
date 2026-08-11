@@ -70,7 +70,7 @@ class TestDBManager:
 
     @pytest.mark.asyncio
     async def test_initialize(self, db_manager):
-        with patch("motor.motor_asyncio.AsyncIOMotorClient") as mock_client:
+        with patch("managers.db_manager.AsyncMongoClient") as mock_client:
             mock_db_instance = MagicMock()
             mock_client.return_value.__getitem__.return_value = mock_db_instance
             mock_db_instance["categories"].create_index = AsyncMock()
@@ -86,14 +86,31 @@ class TestDBManager:
     @pytest.mark.asyncio
     async def test_close(self, db_manager):
         mock_client = MagicMock()
+        mock_client.close = AsyncMock()  # close() 迁移后为 async，必须可 await
         db_manager.client = mock_client
         db_manager.db = MagicMock()
 
         await db_manager.close()
 
-        mock_client.close.assert_called_once()
+        mock_client.close.assert_awaited_once()
         assert db_manager.client is None
         assert db_manager.db is None
+
+    @pytest.mark.asyncio
+    async def test_reconnect_recreates_client(self, db_manager):
+        mock_client = MagicMock()
+        mock_client.close = AsyncMock()  # close() 迁移后为 async，必须可 await
+        db_manager.client = mock_client
+        db_manager.db = MagicMock()
+
+        original_initialize = db_manager.initialize
+        db_manager.initialize = AsyncMock()
+
+        await db_manager.reconnect()
+
+        mock_client.close.assert_awaited_once()
+        db_manager.initialize.assert_awaited_once()
+        db_manager.initialize = original_initialize
 
     @pytest.mark.asyncio
     async def test_insert_one(self, db_manager):
@@ -194,3 +211,19 @@ class TestDBManager:
 
         assert result == 5
         mock_collection.count_documents.assert_called_once_with({"name": "test"})
+
+    @pytest.mark.asyncio
+    async def test_aggregate(self, db_manager):
+        mock_cursor = MagicMock()
+        mock_cursor.to_list = AsyncMock(return_value=[{"total": 1}])
+        mock_collection = MagicMock()
+        mock_collection.aggregate = AsyncMock(return_value=mock_cursor)
+        mock_db = MagicMock()
+        mock_db.__getitem__.return_value = mock_collection
+
+        db_manager.db = mock_db
+
+        result = await db_manager.aggregate("test_collection", [{"$match": {"name": "x"}}])
+
+        assert result == [{"total": 1}]
+        mock_collection.aggregate.assert_called_once_with([{"$match": {"name": "x"}}])

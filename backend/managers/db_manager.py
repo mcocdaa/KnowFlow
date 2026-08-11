@@ -6,7 +6,8 @@ import asyncio
 from functools import wraps
 from typing import Any
 
-import motor.motor_asyncio
+from pymongo import AsyncMongoClient
+from pymongo.asynchronous.database import AsyncDatabase
 from pymongo.errors import (
     AutoReconnect,
     ConnectionFailure,
@@ -44,15 +45,15 @@ def retry_on_connection_error(func):
 
 class DBManager:
     def __init__(self):
-        self.client: motor.motor_asyncio.AsyncIOMotorClient | None = None
-        self.db: motor.motor_asyncio.AsyncIOMotorDatabase | None = None
+        self.client: AsyncMongoClient | None = None
+        self.db: AsyncDatabase | None = None
 
     async def initialize(self):
         """
         初始化数据库连接
         """
         if not self.client:
-            self.client = motor.motor_asyncio.AsyncIOMotorClient(MONGODB_URL)
+            self.client = AsyncMongoClient(MONGODB_URL)
             self.db = self.client[MONGODB_DB_NAME]
 
             await self._create_indexes()
@@ -62,7 +63,7 @@ class DBManager:
         重新连接数据库
         """
         if self.client:
-            self.client.close()
+            await self.client.close()
         self.client = None
         self.db = None
         await self.initialize()
@@ -72,7 +73,7 @@ class DBManager:
         关闭数据库连接
         """
         if self.client:
-            self.client.close()
+            await self.client.close()
             self.client = None
             self.db = None
 
@@ -157,7 +158,7 @@ class DBManager:
         """
         聚合查询
         """
-        cursor = self.db[collection].aggregate(pipeline)
+        cursor = await self.db[collection].aggregate(pipeline)
         return await cursor.to_list(length=None)
 
     @retry_on_connection_error
