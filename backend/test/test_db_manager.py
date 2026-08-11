@@ -168,6 +168,20 @@ class TestDBManager:
         mock_collection.delete_one.assert_called_once_with({"name": "test"})
 
     @pytest.mark.asyncio
+    async def test_delete_many(self, db_manager):
+        mock_collection = MagicMock()
+        mock_collection.delete_many = AsyncMock(return_value=MagicMock(deleted_count=3))
+        mock_db = MagicMock()
+        mock_db.__getitem__.return_value = mock_collection
+
+        db_manager.db = mock_db
+
+        result = await db_manager.delete_many("test_collection", {"name": {"$in": ["a", "b"]}})
+
+        assert result == 3
+        mock_collection.delete_many.assert_called_once_with({"name": {"$in": ["a", "b"]}})
+
+    @pytest.mark.asyncio
     async def test_count_documents(self, db_manager):
         mock_collection = MagicMock()
         mock_collection.count_documents = AsyncMock(return_value=5)

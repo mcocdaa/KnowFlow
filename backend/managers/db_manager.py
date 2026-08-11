@@ -145,6 +145,14 @@ class DBManager:
         return result.deleted_count
 
     @retry_on_connection_error
+    async def delete_many(self, collection: str, query: dict[str, Any]) -> int:
+        """
+        批量删除多个文档
+        """
+        result = await self.db[collection].delete_many(query)
+        return result.deleted_count
+
+    @retry_on_connection_error
     async def aggregate(self, collection: str, pipeline: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         聚合查询
