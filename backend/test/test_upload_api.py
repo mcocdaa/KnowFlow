@@ -17,7 +17,7 @@ from api.errors import register_exception_handlers
 def app():
     app = FastAPI()
     register_exception_handlers(app)
-    with patch("api.v1.upload.item_manager") as mock_item_manager:
+    with patch("api.deps.item_manager") as mock_item_manager:
         mock_item_manager.create = AsyncMock()
         mock_item_manager.get_required_key_defs = AsyncMock(return_value=[])
         app.include_router(__import__("api.v1.upload", fromlist=["router"]).router)

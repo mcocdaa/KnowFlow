@@ -5,11 +5,12 @@
 import json
 import logging
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
+from api.deps import get_item_manager
 from api.errors import ok
 from config.settings import MAX_UPLOAD_SIZE
-from managers.item_manager import extract_key_values, item_manager, validate_required
+from managers.item_manager import ItemManager, extract_key_values, validate_required
 from utils.file_util import generate_file_path
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,11 @@ _CHUNK_SIZE = 1024 * 1024
 
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...), data: str = Form(...)):
+async def upload_file(
+    manager: ItemManager = Depends(get_item_manager),
+    file: UploadFile = File(...),
+    data: str = Form(...),
+):
     try:
         item_data = json.loads(data)
     except json.JSONDecodeError:
@@ -34,7 +39,7 @@ async def upload_file(file: UploadFile = File(...), data: str = Form(...)):
         key_values["name"] = item_data["name"]
 
     # Inject uploaded file metadata for required-key validation
-    required_keys = await item_manager.get_required_key_defs()
+    required_keys = await manager.get_required_key_defs()
     missing = validate_required({**item_data, "keyValues": key_values}, required_keys)
     if missing:
         raise HTTPException(status_code=400, detail=f"Missing required keys: {', '.join(missing)}")
@@ -56,7 +61,7 @@ async def upload_file(file: UploadFile = File(...), data: str = Form(...)):
 
         new_item = {"name": key_values.get("name", ""), "keyValues": key_values}
 
-        return ok(await item_manager.create(new_item))
+        return ok(await manager.create(new_item))
     except Exception:
         _cleanup_file(file_path)
         raise
