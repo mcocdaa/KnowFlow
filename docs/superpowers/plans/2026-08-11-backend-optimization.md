@@ -89,7 +89,7 @@ git commit -m "feat: add db_manager.delete_many for batch deletes"
 
 ---
 
-### Task 2: Motor → PyMongo Async 迁移
+### Task 2: Motor → PyMongo Async 迁移 ✅
 
 **Files:**
 - Modify: `backend/managers/db_manager.py`
