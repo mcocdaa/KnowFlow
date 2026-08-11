@@ -20,7 +20,7 @@
 
 ---
 
-### Task 1: db_manager 新增 delete_many（方向 3 的前置）
+### Task 1: db_manager 新增 delete_many（方向 3 的前置） ✅
 
 **Files:**
 - Modify: `backend/managers/db_manager.py`（在 delete_one 方法后新增 delete_many）
