@@ -963,7 +963,7 @@ git commit -m "refactor: unify plugin lifecycle calls via _call_lifecycle helper
 
 ---
 
-### Task 6: 文档同步 + 全量验证 + 冒烟
+### Task 6: 文档同步 + 全量验证 + 冒烟 ✅
 
 **Files:**
 - Modify: `docs/backend/overview.md`、`docs/backend/database.md`、`docs/backend/deployment.md`、`docs/backend/README.md`、`docs/architecture.md`、`docs/architecture/modules.md`、`docs/architecture/tech-stack.md`、`docs/summary.md`、根 `README.md`（均含 motor 引用；`.progress` 与 `openspec/config.yaml` 属历史记录，豁免）
