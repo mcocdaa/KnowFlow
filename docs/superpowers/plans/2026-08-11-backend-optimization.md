@@ -248,7 +248,7 @@ git commit -m "refactor: migrate from motor to PyMongo AsyncMongoClient"
 
 ---
 
-### Task 3: key_manager 重复模式抽取
+### Task 3: key_manager 重复模式抽取 ✅
 
 **Files:**
 - Modify: `backend/managers/key_manager.py`
