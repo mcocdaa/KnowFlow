@@ -55,7 +55,7 @@
 应用启动
     │
     ▼
-PluginLoader.initialize(app)
+PluginManager.initialize(app)
     │
     ▼
 读取 plugins.yaml 配置

@@ -98,8 +98,9 @@ class PluginManager:
         self.plugin_modules[key] = module
 
         if hasattr(module, "router") and self.app:
-            self.app.include_router(module.router, prefix=f"/api/{API_VERSION}/plugins/{key}", tags=[f"plugin/{key}"])
-            logger.info(f"[PluginManager] 注册路由: /api/{API_VERSION}/plugins/{key}")
+            prefix = self._plugin_route_prefix(key)
+            self.app.include_router(module.router, prefix=prefix, tags=[f"plugin/{key}"])
+            logger.info(f"[PluginManager] 注册路由: {prefix}")
 
         if hasattr(module, "on_load"):
             try:
@@ -129,6 +130,37 @@ class PluginManager:
             except Exception as e:
                 logger.error(f"[PluginManager] 注册 Key {key_def['name']} 失败: {e}")
 
+    def _resolve_plugin_path(self, key: str, cfg: dict[str, Any]) -> Path | None:
+        """解析插件路径：绝对路径原样归一化，相对路径基于插件目录解析；路径不存在返回 None"""
+        if "path" in cfg:
+            path = Path(cfg["path"])
+            path = path.resolve() if path.is_absolute() else (self.plugins_dir / path).resolve()
+        else:
+            path = (self.plugins_dir / key).resolve()
+
+        if not path.exists():
+            logger.warning(f"插件路径不存在: {path}，跳过插件 {key}")
+            return None
+        return path
+
+    def _load_manifest(self, path: Path, key: str) -> dict[str, Any] | None:
+        """加载插件清单：目录读取 plugin.yaml，单 .py 文件生成默认清单；失败返回 None"""
+        if path.is_dir():
+            plugin_yaml = path / "plugin.yaml"
+            if not plugin_yaml.exists():
+                logger.warning(f"插件清单文件不存在: {plugin_yaml}，跳过插件 {key}")
+                return None
+            try:
+                with open(plugin_yaml, encoding="utf-8") as f:
+                    return yaml.safe_load(f) or {}
+            except Exception as e:
+                logger.error(f"读取插件清单失败 ({key}): {e}", exc_info=True)
+                return None
+        if path.suffix == ".py":
+            return {"name": path.stem, "type": "unknown", "backend_entry": path.name}
+        logger.warning(f"插件路径既不是目录也不是 .py 文件: {path}，跳过插件 {key}")
+        return None
+
     def _load_registry(self) -> dict[str, Any]:
         """加载插件注册表
 
@@ -154,42 +186,19 @@ class PluginManager:
 
         plugins = {}
         for key, cfg in data.get("plugins", {}).items():
-            if cfg is None:
-                continue
-            if not cfg.get("enabled", True):
-                logger.debug(f"插件 {key} 已禁用，跳过")
-                continue
-
             try:
-                if "path" in cfg:
-                    path = Path(cfg["path"])
-                    if not path.is_absolute():
-                        path = (self.plugins_dir / path).resolve()
-                    else:
-                        path = path.resolve()
-                else:
-                    path = (self.plugins_dir / key).resolve()
-
-                if not path.exists():
-                    logger.warning(f"插件路径不存在: {path}，跳过插件 {key}")
+                if cfg is None:
+                    continue
+                if not cfg.get("enabled", True):
+                    logger.debug(f"插件 {key} 已禁用，跳过")
                     continue
 
-                if path.is_dir():
-                    plugin_yaml = path / "plugin.yaml"
-                    if not plugin_yaml.exists():
-                        logger.warning(f"插件清单文件不存在: {plugin_yaml}，跳过插件 {key}")
-                        continue
+                path = self._resolve_plugin_path(key, cfg)
+                if path is None:
+                    continue
 
-                    try:
-                        with open(plugin_yaml, encoding="utf-8") as f:
-                            manifest = yaml.safe_load(f) or {}
-                    except Exception as e:
-                        logger.error(f"读取插件清单失败 ({key}): {e}", exc_info=True)
-                        continue
-                elif path.suffix == ".py":
-                    manifest = {"name": path.stem, "type": "unknown", "backend_entry": path.name}
-                else:
-                    logger.warning(f"插件路径既不是目录也不是 .py 文件: {path}，跳过插件 {key}")
+                manifest = self._load_manifest(path, key)
+                if manifest is None:
                     continue
 
                 plugin_type = manifest.get("type", "unknown")
@@ -208,6 +217,23 @@ class PluginManager:
                 continue
 
         return plugins
+
+    @staticmethod
+    def _plugin_route_prefix(plugin_name: str) -> str:
+        """插件路由前缀"""
+        return f"/api/{API_VERSION}/plugins/{plugin_name}"
+
+    def _cleanup_modules(self, plugin_name: str) -> None:
+        """清理插件模块引用与 sys.modules 缓存"""
+        if plugin_name in self.plugin_modules:
+            del self.plugin_modules[plugin_name]
+        # hooks 模块以 "{plugin_name}.hooks" 为 key 注册（见 _load_plugin）
+        hook_mod_name = f"{plugin_name}.hooks"
+        if hook_mod_name in self.plugin_modules:
+            del self.plugin_modules[hook_mod_name]
+        for mod_name in list(sys.modules):
+            if mod_name.startswith(f"plugins.{plugin_name}"):
+                del sys.modules[mod_name]
 
     async def unload_plugin(self, plugin_name: str) -> bool:
         """卸载插件"""
@@ -229,7 +255,7 @@ class PluginManager:
 
         # 3. 从 app 移除插件路由
         if self.app:
-            prefix = f"/api/{API_VERSION}/plugins/{plugin_name}"
+            prefix = self._plugin_route_prefix(plugin_name)
             self.app.router.routes = [
                 r for r in self.app.router.routes if not getattr(r, "path", "").startswith(prefix)
             ]
@@ -242,14 +268,7 @@ class PluginManager:
 
         # 5. 清理模块引用
         del self.loaded_plugins[plugin_name]
-        if plugin_name in self.plugin_modules:
-            del self.plugin_modules[plugin_name]
-        hook_mod_name = f"plugins.{plugin_name}.hooks"
-        if hook_mod_name in self.plugin_modules:
-            del self.plugin_modules[hook_mod_name]
-        for mod_name in list(sys.modules):
-            if mod_name.startswith(f"plugins.{plugin_name}"):
-                del sys.modules[mod_name]
+        self._cleanup_modules(plugin_name)
 
         logger.info(f"[PluginManager] 插件 {plugin_name} 已卸载（含路由、钩子、模块）")
         return True

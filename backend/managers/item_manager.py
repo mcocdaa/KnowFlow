@@ -55,6 +55,16 @@ class ItemManager:
     def __init__(self):
         self.items_collection = "items"
 
+    @staticmethod
+    def _to_object_id(item_id: str) -> ObjectId | None:
+        """将字符串 ID 解析为 ObjectId，非法输入返回 None"""
+        if item_id is None:
+            return None
+        try:
+            return ObjectId(item_id)
+        except (ValueError, TypeError, InvalidId):
+            return None
+
     def _convert_value(self, value: Any, value_type: str) -> Any:
         """将存储值转换为 value_type 对应的 Python 类型"""
         if value_type == "number":
@@ -99,6 +109,11 @@ class ItemManager:
         all_keys = await key_manager.get_all()
         return [key for key in all_keys if key.get("is_required", False)]
 
+    async def _get_key_dict(self) -> dict[str, dict[str, Any]]:
+        """获取全部 Key 定义，构建 name -> key_def 映射"""
+        all_keys = await key_manager.get_all()
+        return {key["name"]: key for key in all_keys}
+
     def _format_item_response(self, item: dict, key_dict: dict[str, dict[str, Any]]) -> dict[str, Any]:
         item_attributes = {}
         key_info = {}
@@ -134,8 +149,7 @@ class ItemManager:
         """
         获取所有知识项
         """
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
 
         items = await db_manager.find(self.items_collection)
 
@@ -146,17 +160,15 @@ class ItemManager:
         """
         根据ID获取知识项
         """
-        try:
-            oid = ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
+        oid = self._to_object_id(item_id)
+        if oid is None:
             return None
 
         item = await db_manager.find_one(self.items_collection, {"_id": oid})
         if not item:
             return None
 
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
         return self._format_item_response(item, key_dict)
 
     @hook_manager.wrap_hooks(before=ITEM_CREATE_BEFORE, after=ITEM_CREATE_AFTER)
@@ -166,8 +178,7 @@ class ItemManager:
         """
         now = datetime.now()
 
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
 
         knowflow_item = {
             "created_at": now,
@@ -192,9 +203,8 @@ class ItemManager:
         """
         更新知识项
         """
-        try:
-            oid = ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
+        oid = self._to_object_id(item_id)
+        if oid is None:
             return None
 
         now = datetime.now()
@@ -207,8 +217,7 @@ class ItemManager:
         if "name" in updates:
             update_fields["name"] = updates["name"]
 
-        all_keys = await key_manager.get_all()
-        key_dict = {key["name"]: key for key in all_keys}
+        key_dict = await self._get_key_dict()
         key_values = extract_key_values(updates)
 
         for key_name, value in key_values.items():
@@ -228,9 +237,8 @@ class ItemManager:
         """
         删除知识项
         """
-        try:
-            oid = ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
+        oid = self._to_object_id(item_id)
+        if oid is None:
             return False
 
         deleted_count = await db_manager.delete_one(self.items_collection, {"_id": oid})
@@ -252,8 +260,7 @@ class ItemManager:
         if sort not in VALID_SORTS:
             raise ValueError(f"invalid sort option: {sort}")
 
-        all_keys = await key_manager.get_all()
-        key_dict = {k["name"]: k for k in all_keys}
+        key_dict = await self._get_key_dict()
 
         query = {}
 

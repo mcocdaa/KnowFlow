@@ -2,14 +2,19 @@
 # @brief 分类管理核心逻辑（数据库版）
 # @create 2026-03-07 10:00:00
 
+import logging
 from typing import Any
 
 import yaml
+from bson import ObjectId
+from bson.errors import InvalidId
 
 from config import CATEGORY_STYLE, DEFAULT_CATEGORIES_PATH
 from utils.doc_util import convert_doc, convert_docs
 
 from .db_manager import db_manager
+
+logger = logging.getLogger(__name__)
 
 
 class CategoryManager:
@@ -18,28 +23,29 @@ class CategoryManager:
 
     async def initialize(self):
         """
-        初始化分类定义，从默认配置加载到数据库
+        初始化分类定义：幂等补齐缺失的内置分类（存量库也能获得新增内置分类）
         """
-        count = await db_manager.count_documents(self.collection)
-        if count == 0:
-            with open(DEFAULT_CATEGORIES_PATH, encoding="utf-8") as f:
-                default_categories = yaml.safe_load(f)
+        with open(DEFAULT_CATEGORIES_PATH, encoding="utf-8") as f:
+            default_categories = yaml.safe_load(f)
 
-                parent_categories = []
-                child_categories = []
+        parent_categories = []
+        child_categories = []
 
-                for category in default_categories:
-                    if category.get("parent_name") in (None, "None"):
-                        category["parent_name"] = None
-                        parent_categories.append(category)
-                    else:
-                        child_categories.append(category)
+        for category in default_categories:
+            if category.get("parent_name") in (None, "None"):
+                category["parent_name"] = None
+                parent_categories.append(category)
+            else:
+                child_categories.append(category)
 
-                for category in parent_categories:
-                    await self.create(category)
-
-                for category in child_categories:
-                    await self.create(category)
+        for category in parent_categories + child_categories:
+            existing = await db_manager.find_one(self.collection, {"name": category["name"]})
+            if existing:
+                continue
+            try:
+                await self.create(category)
+            except ValueError as e:
+                logger.warning(f"初始化分类 {category['name']} 跳过: {e}")
 
     def validate(self, category: dict[str, Any]) -> bool:
         """
@@ -80,9 +86,6 @@ class CategoryManager:
         根据数据库 ID 获取分类
         """
         try:
-            from bson import ObjectId
-            from bson.errors import InvalidId
-
             oid = ObjectId(category_id)
             doc = await db_manager.find_one(self.collection, {"_id": oid})
             return convert_doc(doc)

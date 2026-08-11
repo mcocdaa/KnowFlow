@@ -10,6 +10,7 @@ plugins/
 ├── rating/                # 星级评分插件
 │   ├── plugin.yaml        # 插件元数据
 │   ├── backend.py         # 后端入口
+│   ├── hooks.py           # 钩子入口
 │   └── frontend.tsx       # 前端入口
 └── other-plugin/
     └── ...
@@ -48,8 +49,10 @@ keys:                           # 插件注册的 Key 定义
     category_name: basic_category
     is_required: false
     is_visible: true
-    plugin_name: "rating"
     delete_with_plugin: false
+    is_public: true
+    is_private: false
+    # plugin_name / created_at / updated_at 由系统自动写入，无需声明
 
 backend_entry: backend.py       # 后端入口文件（可选）
 frontend_entry: frontend.tsx    # 前端入口文件（可选）

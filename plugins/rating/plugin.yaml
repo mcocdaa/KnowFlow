@@ -13,12 +13,9 @@ keys:
     category_name: basic_category
     is_required: false
     is_visible: true
-    plugin_name: "rating"
     delete_with_plugin: false
     is_public: true
     is_private: false
-    created_at: "2026-01-01"
-    updated_at: "2026-01-01"
 
 backend_entry: backend.py
 hooks_entry: hooks.py

@@ -34,6 +34,7 @@ def on_unload():
 | `router` | APIRouter | FastAPI 路由器，自动注册到 `/api/v1/plugins/{plugin_name}/` |
 | `on_load` | function | 插件加载时调用的函数 |
 | `on_unload` | function | 插件卸载时调用的函数 |
+| `hooks.py` 中的 `@hook_manager.hook(...)` 回调 | 插件可选的钩子入口文件（`hooks_entry`），注册到系统钩子点（见 `backend/core/hooks.py`） |
 
 ---
 
@@ -45,10 +46,11 @@ def on_unload():
 /api/v1/plugins/{plugin_name}/*
 ```
 
-例如，`rating` 插件的路由：
+例如，`rating` 插件实际注册的路由：
 
 ```
-PUT /api/v1/plugins/rating/rating/{item_id}
+PUT /api/v1/plugins/rating/items/{item_id}/rating
+GET /api/v1/plugins/rating/items/{item_id}/rating
 ```
 
 ---
@@ -70,28 +72,24 @@ async def on_load():
 ## 加载流程
 
 ```
-应用启动
-    │
-    ▼
-PluginLoader.initialize(app)
-    │
-    ▼
 读取 plugins.yaml 配置
     │
     ▼
 扫描 plugins/ 目录
     │
-    ├── 读取 plugin.yaml
+    ├── 读取 plugin.yaml（plugin_manager._load_registry）
     │
-    ├── 注册 Key 定义
+    ├── 注册 Key 定义（_register_keys，重复 key 自动跳过）
     │
-    ├── 加载后端入口
+    ├── 加载后端入口 backend_entry（默认 backend.py）
     │   │
     │   ├── 导入模块
     │   │
-    │   ├── 注册路由
+    │   ├── 注册路由到 /api/v1/plugins/{plugin_name}/*
     │   │
     │   └── 调用 on_load()
+    │
+    ├── 加载钩子入口 hooks_entry（默认 hooks.py，可选）
     │
     └── 插件加载完成
 ```
