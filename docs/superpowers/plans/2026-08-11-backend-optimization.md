@@ -417,7 +417,7 @@ git commit -m "refactor: extract key_manager category/timestamp helpers, batch d
 
 ---
 
-### Task 4: api/deps.py + 路由层 Depends 注入
+### Task 4: api/deps.py + 路由层 Depends 注入 ✅
 
 **Files:**
 - Create: `backend/api/deps.py`
