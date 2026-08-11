@@ -810,7 +810,7 @@ git commit -m "refactor: inject managers via FastAPI Depends in api routes"
 
 ---
 
-### Task 5: plugin_manager _call_lifecycle 抽取
+### Task 5: plugin_manager _call_lifecycle 抽取 ✅
 
 **Files:**
 - Modify: `backend/core/plugin_manager.py`
