@@ -4,7 +4,7 @@
 
 - **Web 框架**: FastAPI (Python 3.8+)
 - **服务器**: Uvicorn (ASGI 服务器)
-- **数据库**: MongoDB (异步驱动 motor)
+- **数据库**: MongoDB (异步驱动 PyMongo AsyncMongoClient)
 - **HTTP 客户端**: httpx (用于 AI API 调用)
 - **文件上传**: python-multipart
 - **配置管理**: python-dotenv, PyYAML
@@ -172,7 +172,7 @@ docker-compose up -d
 ### 异步架构
 
 - 所有数据库操作均为异步
-- 使用 motor 作为 MongoDB 异步驱动
+- 使用 PyMongo AsyncMongoClient 作为 MongoDB 异步驱动
 - FastAPI 原生支持异步
 
 ### 自动路由加载
@@ -180,6 +180,11 @@ docker-compose up -d
 - 通过 `router_loader.py` 自动扫描并加载路由
 - 支持分层路由结构
 - 无需手动注册每个路由
+
+### 依赖注入
+
+- 路由层通过 `api/deps.py` 的 `Depends` 依赖函数获取 manager 单例（FastAPI 官方推荐模式），不直接 import 全局实例
+- 依赖函数返回现有全局单例，测试中 `patch("managers.xxx.db_manager", mock)` 模式不受影响
 
 ### 数据库重试机制
 

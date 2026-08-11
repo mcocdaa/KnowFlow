@@ -2,7 +2,7 @@
 
 ## 概述
 
-后端使用 **MongoDB** 作为数据存储，通过异步驱动 `motor` 进行数据库操作。
+后端使用 **MongoDB** 作为数据存储，通过 PyMongo 官方异步驱动 `AsyncMongoClient` 进行数据库操作。
 
 ### 数据库配置
 

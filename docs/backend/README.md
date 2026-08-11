@@ -56,7 +56,7 @@ curl http://localhost:3000/api/v1/health
 
 ## 核心特性
 
-- **异步架构**: 基于 FastAPI + motor 的全异步实现
+- **异步架构**: 基于 FastAPI + PyMongo AsyncMongoClient 的全异步实现
 - **MongoDB 存储**: 灵活的文档数据库
 - **插件系统**: 支持动态加载插件扩展功能
 - **Key-Value 系统**: 灵活的动态属性定义

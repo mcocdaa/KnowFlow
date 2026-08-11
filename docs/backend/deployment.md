@@ -20,7 +20,7 @@ pip install -r requirements.txt
 | `uvicorn` | ASGI 服务器 |
 | `httpx` | HTTP 客户端（用于 AI API） |
 | `python-multipart` | 文件上传支持 |
-| `motor` | MongoDB 异步驱动 |
+| `pymongo` | MongoDB 异步驱动（AsyncMongoClient） |
 | `pymongo` | MongoDB 同步驱动（用于工具） |
 | `pyyaml` | YAML 配置解析 |
 | `python-dotenv` | 环境变量加载 |

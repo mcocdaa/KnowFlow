@@ -29,7 +29,7 @@
 | FastAPI | - | Web 框架 |
 | Uvicorn | - | ASGI 服务器 |
 | MongoDB | 4.4+ | 数据库 |
-| motor | - | MongoDB 异步驱动 |
+| pymongo | - | MongoDB 异步驱动（AsyncMongoClient） |
 
 ---
 
@@ -96,7 +96,7 @@
 │  │ plugin_manager│  │  300s TTL   │  │  豆包 API   │         │
 │  └─────────────┘  └─────────────┘  └─────────────┘         │
 └───────────────────────────┬─────────────────────────────────┘
-                            │ motor (异步驱动)
+                            │ pymongo (异步驱动)
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       MongoDB 数据库                         │
@@ -208,7 +208,7 @@ npm run electron:build
 
 ### 1. 异步架构
 
-- 后端全异步实现（FastAPI + motor）
+- 后端全异步实现（FastAPI + PyMongo AsyncMongoClient）
 - 高并发处理能力
 - 数据库连接重试机制
 
