@@ -104,12 +104,19 @@ class PluginManager:
 
         if hasattr(module, "on_load"):
             try:
-                if asyncio.iscoroutinefunction(module.on_load):
-                    await module.on_load()
-                else:
-                    module.on_load()
+                await self._call_lifecycle(module, "on_load")
             except Exception as e:
                 logger.error(f"插件 {key} on_load 执行失败: {e}", exc_info=True)
+
+    async def _call_lifecycle(self, module: Any, method_name: str) -> None:
+        """调用插件生命周期方法（兼容同步与异步实现）；方法不存在时跳过"""
+        method = getattr(module, method_name, None)
+        if method is None:
+            return
+        if asyncio.iscoroutinefunction(method):
+            await method()
+        else:
+            method()
 
     async def _register_keys(self, keys: list[dict], plugin_name: str):
         """注册插件定义的 Key"""
@@ -242,11 +249,8 @@ class PluginManager:
 
         # 1. 调用 on_unload
         module = self.plugin_modules.get(plugin_name)
-        if module and hasattr(module, "on_unload"):
-            if asyncio.iscoroutinefunction(module.on_unload):
-                await module.on_unload()
-            else:
-                module.on_unload()
+        if module:
+            await self._call_lifecycle(module, "on_unload")
 
         # 2. 注销插件注册的钩子
         from core.hook_manager import hook_manager
