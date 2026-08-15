@@ -9,6 +9,10 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        # 浏览器侧同源请求 /api/v1，由 nginx 代理到后端（与 CSP connect-src 'self' 兼容）
+        # 注意：VITE_API_BASE_URL 是构建期变量，必须在 build.args 传入，environment 对 vite build 无效
+        VITE_API_BASE_URL: /api/v1
     container_name: knowflow-frontend
     restart: unless-stopped
     ports:
