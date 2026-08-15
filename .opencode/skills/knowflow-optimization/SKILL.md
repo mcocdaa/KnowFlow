@@ -58,6 +58,9 @@ description: KnowFlow 项目专用的"调研驱动优化"工作流：网络调�
 4. **测试直接赋值 `_cache` 必须同时设 `_cache_time`**，否则 `_load_cache()` 走 `db_manager.find`
 5. **既有测试可能被重构破坏**：行为变更（如逐条删→批量删）要 grep 所有断言旧 API 的测试并重写
 6. **pre-commit ruff-format**：hook 修改文件导致 commit 失败时，重新 `git add` 后提交即可（文件已自动格式化）
+7. **PyMongo `insert_one` 会向原 dict 注入 `_id: ObjectId`**：create 若直接返回入参 dict，FastAPI 响应序列化必炸（`'ObjectId' object is not iterable`，HTTP 400 且**数据已写入**，表现为"创建报错但 update/查询能找到"）。必须返回 `convert_doc(...)`。conftest 的 AsyncMock insert_one 不注入 `_id`，单测抓不到——回归测试要用 `side_effect` 模拟注入
+8. **validate 必填列表陷阱**：`KEY_STYLE["property"]` 含 `created_at`/`updated_at` 时 validate 会拦截一切未传时间戳的创建（插件 key 注册、API 创建都失败），而 `_stamp_timestamps`（setdefault）的存在证明服务端本应自动补齐——校验必须排除服务端生成字段
+9. **真实环境 e2e 必须有**：单测 173 全绿不等于 API 正确。部署后用 curl/python 跑真实 CRUD（category→key→item→upload→插件→search→delete），特别注意：requests 的 multipart 字段名必须匹配路由参数名（`file=` 不是 `files=`），JSON key 是 `keyValues` 不是 `key_values`；item 响应结构为 `{item, attributes, key_info}`，key 值在 `attributes` 中
 
 ## 测试基线
 
