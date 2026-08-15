@@ -5,6 +5,7 @@
 from unittest.mock import AsyncMock, mock_open, patch
 
 import pytest
+from bson import ObjectId
 
 from managers.category_manager import CategoryManager
 
@@ -41,6 +42,24 @@ class TestCategoryManager:
         assert result == category_data
         mock_db_manager.find_one.assert_called_once_with("categories", {"name": "test_category"})
         mock_db_manager.insert_one.assert_called_once_with("categories", category_data)
+
+    @pytest.mark.asyncio
+    async def test_create_returns_serializable_id(self, category_manager, mock_db_manager):
+        """回归 Bug B：真实 PyMongo 在插入后向原 dict 注入 ObjectId _id，create 返回前必须转换为 id 字符串"""
+        category_data = {"name": "id_cat", "title": "Id Cat", "parent_name": None, "is_builtin": False}
+        real_oid = ObjectId()
+        mock_db_manager.find_one.return_value = None
+
+        def inject_id(collection, document):
+            document["_id"] = real_oid
+            return str(real_oid)
+
+        mock_db_manager.insert_one.side_effect = inject_id
+
+        result = await category_manager.create(category_data)
+
+        assert result["id"] == str(real_oid)
+        assert "_id" not in result
 
     @pytest.mark.asyncio
     async def test_create_already_exists(self, category_manager, mock_db_manager):

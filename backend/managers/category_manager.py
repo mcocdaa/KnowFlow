@@ -79,7 +79,7 @@ class CategoryManager:
                 raise ValueError(f"parent category with name {category['parent_name']} does not exist")
 
         await db_manager.insert_one(self.collection, category)
-        return category
+        return convert_doc(category)
 
     async def get_by_id(self, category_id: str) -> dict[str, Any] | None:
         """

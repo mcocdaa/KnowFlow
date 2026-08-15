@@ -6,6 +6,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
+from bson import ObjectId
 
 from managers.key_manager import KeyManager
 
@@ -107,6 +108,65 @@ class TestKeyManager:
         assert result["name"] == "test_key"
         assert "created_at" in result
         assert "updated_at" in result
+
+    @pytest.mark.asyncio
+    async def test_create_without_timestamps_stamped_by_server(self, key_manager, mock_db_manager):
+        """回归 Bug A：插件/API 创建 key 无需传时间戳，服务端自动补齐（此前 validate 拦截导致 rating key 注册失败）"""
+        key_data = {
+            "name": "auto_key",
+            "title": "Auto Key",
+            "value_type": "string",
+            "default_value": "",
+            "description": "d",
+            "category_name": "test_category",
+            "is_required": False,
+            "is_visible": True,
+            "plugin_name": "p",
+            "delete_with_plugin": False,
+            "is_public": True,
+            "is_private": False,
+        }
+        mock_db_manager.find_one.side_effect = [None, {"name": "test_category"}]
+        mock_db_manager.insert_one.return_value = "key_id"
+
+        result = await key_manager.create(key_data)
+
+        assert result["created_at"] is not None
+        assert result["updated_at"] is not None
+        mock_db_manager.insert_one.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_create_returns_serializable_id(self, key_manager, mock_db_manager):
+        """回归 Bug B：真实 PyMongo 在插入后向原 dict 注入 ObjectId _id，create 返回前必须转换为 id 字符串"""
+        key_data = {
+            "name": "id_key",
+            "title": "Id Key",
+            "value_type": "string",
+            "default_value": "",
+            "description": "d",
+            "category_name": "test_category",
+            "is_required": False,
+            "is_visible": True,
+            "plugin_name": "p",
+            "delete_with_plugin": False,
+            "is_public": True,
+            "is_private": False,
+            "created_at": "2026-03-08T10:00:00",
+            "updated_at": "2026-03-08T10:00:00",
+        }
+        real_oid = ObjectId()
+        mock_db_manager.find_one.side_effect = [None, {"name": "test_category"}]
+
+        def inject_id(collection, document):
+            document["_id"] = real_oid
+            return str(real_oid)
+
+        mock_db_manager.insert_one.side_effect = inject_id
+
+        result = await key_manager.create(key_data)
+
+        assert result["id"] == str(real_oid)
+        assert "_id" not in result
 
     @pytest.mark.asyncio
     async def test_create_already_exists(self, key_manager, mock_db_manager):
