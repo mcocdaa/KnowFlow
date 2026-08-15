@@ -1026,7 +1026,13 @@ git commit -m "docs: sync pymongo async migration and deps injection in docs"
 ## 最终验收
 
 - 全部 6 个任务完成，提交历史包含 6 个功能提交
-- `cd backend && python -m pytest -q`：169 passed
+- `cd backend && python -m pytest -q`：169 passed（实测 170）
 - `python -m ruff check`：clean
 - 冒烟：health / manifests / rating 路由可用，日志无 motor 报错
 - 推送 `refactor/backend-optimization-round2` 分支并创建 PR（main 有 PR 保护）
+
+---
+
+## 执行结果
+
+- **已合并**：PR #12（squash `7ec047b`），main 已同步，本地/远程分支已清理。
