@@ -8,11 +8,13 @@ import re
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from api.deps import get_db
 from api.errors import ok
 from config.settings import AI_CONFIG
+from managers.db_manager import DBManager
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +135,7 @@ async def ai_search(payload: AISearchRequest):
 
 
 @router.post("/ai/auto-tag")
-async def auto_tag(payload: AITagRequest):
+async def auto_tag(payload: AITagRequest, db: DBManager = Depends(get_db)):
     """自动打标签：为每个知识项生成简短标签并持久化到 tags 字段"""
     items = payload.items[:MAX_ITEMS]
     if not items:
@@ -163,8 +165,6 @@ async def auto_tag(payload: AITagRequest):
     from bson import ObjectId
     from bson.errors import InvalidId
 
-    from managers.db_manager import db_manager
-
     saved = 0
     for item in items:
         tags = results.get(item.id, [])
@@ -174,7 +174,7 @@ async def auto_tag(payload: AITagRequest):
             oid = ObjectId(item.id)
         except (ValueError, TypeError, InvalidId):
             continue
-        await db_manager.update_one(
+        await db.update_one(
             "items",
             {"_id": oid},
             {"$set": {"tags": json.dumps(tags, ensure_ascii=False)}},

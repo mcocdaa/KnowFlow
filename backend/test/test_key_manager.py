@@ -2,6 +2,7 @@
 # @brief 键管理器单元测试
 # @create 2026-03-08 10:00:00
 
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -248,12 +249,12 @@ class TestKeyManager:
             {"name": "plugin_keep", "plugin_name": "rating", "delete_with_plugin": False},
             {"name": "other_key", "plugin_name": "other", "delete_with_plugin": True},
         ]
+        mock_db_manager.delete_many.return_value = 1
 
         deleted = await key_manager.delete_by_plugin("rating")
 
         assert deleted == 1
-        calls = [call.args[1]["name"] for call in mock_db_manager.delete_one.call_args_list]
-        assert calls == ["plugin_key"]
+        mock_db_manager.delete_many.assert_called_once_with("keys", {"name": {"$in": ["plugin_key"]}})
 
     @pytest.mark.asyncio
     async def test_delete_by_plugin_none_found(self, key_manager, mock_db_manager):
@@ -263,3 +264,65 @@ class TestKeyManager:
 
         assert deleted == 0
         mock_db_manager.delete_one.assert_not_called()
+
+
+class TestKeyManagerExtraction:
+    @pytest.fixture
+    def key_manager(self, mock_db_manager):
+        manager = KeyManager()
+        with patch("managers.key_manager.db_manager", mock_db_manager):
+            yield manager
+
+    @pytest.mark.asyncio
+    async def test_ensure_category_ok(self, key_manager, mock_db_manager):
+        mock_db_manager.find_one.return_value = {"name": "tech"}
+
+        await key_manager._ensure_category("tech")
+
+        mock_db_manager.find_one.assert_called_once_with("categories", {"name": "tech"})
+
+    @pytest.mark.asyncio
+    async def test_ensure_category_missing_raises(self, key_manager, mock_db_manager):
+        mock_db_manager.find_one.return_value = None
+
+        with pytest.raises(ValueError, match="category with name ghost does not exist"):
+            await key_manager._ensure_category("ghost")
+
+    def test_stamp_timestamps_create(self, key_manager):
+        doc: dict = {"name": "k"}
+        key_manager._stamp_timestamps(doc, created=True)
+
+        assert "created_at" in doc
+        assert "updated_at" in doc
+
+    def test_stamp_timestamps_update_only_updated_at(self, key_manager):
+        doc: dict = {"name": "k", "created_at": "2026-01-01T00:00:00"}
+        key_manager._stamp_timestamps(doc)
+
+        assert doc["created_at"] == "2026-01-01T00:00:00"
+        assert "updated_at" in doc
+
+    @pytest.mark.asyncio
+    async def test_delete_by_plugin_uses_batch_delete(self, key_manager, mock_db_manager):
+        key_manager._cache = [
+            {"name": "a", "plugin_name": "p1", "delete_with_plugin": True},
+            {"name": "b", "plugin_name": "p1", "delete_with_plugin": False},
+            {"name": "c", "plugin_name": "p2", "delete_with_plugin": True},
+        ]
+        key_manager._cache_time = datetime.now()  # 必须，否则缓存失效会走 db_manager.find
+        mock_db_manager.delete_many.return_value = 1
+
+        result = await key_manager.delete_by_plugin("p1")
+
+        assert result == 1
+        mock_db_manager.delete_many.assert_called_once_with("keys", {"name": {"$in": ["a"]}})
+
+    @pytest.mark.asyncio
+    async def test_delete_by_plugin_no_match_skips_db(self, key_manager, mock_db_manager):
+        key_manager._cache = [{"name": "c", "plugin_name": "p2", "delete_with_plugin": True}]
+        key_manager._cache_time = datetime.now()  # 同上，必须设置
+
+        result = await key_manager.delete_by_plugin("p1")
+
+        assert result == 0
+        mock_db_manager.delete_many.assert_not_called()

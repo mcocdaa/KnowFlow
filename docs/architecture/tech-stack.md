@@ -27,7 +27,7 @@ KnowFlow 采用前后端分离架构，以下是项目使用的核心技术。
 | FastAPI | - | Web 框架 |
 | Uvicorn | - | ASGI 服务器 |
 | MongoDB | 4.4+ | 数据库 |
-| motor | - | MongoDB 异步驱动 |
+| pymongo | - | MongoDB 异步驱动（AsyncMongoClient） |
 | httpx | - | HTTP 客户端（AI API） |
 | PyYAML | - | YAML 配置解析 |
 
@@ -46,7 +46,7 @@ KnowFlow 采用前后端分离架构，以下是项目使用的核心技术。
 
 - **FastAPI**: 高性能异步框架，自动生成 API 文档
 - **MongoDB**: 文档型数据库，适合动态 Key-Value 结构
-- **motor**: 异步驱动，与 FastAPI 完美配合
+- **pymongo**: 官方异步驱动 AsyncMongoClient，与 FastAPI 完美配合
 
 ---
 

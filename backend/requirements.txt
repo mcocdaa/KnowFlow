@@ -1,7 +1,6 @@
 fastapi
 httpx
-motor
-pymongo
+pymongo>=4.16,<5
 pytest
 pytest-asyncio
 python-dotenv
