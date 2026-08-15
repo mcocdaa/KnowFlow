@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 
 from config import DEFAULT_KEYS_PATH, KEY_STYLE
-from utils.doc_util import convert_docs
+from utils.doc_util import convert_doc, convert_docs
 
 from .db_manager import db_manager
 
@@ -78,7 +78,10 @@ class KeyManager:
         if not isinstance(key_def, dict):
             raise ValueError("key definition must be a dict")
 
+        # created_at / updated_at 由服务端 _stamp_timestamps 自动补齐，不要求客户端提供
         for required_key in KEY_STYLE["property"]:
+            if required_key in ("created_at", "updated_at"):
+                continue
             if required_key not in key_def:
                 raise ValueError(f"key definition must contain {required_key}")
 
@@ -106,7 +109,7 @@ class KeyManager:
 
         await db_manager.insert_one(self.collection, key_def)
         self._invalidate_cache()
-        return key_def
+        return convert_doc(key_def)
 
     async def get_by_name(self, key_name: str) -> dict[str, Any] | None:
         """
