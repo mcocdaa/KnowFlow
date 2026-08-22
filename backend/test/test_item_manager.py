@@ -151,6 +151,18 @@ class TestItemManager:
             mock_db_manager.insert_one.assert_called_once()
 
     @pytest.mark.asyncio
+    async def test_create_missing_required_keys_raises(self, item_manager, mock_db_manager):
+        """必填校验下沉到 manager 层：缺失必填 key 时 create 直接拒绝且不写库"""
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(
+                return_value=[{"name": "file_path", "title": "FP", "value_type": "string", "is_required": True}]
+            )
+            with pytest.raises(ValueError, match="Missing required keys: file_path"):
+                await item_manager.create({"name": "x", "keyValues": {}})
+
+        mock_db_manager.insert_one.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_create_with_attributes(self, item_manager, mock_db_manager):
         item_data = {"name": "New Item", "attributes": {"test_key": "test_value"}}
         mock_inserted_id = ObjectId("507f1f77bcf86cd799439011")

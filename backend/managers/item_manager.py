@@ -92,11 +92,6 @@ class ItemManager:
             return json.dumps(value, ensure_ascii=False)
         return str(value) if value is not None else ""
 
-    async def get_required_key_defs(self) -> list[dict[str, Any]]:
-        """获取所有必填 Key 定义"""
-        all_keys = await key_manager.get_all()
-        return [key for key in all_keys if key.get("is_required", False)]
-
     async def _get_key_dict(self) -> dict[str, dict[str, Any]]:
         """获取全部 Key 定义，构建 name -> key_def 映射"""
         all_keys = await key_manager.get_all()
@@ -167,6 +162,11 @@ class ItemManager:
         now = datetime.now()
 
         key_dict = await self._get_key_dict()
+
+        required_keys = [key for key in key_dict.values() if key.get("is_required", False)]
+        missing = validate_required(item_data, required_keys)
+        if missing:
+            raise ValueError(f"Missing required keys: {', '.join(missing)}")
 
         knowflow_item = {
             "created_at": now,
