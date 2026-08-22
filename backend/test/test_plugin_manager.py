@@ -32,7 +32,7 @@ class TestPluginRegistry:
         assert result["demo"]["enabled"] is True
         assert str(tmp_path / "demo") == result["demo"]["path"]
 
-    def test_load_registry_single_py_plugin(self, manager, tmp_path):
+    def test_load_registry_skips_single_py_file(self, manager, tmp_path):
         (tmp_path / "plugins.yaml").write_text(
             "plugins:\n  single:\n    enabled: true\n    path: single.py\n", encoding="utf-8"
         )
@@ -40,9 +40,7 @@ class TestPluginRegistry:
 
         result = manager._load_registry()
 
-        assert "single" in result
-        assert result["single"]["type"] == "unknown"
-        assert result["single"]["manifest"]["backend_entry"] == "single.py"
+        assert "single" not in result
 
     def test_load_registry_skips_disabled(self, manager, tmp_path):
         (tmp_path / "plugins.yaml").write_text("plugins:\n  off:\n    enabled: false\n", encoding="utf-8")
