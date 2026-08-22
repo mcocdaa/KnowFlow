@@ -15,7 +15,7 @@ class TestKeyManager:
     @pytest.fixture
     def key_manager(self, mock_db_manager):
         manager = KeyManager()
-        with patch("managers.key_manager.db_manager", mock_db_manager):
+        with patch("managers.base.db_manager", mock_db_manager):
             yield manager
 
     def test_validate_valid_key(self, key_manager):
@@ -330,7 +330,7 @@ class TestKeyManagerExtraction:
     @pytest.fixture
     def key_manager(self, mock_db_manager):
         manager = KeyManager()
-        with patch("managers.key_manager.db_manager", mock_db_manager):
+        with patch("managers.base.db_manager", mock_db_manager):
             yield manager
 
     @pytest.mark.asyncio
