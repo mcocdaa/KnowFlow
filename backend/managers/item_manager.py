@@ -7,9 +7,6 @@ import re
 from datetime import datetime
 from typing import Any
 
-from bson import ObjectId
-from bson.errors import InvalidId
-
 from core import hook_manager
 from core.hooks import (
     ITEM_CREATE_AFTER,
@@ -25,6 +22,7 @@ from core.hooks import (
     SEARCH_AFTER,
     SEARCH_BEFORE,
 )
+from utils.doc_util import parse_object_id
 
 from .db_manager import db_manager
 from .key_manager import key_manager
@@ -54,16 +52,6 @@ def validate_required(item_data: dict[str, Any], required_keys: list[dict[str, A
 class ItemManager:
     def __init__(self):
         self.items_collection = "items"
-
-    @staticmethod
-    def _to_object_id(item_id: str) -> ObjectId | None:
-        """将字符串 ID 解析为 ObjectId，非法输入返回 None"""
-        if item_id is None:
-            return None
-        try:
-            return ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
-            return None
 
     def _convert_value(self, value: Any, value_type: str) -> Any:
         """将存储值转换为 value_type 对应的 Python 类型"""
@@ -160,7 +148,7 @@ class ItemManager:
         """
         根据ID获取知识项
         """
-        oid = self._to_object_id(item_id)
+        oid = parse_object_id(item_id)
         if oid is None:
             return None
 
@@ -203,7 +191,7 @@ class ItemManager:
         """
         更新知识项
         """
-        oid = self._to_object_id(item_id)
+        oid = parse_object_id(item_id)
         if oid is None:
             return None
 
@@ -237,7 +225,7 @@ class ItemManager:
         """
         删除知识项
         """
-        oid = self._to_object_id(item_id)
+        oid = parse_object_id(item_id)
         if oid is None:
             return False
 

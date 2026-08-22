@@ -6,11 +6,9 @@ import logging
 from typing import Any
 
 import yaml
-from bson import ObjectId
-from bson.errors import InvalidId
 
 from config import CATEGORY_STYLE, DEFAULT_CATEGORIES_PATH
-from utils.doc_util import convert_doc, convert_docs
+from utils.doc_util import convert_doc, convert_docs, parse_object_id
 
 from .db_manager import db_manager
 
@@ -85,12 +83,11 @@ class CategoryManager:
         """
         根据数据库 ID 获取分类
         """
-        try:
-            oid = ObjectId(category_id)
-            doc = await db_manager.find_one(self.collection, {"_id": oid})
-            return convert_doc(doc)
-        except (ValueError, TypeError, InvalidId):
+        oid = parse_object_id(category_id)
+        if oid is None:
             return None
+        doc = await db_manager.find_one(self.collection, {"_id": oid})
+        return convert_doc(doc)
 
     async def get_by_name(self, category_name: str) -> dict[str, Any] | None:
         """
