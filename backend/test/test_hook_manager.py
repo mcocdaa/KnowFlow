@@ -57,36 +57,46 @@ class TestHookManager:
     async def test_run_unknown_hook_returns_empty(self, manager):
         assert await manager.run("unknown_hook") == []
 
-    def test_run_sync_executes_sync_callback(self, manager):
-        calls = []
+    @pytest.mark.asyncio
+    async def test_wrap_hooks_strips_bound_self(self, manager):
+        captured = {}
 
-        def cb(*args, **kwargs):
-            calls.append(1)
+        class Service:
+            @manager.wrap_hooks(before="svc_before")
+            async def create(self, item_data):
+                return item_data
 
-        manager.register("test_hook", cb)
-        errors = manager.run_sync("test_hook")
-        assert calls == [1]
-        assert errors == []
+        async def before_hook(item_data):
+            captured["args"] = item_data
 
-    def test_run_sync_skips_async_callback(self, manager):
-        calls = []
+        manager.register("svc_before", before_hook)
+        await Service().create({"a": 1})
+        assert captured["args"] == {"a": 1}
 
-        async def cb(*args, **kwargs):
-            calls.append(1)
+    @pytest.mark.asyncio
+    async def test_wrap_hooks_passes_result_to_after(self, manager):
+        class Service:
+            @manager.wrap_hooks(after="svc_after")
+            async def create(self, item_data):
+                return {"ok": True}
 
-        manager.register("test_hook", cb)
-        errors = manager.run_sync("test_hook")
-        assert calls == []
-        assert errors == []
+        captured = {}
 
-    def test_run_sync_collects_errors(self, manager):
-        def bad(*args, **kwargs):
-            raise RuntimeError("boom")
+        async def after_hook(result, item_data):
+            captured["result"] = result
+            captured["args"] = item_data
 
-        manager.register("test_hook", bad)
-        errors = manager.run_sync("test_hook")
-        assert len(errors) == 1
-        assert errors[0][0] == "bad"
+        manager.register("svc_after", after_hook)
+        result = await Service().create("x")
+        assert result == {"ok": True}
+        assert captured == {"result": {"ok": True}, "args": "x"}
 
-    def test_run_sync_unknown_hook_returns_empty(self, manager):
-        assert manager.run_sync("unknown_hook") == []
+    @pytest.mark.asyncio
+    async def test_wrap_hooks_preserves_module_metadata(self, manager):
+        class Service:
+            @manager.wrap_hooks()
+            async def create(self):
+                return None
+
+        # unregister_by_module 依赖 __module__，装饰器必须保留元数据
+        assert Service.create.__module__ == __name__
