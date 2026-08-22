@@ -8,6 +8,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from api.deps import get_item_or_404
 from api.errors import ok
 from managers.item_manager import item_manager
 
@@ -33,9 +34,7 @@ async def update_rating(item_id: str, data: RatingUpdate) -> dict[str, Any]:
 
 @router.get("/items/{item_id}/rating")
 async def get_rating(item_id: str) -> dict[str, Any]:
-    item = await item_manager.get_by_id(item_id)
-    if item is None:
-        raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
+    item = await get_item_or_404(item_manager, item_id)
     rating = item.get("attributes", {}).get("rating", 0)
     return ok({"rating": rating})
 

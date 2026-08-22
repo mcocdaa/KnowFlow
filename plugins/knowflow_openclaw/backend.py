@@ -8,6 +8,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from api.deps import get_item_or_404
 from api.errors import ok
 from managers.item_manager import item_manager
 
@@ -69,9 +70,7 @@ async def update_openclaw_attributes(item_id: str, data: OpenClawAttributes) -> 
 
 @router.get("/items/{item_id}/openclaw")
 async def get_openclaw_attributes(item_id: str) -> dict[str, Any]:
-    item = await item_manager.get_by_id(item_id)
-    if item is None:
-        raise HTTPException(status_code=404, detail=f"item with id {item_id} does not exist")
+    item = await get_item_or_404(item_manager, item_id)
     attributes = item.get("attributes", {})
 
     result = {field: attributes.get(field, "") for field in OPENCLAW_FIELDS}
