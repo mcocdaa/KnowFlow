@@ -132,7 +132,6 @@ AI_CONFIG = {
 
 CATEGORY_STYLE = {
     "property": ["name", "title", "parent_name", "is_builtin"],
-    "default": ["inner_category", "basic_category", "time_category", "custom_category"],
 }
 KEY_STYLE = {
     "property": [
@@ -151,7 +150,6 @@ KEY_STYLE = {
         "created_at",
         "updated_at",
     ],
-    "default": ["name", "file_path", "file_type", "created_at"],
 }
 
 

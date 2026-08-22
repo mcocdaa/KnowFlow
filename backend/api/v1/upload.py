@@ -4,6 +4,7 @@
 
 import json
 import logging
+import os
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
@@ -44,7 +45,6 @@ async def upload_file(
     if missing:
         raise HTTPException(status_code=400, detail=f"Missing required keys: {', '.join(missing)}")
 
-    file_path: str | None = None
     file_path = generate_file_path(file.filename or "upload")
     try:
         with open(file_path, "wb") as f:
@@ -69,8 +69,6 @@ async def upload_file(
 
 def _cleanup_file(file_path: str):
     """清理已写入的孤儿文件"""
-    import os
-
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
