@@ -29,7 +29,7 @@ TIMEOUT_SECONDS = 60.0
 class ItemBrief(BaseModel):
     id: str
     name: str = ""
-    keyValues: dict[str, Any] = {}
+    attributes: dict[str, Any] = {}
 
 
 class AISearchRequest(BaseModel):
@@ -109,7 +109,7 @@ async def ai_search(payload: AISearchRequest):
         return ok([])
 
     catalog = "\n".join(
-        f"{i}. id: {item.id}, name: {item.name}, attributes: {json.dumps(item.keyValues, ensure_ascii=False)}"
+        f"{i}. id: {item.id}, name: {item.name}, attributes: {json.dumps(item.attributes, ensure_ascii=False)}"
         for i, item in enumerate(items, start=1)
     )
 

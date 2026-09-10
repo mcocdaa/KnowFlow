@@ -31,12 +31,12 @@ VALID_SORTS = ("recent", "rating", "name")
 
 
 def extract_key_values(item_data: dict[str, Any]) -> dict[str, Any]:
-    """兼容 keyValues / attributes 两种字段名，统一提取键值"""
-    return item_data.get("keyValues", {}) or item_data.get("attributes", {}) or {}
+    """提取键值（规范字段名为 attributes）"""
+    return item_data.get("attributes", {}) or {}
 
 
 def validate_required(item_data: dict[str, Any], required_keys: list[dict[str, Any]]) -> list[str]:
-    """校验必填 key 是否提供；返回缺失的 key 名列表（提取 keyValues/attributes + 顶层字段）"""
+    """校验必填 key 是否提供；返回缺失的 key 名列表（提取 attributes + 顶层字段）"""
     key_values = extract_key_values(item_data)
     missing = []
     for key in required_keys:

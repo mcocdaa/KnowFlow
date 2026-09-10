@@ -33,7 +33,7 @@ def client(app):
 def make_upload(data: bytes, filename: str = "test.txt", content_type: str = "text/plain"):
     return {
         "files": {"file": (filename, io.BytesIO(data), content_type)},
-        "data": {"data": json.dumps({"keyValues": {"name": filename}})},
+        "data": {"data": json.dumps({"attributes": {"name": filename}})},
     }
 
 

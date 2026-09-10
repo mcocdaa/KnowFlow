@@ -71,9 +71,9 @@ class TestAISearch:
                 json={
                     "query": "深度学习",
                     "items": [
-                        {"id": "id_1", "name": "A", "keyValues": {}},
-                        {"id": "id_2", "name": "B", "keyValues": {}},
-                        {"id": "id_3", "name": "C", "keyValues": {}},
+                        {"id": "id_1", "name": "A", "attributes": {}},
+                        {"id": "id_2", "name": "B", "attributes": {}},
+                        {"id": "id_3", "name": "C", "attributes": {}},
                     ],
                 },
             )
@@ -104,7 +104,7 @@ class TestAISearch:
 
             response = client.post(
                 "/ai/search",
-                json={"query": "q", "items": [{"id": "id_1", "name": "A", "keyValues": {}}]},
+                json={"query": "q", "items": [{"id": "id_1", "name": "A", "attributes": {}}]},
             )
 
             assert response.status_code == 200
@@ -128,7 +128,7 @@ class TestAISearch:
 
             response = client.post(
                 "/ai/search",
-                json={"query": "q", "items": [{"id": "id_1", "name": "A", "keyValues": {}}]},
+                json={"query": "q", "items": [{"id": "id_1", "name": "A", "attributes": {}}]},
             )
 
             assert response.status_code == 504
@@ -153,7 +153,7 @@ class TestAISearch:
 
             response = client.post(
                 "/ai/search",
-                json={"query": "q", "items": [{"id": "id_1", "name": "A", "keyValues": {}}]},
+                json={"query": "q", "items": [{"id": "id_1", "name": "A", "attributes": {}}]},
             )
 
             assert response.status_code == 502
@@ -180,7 +180,7 @@ class TestAISearch:
 
             response = client.post(
                 "/ai/search",
-                json={"query": "q", "items": [{"id": "id_1", "name": "A", "keyValues": {}}]},
+                json={"query": "q", "items": [{"id": "id_1", "name": "A", "attributes": {}}]},
             )
 
             assert response.status_code == 502
@@ -191,7 +191,7 @@ class TestAISearch:
         with patch.object(ai_module, "_doubao_config", side_effect=__import__("fastapi").HTTPException(503)):
             response = client.post(
                 "/ai/search",
-                json={"query": "q", "items": [{"id": "id_1", "name": "A", "keyValues": {}}]},
+                json={"query": "q", "items": [{"id": "id_1", "name": "A", "attributes": {}}]},
             )
 
             assert response.status_code == 503
@@ -226,7 +226,7 @@ class TestAutoTag:
 
             response = client.post(
                 "/ai/auto-tag",
-                json={"items": [{"id": "id_1", "name": "A", "keyValues": {}}]},
+                json={"items": [{"id": "id_1", "name": "A", "attributes": {}}]},
             )
 
             assert response.status_code == 200

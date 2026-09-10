@@ -53,7 +53,7 @@ async def upload_file(
 
         key_values["file_path"] = file_path
 
-        new_item = {"name": key_values.get("name", ""), "keyValues": key_values}
+        new_item = {"name": key_values.get("name", ""), "attributes": key_values}
 
         return ok(await manager.create(new_item))
     except Exception:

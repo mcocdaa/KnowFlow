@@ -127,7 +127,7 @@ class TestItemManager:
 
     @pytest.mark.asyncio
     async def test_create_success(self, item_manager, mock_db_manager):
-        item_data = {"name": "New Item", "keyValues": {"test_key": "test_value"}}
+        item_data = {"name": "New Item", "attributes": {"test_key": "test_value"}}
         mock_inserted_id = ObjectId("507f1f77bcf86cd799439011")
         mock_db_manager.insert_one.return_value = mock_inserted_id
 
@@ -158,7 +158,7 @@ class TestItemManager:
                 return_value=[{"name": "file_path", "title": "FP", "value_type": "string", "is_required": True}]
             )
             with pytest.raises(ValueError, match="Missing required keys: file_path"):
-                await item_manager.create({"name": "x", "keyValues": {}})
+                await item_manager.create({"name": "x", "attributes": {}})
 
         mock_db_manager.insert_one.assert_not_called()
 
@@ -190,7 +190,7 @@ class TestItemManager:
     async def test_update_success(self, item_manager, mock_db_manager):
         test_id = "507f1f77bcf86cd799439011"
         existing_item = {"_id": ObjectId(test_id), "name": "Old Name"}
-        update_data = {"name": "New Name", "keyValues": {"test_key": "new_value"}}
+        update_data = {"name": "New Name", "attributes": {"test_key": "new_value"}}
         mock_db_manager.find_one.return_value = existing_item
 
         with patch("managers.item_manager.key_manager") as mock_key_manager:
