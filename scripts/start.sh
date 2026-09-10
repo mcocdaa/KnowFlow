@@ -81,10 +81,27 @@ start_frontend_local() {
     cd "$FRONTEND_DIR" && npm run dev
 }
 
+resolve_local_path() {
+    # .env 中的相对路径是 Docker 语义（容器内 WORKDIR=/app），本地运行前换算为绝对路径
+    local value="$1" base="$2"
+    case "$value" in
+        /*) printf '%s' "$value" ;;
+        *) printf '%s/%s' "$base" "${value#./}" ;;
+    esac
+}
+
 start_backend_local() {
     echo "启动本地后端服务..."
+    # data 类路径相对 backend/（对应镜像内 /app）；plugins 在镜像内是根目录 bind mount
+    export DATA_DIR="$(resolve_local_path "${DATA_DIR:-./data}" "$BACKEND_DIR")"
+    export UPLOAD_DIR="$(resolve_local_path "${UPLOAD_DIR:-./data/uploads}" "$BACKEND_DIR")"
+    export PLUGINS_DIR="$(resolve_local_path "${PLUGINS_DIR:-./plugins}" "$PROJECT_ROOT")"
+
     cd "$BACKEND_DIR" && python main.py &
     echo "✓ 本地后端已启动 (http://localhost:3000)"
+    echo "  数据目录：$DATA_DIR"
+    echo "  上传目录：$UPLOAD_DIR"
+    echo "  插件目录：$PLUGINS_DIR"
 }
 
 load_env() {

@@ -14,7 +14,7 @@ class TestCategoryManager:
     @pytest.fixture
     def category_manager(self, mock_db_manager):
         manager = CategoryManager()
-        with patch("managers.category_manager.db_manager", mock_db_manager):
+        with patch("managers.base.db_manager", mock_db_manager):
             yield manager
 
     def test_validate_valid_category(self, category_manager):
@@ -39,9 +39,23 @@ class TestCategoryManager:
 
         result = await category_manager.create(category_data)
 
-        assert result == category_data
+        assert result["name"] == category_data["name"]
         mock_db_manager.find_one.assert_called_once_with("categories", {"name": "test_category"})
-        mock_db_manager.insert_one.assert_called_once_with("categories", category_data)
+        inserted = mock_db_manager.insert_one.call_args[0][1]
+        assert inserted["name"] == "test_category"
+
+    @pytest.mark.asyncio
+    async def test_create_stamps_timestamps(self, category_manager, mock_db_manager):
+        """分类与 Key 语义对齐：create 时服务端补齐 created_at/updated_at"""
+        category_data = {"name": "ts_cat", "title": "Ts", "parent_name": None, "is_builtin": False}
+        mock_db_manager.find_one.return_value = None
+        mock_db_manager.insert_one.return_value = "id"
+
+        await category_manager.create(category_data)
+
+        inserted = mock_db_manager.insert_one.call_args[0][1]
+        assert inserted.get("created_at")
+        assert inserted.get("updated_at")
 
     @pytest.mark.asyncio
     async def test_create_returns_serializable_id(self, category_manager, mock_db_manager):
@@ -133,6 +147,18 @@ class TestCategoryManager:
         await category_manager.update("old_name", update_data)
 
         mock_db_manager.update_one.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_update_refreshes_updated_at(self, category_manager, mock_db_manager):
+        existing_category = {"name": "old_name", "title": "Old Title", "parent_name": None, "is_builtin": False}
+        mock_db_manager.find_one.side_effect = [existing_category, existing_category]
+        mock_db_manager.update_one.return_value = 1
+
+        await category_manager.update("old_name", {"title": "New Title"})
+
+        update_payload = mock_db_manager.update_one.call_args[0][2]
+        assert "$set" in update_payload
+        assert update_payload["$set"].get("updated_at")
 
     @pytest.mark.asyncio
     async def test_update_not_found(self, category_manager, mock_db_manager):

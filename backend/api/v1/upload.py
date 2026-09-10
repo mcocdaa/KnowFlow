@@ -4,13 +4,14 @@
 
 import json
 import logging
+import os
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from api.deps import get_item_manager
 from api.errors import ok
 from config.settings import MAX_UPLOAD_SIZE
-from managers.item_manager import ItemManager, extract_key_values, validate_required
+from managers.item_manager import ItemManager, extract_key_values
 from utils.file_util import generate_file_path
 
 logger = logging.getLogger(__name__)
@@ -38,13 +39,6 @@ async def upload_file(
     if "name" not in key_values and "name" in item_data:
         key_values["name"] = item_data["name"]
 
-    # Inject uploaded file metadata for required-key validation
-    required_keys = await manager.get_required_key_defs()
-    missing = validate_required({**item_data, "keyValues": key_values}, required_keys)
-    if missing:
-        raise HTTPException(status_code=400, detail=f"Missing required keys: {', '.join(missing)}")
-
-    file_path: str | None = None
     file_path = generate_file_path(file.filename or "upload")
     try:
         with open(file_path, "wb") as f:
@@ -59,7 +53,7 @@ async def upload_file(
 
         key_values["file_path"] = file_path
 
-        new_item = {"name": key_values.get("name", ""), "keyValues": key_values}
+        new_item = {"name": key_values.get("name", ""), "attributes": key_values}
 
         return ok(await manager.create(new_item))
     except Exception:
@@ -69,8 +63,6 @@ async def upload_file(
 
 def _cleanup_file(file_path: str):
     """清理已写入的孤儿文件"""
-    import os
-
     try:
         if os.path.exists(file_path):
             os.remove(file_path)

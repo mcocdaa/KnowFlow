@@ -26,14 +26,20 @@ SECRETS_CONFIG = {
 }
 
 
+def _read_secret_file(path: str) -> str:
+    """读取 secret 文件：忽略空行与 # 注释行（.example 模板约定），返回剩余内容"""
+    with open(path, encoding="utf-8") as f:
+        lines = [line.strip() for line in f]
+    return "\n".join(line for line in lines if line and not line.startswith("#")).strip()
+
+
 def read_secret(secret_name: str, default: str = "") -> str:
     """读取 secret，优先级：{NAME}_FILE 环境变量 > secrets/{name}.txt > secrets/{name} > 环境变量 > default"""
     file_env_var = f"{secret_name}_FILE"
     if file_env_var in os.environ:
         file_path = os.environ[file_env_var]
         if os.path.exists(file_path):
-            with open(file_path) as f:
-                return f.read().strip()
+            return _read_secret_file(file_path)
 
     secrets_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "secrets")
     for secret_path in (
@@ -41,8 +47,7 @@ def read_secret(secret_name: str, default: str = "") -> str:
         os.path.join(secrets_dir, secret_name),
     ):
         if os.path.exists(secret_path):
-            with open(secret_path) as f:
-                return f.read().strip()
+            return _read_secret_file(secret_path)
 
     if secret_name in os.environ:
         return os.environ[secret_name]
@@ -132,7 +137,6 @@ AI_CONFIG = {
 
 CATEGORY_STYLE = {
     "property": ["name", "title", "parent_name", "is_builtin"],
-    "default": ["inner_category", "basic_category", "time_category", "custom_category"],
 }
 KEY_STYLE = {
     "property": [
@@ -151,7 +155,6 @@ KEY_STYLE = {
         "created_at",
         "updated_at",
     ],
-    "default": ["name", "file_path", "file_type", "created_at"],
 }
 
 

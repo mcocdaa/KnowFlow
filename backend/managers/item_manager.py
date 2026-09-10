@@ -7,9 +7,6 @@ import re
 from datetime import datetime
 from typing import Any
 
-from bson import ObjectId
-from bson.errors import InvalidId
-
 from core import hook_manager
 from core.hooks import (
     ITEM_CREATE_AFTER,
@@ -25,6 +22,7 @@ from core.hooks import (
     SEARCH_AFTER,
     SEARCH_BEFORE,
 )
+from utils.doc_util import parse_object_id
 
 from .db_manager import db_manager
 from .key_manager import key_manager
@@ -33,12 +31,12 @@ VALID_SORTS = ("recent", "rating", "name")
 
 
 def extract_key_values(item_data: dict[str, Any]) -> dict[str, Any]:
-    """兼容 keyValues / attributes 两种字段名，统一提取键值"""
-    return item_data.get("keyValues", {}) or item_data.get("attributes", {}) or {}
+    """提取键值（规范字段名为 attributes）"""
+    return item_data.get("attributes", {}) or {}
 
 
 def validate_required(item_data: dict[str, Any], required_keys: list[dict[str, Any]]) -> list[str]:
-    """校验必填 key 是否提供；返回缺失的 key 名列表（提取 keyValues/attributes + 顶层字段）"""
+    """校验必填 key 是否提供；返回缺失的 key 名列表（提取 attributes + 顶层字段）"""
     key_values = extract_key_values(item_data)
     missing = []
     for key in required_keys:
@@ -54,16 +52,6 @@ def validate_required(item_data: dict[str, Any], required_keys: list[dict[str, A
 class ItemManager:
     def __init__(self):
         self.items_collection = "items"
-
-    @staticmethod
-    def _to_object_id(item_id: str) -> ObjectId | None:
-        """将字符串 ID 解析为 ObjectId，非法输入返回 None"""
-        if item_id is None:
-            return None
-        try:
-            return ObjectId(item_id)
-        except (ValueError, TypeError, InvalidId):
-            return None
 
     def _convert_value(self, value: Any, value_type: str) -> Any:
         """将存储值转换为 value_type 对应的 Python 类型"""
@@ -103,11 +91,6 @@ class ItemManager:
                 return value
             return json.dumps(value, ensure_ascii=False)
         return str(value) if value is not None else ""
-
-    async def get_required_key_defs(self) -> list[dict[str, Any]]:
-        """获取所有必填 Key 定义"""
-        all_keys = await key_manager.get_all()
-        return [key for key in all_keys if key.get("is_required", False)]
 
     async def _get_key_dict(self) -> dict[str, dict[str, Any]]:
         """获取全部 Key 定义，构建 name -> key_def 映射"""
@@ -160,7 +143,7 @@ class ItemManager:
         """
         根据ID获取知识项
         """
-        oid = self._to_object_id(item_id)
+        oid = parse_object_id(item_id)
         if oid is None:
             return None
 
@@ -179,6 +162,11 @@ class ItemManager:
         now = datetime.now()
 
         key_dict = await self._get_key_dict()
+
+        required_keys = [key for key in key_dict.values() if key.get("is_required", False)]
+        missing = validate_required(item_data, required_keys)
+        if missing:
+            raise ValueError(f"Missing required keys: {', '.join(missing)}")
 
         knowflow_item = {
             "created_at": now,
@@ -203,7 +191,7 @@ class ItemManager:
         """
         更新知识项
         """
-        oid = self._to_object_id(item_id)
+        oid = parse_object_id(item_id)
         if oid is None:
             return None
 
@@ -237,7 +225,7 @@ class ItemManager:
         """
         删除知识项
         """
-        oid = self._to_object_id(item_id)
+        oid = parse_object_id(item_id)
         if oid is None:
             return False
 

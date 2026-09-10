@@ -21,8 +21,8 @@ class HookManager:
         self._hooks[hook_name].append((priority, callback))
         self._hooks[hook_name].sort(key=lambda x: x[0])
 
-    async def _invoke(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
-        """公共执行循环（异步版）：同步回调直接调用，异步回调 await；异常收集并记录"""
+    async def run(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
+        """执行所有已注册的钩子（异步环境）：同步回调直接调用，异步回调 await；异常收集并记录"""
         errors = []
         for _, cb in self._hooks.get(hook_name, []):
             try:
@@ -35,10 +35,6 @@ class HookManager:
                 logger.error(f"钩子执行失败 [{hook_name}]: {cb.__name__} - {e}", exc_info=True)
         return errors
 
-    async def run(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
-        """执行所有已注册的钩子（异步环境）"""
-        return await self._invoke(hook_name, *args, **kwargs)
-
     def unregister_by_module(self, module_prefix: str):
         """注销 module_prefix 下所有已注册的钩子回调"""
         for hook_name in list(self._hooks):
@@ -47,24 +43,6 @@ class HookManager:
                 for priority, cb in self._hooks[hook_name]
                 if not (getattr(cb, "__module__", "") or "").startswith(module_prefix)
             ]
-
-    def _invoke_sync(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
-        """公共执行循环（同步版）：仅执行同步回调，异步回调跳过并告警；异常收集并记录"""
-        errors = []
-        for _, cb in self._hooks.get(hook_name, []):
-            if asyncio.iscoroutinefunction(cb):
-                logger.warning(f"[{hook_name}]: {cb.__name__} - 异步钩子不能在同步环境中执行")
-                continue
-            try:
-                cb(*args, **kwargs)
-            except Exception as e:
-                errors.append((cb.__name__, e))
-                logger.error(f"钩子执行失败 [{hook_name}]: {cb.__name__} - {e}", exc_info=True)
-        return errors
-
-    def run_sync(self, hook_name: str, *args, **kwargs) -> list[tuple[str, Exception]]:
-        """同步执行钩子（给同步包装器用）"""
-        return self._invoke_sync(hook_name, *args, **kwargs)
 
     def hook(self, hook_name: str, priority: int = 100):
         """装饰器：自动注册钩子
@@ -81,13 +59,6 @@ class HookManager:
 
         return decorator
 
-    def _strip_self(self, func: Callable, args: tuple) -> tuple:
-        """去掉绑定方法的 self/cls 参数，钩子回调只接收业务参数"""
-        params = list(inspect.signature(func).parameters.values())
-        if params and params[0].name in ("self", "cls") and args:
-            return args[1:]
-        return args
-
     def wrap_hooks(self, before: str = None, after: str = None):
         """装饰器：给核心服务的方法加钩子，自动在方法前后执行
 
@@ -103,9 +74,12 @@ class HookManager:
         """
 
         def decorator(func: Callable):
+            params = list(inspect.signature(func).parameters.values())
+            strip_first = bool(params) and params[0].name in ("self", "cls")
+
             @wraps(func)
-            async def async_wrapper(*args, **kwargs):
-                hook_args = self._strip_self(func, args)
+            async def wrapper(*args, **kwargs):
+                hook_args = args[1:] if strip_first and args else args
                 if before:
                     await self.run(before, *hook_args, **kwargs)
                 result = await func(*args, **kwargs)
@@ -113,22 +87,7 @@ class HookManager:
                     await self.run(after, result, *hook_args, **kwargs)
                 return result
 
-            @wraps(func)
-            def sync_wrapper(*args, **kwargs):
-                hook_args = self._strip_self(func, args)
-                if before:
-                    self.run_sync(before, *hook_args, **kwargs)
-
-                result = func(*args, **kwargs)
-
-                if after:
-                    self.run_sync(after, result, *hook_args, **kwargs)
-                return result
-
-            if asyncio.iscoroutinefunction(func):
-                return async_wrapper
-            else:
-                return sync_wrapper
+            return wrapper
 
         return decorator
 

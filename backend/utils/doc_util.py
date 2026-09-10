@@ -1,8 +1,11 @@
 # @file backend/utils/doc_util.py
-# @brief MongoDB 文档转换共享工具
+# @brief MongoDB 文档转换与 ObjectId 解析共享工具
 # @create 2026-08-08 10:00:00
 
 from typing import Any
+
+from bson import ObjectId
+from bson.errors import InvalidId
 
 
 def convert_doc(doc: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -18,3 +21,13 @@ def convert_doc(doc: dict[str, Any] | None) -> dict[str, Any] | None:
 def convert_docs(docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """批量转换文档"""
     return [convert_doc(doc) for doc in docs]
+
+
+def parse_object_id(value: Any) -> ObjectId | None:
+    """将字符串解析为 ObjectId，非法输入（空/格式错/非字符串）返回 None"""
+    if value is None:
+        return None
+    try:
+        return ObjectId(value)
+    except (ValueError, TypeError, InvalidId):
+        return None

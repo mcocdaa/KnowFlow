@@ -105,8 +105,8 @@ class DBManager:
     async def find(
         self,
         collection: str,
-        query: dict[str, Any] = None,
-        sort: list = None,
+        query: dict[str, Any] | None = None,
+        sort: list | None = None,
         limit: int = 0,
         skip: int = 0,
     ) -> list[dict[str, Any]]:
@@ -162,7 +162,7 @@ class DBManager:
         return await cursor.to_list(length=None)
 
     @retry_on_connection_error
-    async def count_documents(self, collection: str, query: dict[str, Any] = None) -> int:
+    async def count_documents(self, collection: str, query: dict[str, Any] | None = None) -> int:
         """
         统计文档数量
         """

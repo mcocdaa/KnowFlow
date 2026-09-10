@@ -15,6 +15,7 @@ from api.deps import get_db
 from api.errors import ok
 from config.settings import AI_CONFIG
 from managers.db_manager import DBManager
+from utils.doc_util import parse_object_id
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ TIMEOUT_SECONDS = 60.0
 class ItemBrief(BaseModel):
     id: str
     name: str = ""
-    keyValues: dict[str, Any] = {}
+    attributes: dict[str, Any] = {}
 
 
 class AISearchRequest(BaseModel):
@@ -108,7 +109,7 @@ async def ai_search(payload: AISearchRequest):
         return ok([])
 
     catalog = "\n".join(
-        f"{i}. id: {item.id}, name: {item.name}, attributes: {json.dumps(item.keyValues, ensure_ascii=False)}"
+        f"{i}. id: {item.id}, name: {item.name}, attributes: {json.dumps(item.attributes, ensure_ascii=False)}"
         for i, item in enumerate(items, start=1)
     )
 
@@ -162,17 +163,13 @@ async def auto_tag(payload: AITagRequest, db: DBManager = Depends(get_db)):
         return ok({"results": {}})
 
     # 持久化生成的标签到各知识项
-    from bson import ObjectId
-    from bson.errors import InvalidId
-
     saved = 0
     for item in items:
         tags = results.get(item.id, [])
         if not isinstance(tags, list):
             continue
-        try:
-            oid = ObjectId(item.id)
-        except (ValueError, TypeError, InvalidId):
+        oid = parse_object_id(item.id)
+        if oid is None:
             continue
         await db.update_one(
             "items",

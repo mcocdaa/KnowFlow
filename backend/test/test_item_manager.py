@@ -81,17 +81,6 @@ class TestItemManager:
             assert result["item"]["id"] == "507f1f77bcf86cd799439011"
             assert result["item"]["name"] == "Test Item"
 
-    def test_to_object_id_valid(self, item_manager):
-        oid = item_manager._to_object_id("507f1f77bcf86cd799439011")
-        assert oid is not None
-        assert str(oid) == "507f1f77bcf86cd799439011"
-
-    def test_to_object_id_invalid(self, item_manager):
-        assert item_manager._to_object_id("abc") is None
-        assert item_manager._to_object_id("") is None
-        assert item_manager._to_object_id(None) is None
-        assert item_manager._to_object_id("zzzzzzzzzzzzzzzzzzzzzzzz") is None
-
     @pytest.mark.asyncio
     async def test_get_all_success(self, item_manager, mock_db_manager):
         mock_items = [
@@ -138,7 +127,7 @@ class TestItemManager:
 
     @pytest.mark.asyncio
     async def test_create_success(self, item_manager, mock_db_manager):
-        item_data = {"name": "New Item", "keyValues": {"test_key": "test_value"}}
+        item_data = {"name": "New Item", "attributes": {"test_key": "test_value"}}
         mock_inserted_id = ObjectId("507f1f77bcf86cd799439011")
         mock_db_manager.insert_one.return_value = mock_inserted_id
 
@@ -160,6 +149,18 @@ class TestItemManager:
 
             assert result is not None
             mock_db_manager.insert_one.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_create_missing_required_keys_raises(self, item_manager, mock_db_manager):
+        """必填校验下沉到 manager 层：缺失必填 key 时 create 直接拒绝且不写库"""
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(
+                return_value=[{"name": "file_path", "title": "FP", "value_type": "string", "is_required": True}]
+            )
+            with pytest.raises(ValueError, match="Missing required keys: file_path"):
+                await item_manager.create({"name": "x", "attributes": {}})
+
+        mock_db_manager.insert_one.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_create_with_attributes(self, item_manager, mock_db_manager):
@@ -189,7 +190,7 @@ class TestItemManager:
     async def test_update_success(self, item_manager, mock_db_manager):
         test_id = "507f1f77bcf86cd799439011"
         existing_item = {"_id": ObjectId(test_id), "name": "Old Name"}
-        update_data = {"name": "New Name", "keyValues": {"test_key": "new_value"}}
+        update_data = {"name": "New Name", "attributes": {"test_key": "new_value"}}
         mock_db_manager.find_one.return_value = existing_item
 
         with patch("managers.item_manager.key_manager") as mock_key_manager:

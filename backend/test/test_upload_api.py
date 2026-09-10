@@ -33,7 +33,7 @@ def client(app):
 def make_upload(data: bytes, filename: str = "test.txt", content_type: str = "text/plain"):
     return {
         "files": {"file": (filename, io.BytesIO(data), content_type)},
-        "data": {"data": json.dumps({"keyValues": {"name": filename}})},
+        "data": {"data": json.dumps({"attributes": {"name": filename}})},
     }
 
 
@@ -59,13 +59,14 @@ class TestUpload:
         assert "Invalid JSON" in response.json()["message"]
 
     def test_upload_missing_required_key(self, app, client):
+        """必填校验已下沉 manager.create：API 层经全局 ValueError handler 返回 400 envelope"""
         _, mock_item_manager = app
-        mock_item_manager.get_required_key_defs = AsyncMock(return_value=[{"name": "rating"}])
+        mock_item_manager.create = AsyncMock(side_effect=ValueError("Missing required keys: rating"))
 
         response = client.post("/upload", **make_upload(b"hello"))
 
         assert response.status_code == 400
-        assert "Missing required key" in response.json()["message"]
+        assert "Missing required keys" in response.json()["message"]
 
     def test_upload_file_too_large(self, app, client):
         _, mock_item_manager = app

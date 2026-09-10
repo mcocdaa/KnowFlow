@@ -74,8 +74,6 @@ class PluginManager:
 
             if hooks_file.exists():
                 await self._load_plugin_module(f"{key}.hooks", hooks_file, manifest)
-        elif plugin_path.is_file() and plugin_path.suffix == ".py":
-            await self._load_plugin_module(key, plugin_path, manifest)
 
         await self._register_keys(manifest.get("keys", []), key)
 
@@ -151,22 +149,20 @@ class PluginManager:
         return path
 
     def _load_manifest(self, path: Path, key: str) -> dict[str, Any] | None:
-        """加载插件清单：目录读取 plugin.yaml，单 .py 文件生成默认清单；失败返回 None"""
-        if path.is_dir():
-            plugin_yaml = path / "plugin.yaml"
-            if not plugin_yaml.exists():
-                logger.warning(f"插件清单文件不存在: {plugin_yaml}，跳过插件 {key}")
-                return None
-            try:
-                with open(plugin_yaml, encoding="utf-8") as f:
-                    return yaml.safe_load(f) or {}
-            except Exception as e:
-                logger.error(f"读取插件清单失败 ({key}): {e}", exc_info=True)
-                return None
-        if path.suffix == ".py":
-            return {"name": path.stem, "type": "unknown", "backend_entry": path.name}
-        logger.warning(f"插件路径既不是目录也不是 .py 文件: {path}，跳过插件 {key}")
-        return None
+        """加载插件清单：目录读取 plugin.yaml；失败返回 None"""
+        if not path.is_dir():
+            logger.warning(f"插件路径不是目录: {path}，跳过插件 {key}")
+            return None
+        plugin_yaml = path / "plugin.yaml"
+        if not plugin_yaml.exists():
+            logger.warning(f"插件清单文件不存在: {plugin_yaml}，跳过插件 {key}")
+            return None
+        try:
+            with open(plugin_yaml, encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except Exception as e:
+            logger.error(f"读取插件清单失败 ({key}): {e}", exc_info=True)
+            return None
 
     def _load_registry(self) -> dict[str, Any]:
         """加载插件注册表

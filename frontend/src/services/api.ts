@@ -21,13 +21,12 @@ interface ItemWrapper {
     name?: string;
     created_at?: string;
   };
-  keyValues?: Record<string, unknown>;
 }
 
 const transformItemData = (itemWrapper: ItemWrapper): KnowledgeItem => ({
   id: itemWrapper.item?.id || itemWrapper.id || '',
   name: itemWrapper.item?.name || itemWrapper.name || itemWrapper.attributes?.name || '',
-  keyValues: (itemWrapper.attributes || itemWrapper.keyValues || {}) as Record<string, unknown>,
+  keyValues: (itemWrapper.attributes || {}) as Record<string, unknown>,
   createdAt: itemWrapper.item?.created_at || itemWrapper.attributes?.created_at || '',
 });
 
@@ -78,10 +77,11 @@ export const api = {
   },
 
   async updateItem(item: KnowledgeItem): Promise<KnowledgeItem> {
+    // 线格式规范字段名为 attributes；内部命名 keyValues 在此边界做映射
     const data = await request<ItemWrapper>(`/item/${item.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item),
+      body: JSON.stringify({ name: item.name, attributes: item.keyValues }),
     });
     return transformItemData(data);
   },
@@ -93,7 +93,7 @@ export const api = {
   async uploadFile(file: File, keyValues: Record<string, unknown>): Promise<KnowledgeItem> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('data', JSON.stringify({ keyValues }));
+    formData.append('data', JSON.stringify({ attributes: keyValues }));
 
     const data = await request<ItemWrapper>('/upload', { method: 'POST', body: formData });
     return transformItemData(data);
@@ -103,24 +103,27 @@ export const api = {
     const data = await request<ItemWrapper>('/item', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, keyValues }),
+      body: JSON.stringify({ name, attributes: keyValues }),
     });
     return transformItemData(data);
   },
 
   async aiSearch(query: string, items: KnowledgeItem[]): Promise<KnowledgeItem[]> {
+    // ItemBrief 协议字段名为 attributes；内部命名 keyValues 在此边界做映射
+    const briefs = items.map((i) => ({ id: i.id, name: i.name, attributes: i.keyValues }));
     return request('/ai/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, items }),
+      body: JSON.stringify({ query, items: briefs }),
     });
   },
 
   async autoTag(items: KnowledgeItem[]): Promise<Record<string, string[]>> {
+    const briefs = items.map((i) => ({ id: i.id, name: i.name, attributes: i.keyValues }));
     const data = await request<{ results: Record<string, string[]> }>('/ai/auto-tag', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items: briefs }),
     });
     return data.results;
   },

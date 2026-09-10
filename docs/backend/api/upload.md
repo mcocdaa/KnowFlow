@@ -12,7 +12,7 @@ POST /api/v1/upload
 Content-Type: multipart/form-data
 
 file: [文件二进制数据]
-data: {"name": "文件名", "keyValues": {...}}
+data: {"name": "文件名", "attributes": {...}}
 ```
 
 **请求参数**:
