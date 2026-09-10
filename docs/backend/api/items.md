@@ -81,7 +81,7 @@ Content-Type: application/json
 
 {
   "name": "新知识项",
-  "keyValues": {
+  "attributes": {
     "name": "文档名称",
     "file_path": "./data/uploads/file.pdf",
     "file_type": "application/pdf"
@@ -91,7 +91,7 @@ Content-Type: application/json
 
 **请求体字段**:
 - `name`: 知识项名称（可选）
-- `keyValues`: Key-Value 属性对象（可选）
+- `attributes`: Key-Value 属性对象（可选）
 
 **响应**: 新创建的知识项对象
 
@@ -108,7 +108,7 @@ Content-Type: application/json
 
 {
   "name": "更新后的名称",
-  "keyValues": {
+  "attributes": {
     "name": "新名称"
   }
 }

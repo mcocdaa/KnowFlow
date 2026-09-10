@@ -120,7 +120,7 @@ export const useInitialData = () => {
 export const transformItemData = (itemWrapper: ItemWrapper): KnowledgeItem => ({
   id: itemWrapper.item?.id || itemWrapper.id || '',
   name: itemWrapper.item?.name || itemWrapper.name || itemWrapper.attributes?.name || '',
-  keyValues: (itemWrapper.attributes || itemWrapper.keyValues || {}) as Record<string, unknown>,
+  keyValues: (itemWrapper.attributes || {}) as Record<string, unknown>,
   createdAt: itemWrapper.item?.created_at || itemWrapper.attributes?.created_at || '',
 });
 ```

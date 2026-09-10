@@ -38,6 +38,7 @@ backend/
 │           └── manifests.py  # 插件清单接口
 ├── managers/                 # 业务逻辑层
 │   ├── __init__.py
+│   ├── base.py               # NamedResourceManager 基类（name 唯一键资源 CRUD 模板）
 │   ├── db_manager.py         # MongoDB 数据库管理
 │   ├── item_manager.py       # 知识项管理器
 │   ├── category_manager.py   # 分类管理器
