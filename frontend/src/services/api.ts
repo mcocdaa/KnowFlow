@@ -1,6 +1,7 @@
 import type { KnowledgeItem, KeyDefinition, CategoryDefinition } from '../types';
 
-export const API_BASE_URL = window.knowflow?.apiBase ?? import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+const rawApiBase = window.knowflow?.apiBase ?? import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL = rawApiBase && rawApiBase.trim() ? rawApiBase.trim() : '/api/v1';
 
 interface Envelope<T> {
   code: number;
