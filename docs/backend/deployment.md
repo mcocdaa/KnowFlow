@@ -130,6 +130,19 @@ pytest test/test_rating_plugin.py -v
 pytest test/test_rating_plugin_api.py -v
 ```
 
+### 真实环境 API 回归检查
+
+后端启动后，可运行端到端脚本对真实接口做逐功能检查（健康检查、插件、分类/Key/知识项 CRUD、搜索、上传、评分与 OpenClaw 插件、AI 降级、必填校验、删除）：
+
+```bash
+cd backend
+python test/e2e_api_check.py                              # 默认 http://localhost:3000/api/v1，结束后清理测试数据
+python test/e2e_api_check.py --keep                       # 保留测试数据（便于 UI 查看）
+python test/e2e_api_check.py --base http://localhost:5177/api/v1   # 经前端 dev server 代理检查
+```
+
+退出码 0 表示全部通过；失败项会打印功能名。测试数据统一使用 `E2E` 前缀，可重复运行。
+
 ### 测试覆盖范围
 
 | 测试文件 | 测试内容 |
