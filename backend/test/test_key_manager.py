@@ -42,6 +42,25 @@ class TestKeyManager:
         with pytest.raises(ValueError, match="key definition must contain"):
             key_manager.validate(invalid_key)
 
+    def test_validate_allows_missing_server_managed_fields(self, key_manager):
+        """plugin_name/delete_with_plugin/is_public/is_private 由服务端/插件托管，UI 创建不发送"""
+        ui_key = {
+            "name": "ui_key",
+            "title": "UI Key",
+            "value_type": "string",
+            "default_value": "",
+            "description": "",
+            "category_name": "test_category",
+            "is_required": False,
+            "is_visible": True,
+        }
+        assert key_manager.validate(ui_key) is True
+
+    def test_validate_still_requires_business_fields(self, key_manager):
+        """放开托管字段后，业务字段缺失仍必须拦截"""
+        with pytest.raises(ValueError, match="key definition must contain title"):
+            key_manager.validate({"name": "k", "value_type": "string"})
+
     def test_validate_invalid_key_empty_name(self, key_manager):
         invalid_key = {
             "name": "",

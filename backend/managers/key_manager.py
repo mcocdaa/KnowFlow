@@ -22,8 +22,11 @@ class KeyManager(NamedResourceManager):
     label = "key"
     plural = "keys"
     style_properties = KEY_STYLE["property"]
-    # created_at / updated_at 由服务端 _stamp_timestamps 自动补齐，不要求客户端提供
-    validate_exclude = {"created_at", "updated_at"}
+    # 服务端/插件托管字段不要求客户端提供：
+    # - created_at/updated_at 由 _stamp_timestamps 自动补齐
+    # - plugin_name/delete_with_plugin 由 PluginManager._register_keys 写入（用户 Key 无来源）
+    # - is_public/is_private 为可选可见性标记（UI 创建表单不包含）
+    validate_exclude = {"created_at", "updated_at", "plugin_name", "delete_with_plugin", "is_public", "is_private"}
     # Fields allowed for client-driven update; is_builtin is server-only
     allowed_update_fields = {
         "name",
