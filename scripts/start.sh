@@ -72,13 +72,18 @@ stop_docker_services() {
 }
 
 start_frontend_local() {
+    # $1: 本地后端端口（默认 3000）
+    local backend_port="${1:-3000}"
     echo "检查前端依赖..."
     if [ ! -d "$FRONTEND_DIR/node_modules" ]; then
         echo "安装前端依赖..."
         cd "$FRONTEND_DIR" && npm install
     fi
     echo "启动本地前端服务..."
-    cd "$FRONTEND_DIR" && npm run dev
+    cd "$FRONTEND_DIR"
+    # .env 的 VITE_API_BASE_URL 是 Docker 构建期变量，不适用于本地 dev：
+    # 显式置空走相对路径 /api/v1，由 dev server 按 VITE_PROXY_TARGET 代理到本地后端
+    VITE_PROXY_TARGET="http://localhost:${backend_port}" VITE_API_BASE_URL="" npm run dev
 }
 
 resolve_local_path() {
@@ -106,7 +111,12 @@ start_backend_local() {
 
 load_env() {
     if [ -f "$PROJECT_ROOT/.env" ]; then
-        export $(grep -v '^#' "$PROJECT_ROOT/.env" | xargs)
+        # 用 source 而非 `export $(xargs)`：值中的 ${VAR} 引用（如
+        # VITE_API_BASE_URL=http://localhost:${BACKEND_PORT}）需要真正展开
+        set -a
+        # shellcheck disable=SC1091
+        . "$PROJECT_ROOT/.env"
+        set +a
     fi
 }
 
@@ -142,7 +152,8 @@ case "$MODE" in
                 echo "========================================"
 
                 load_env
-                start_frontend_local
+                # dev frontend-local：前端本地运行，后端在 Docker（主机端口 BACKEND_PORT）
+                start_frontend_local "${BACKEND_PORT:-3002}"
 
                 echo ""
                 echo "✓ 启动完成"

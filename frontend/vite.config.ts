@@ -18,7 +18,11 @@ const PROD_CSP_META =
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const rootEnv = loadEnv(mode, resolve(__dirname, '..'), '')
-  Object.assign(process.env, rootEnv)
+  // 根目录 .env 仅作为默认值注入；已存在的进程环境变量优先，
+  // 便于 start.sh 在本地下发时覆盖（如 VITE_API_BASE_URL="" 走相对路径）
+  for (const [key, value] of Object.entries(rootEnv)) {
+    if (process.env[key] === undefined) process.env[key] = value
+  }
 
   return {
     plugins: [
@@ -35,7 +39,8 @@ export default defineConfig(({ mode }) => {
       port: 5177,
       proxy: {
         '/api': {
-          target: process.env.VITE_API_BASE_URL || 'http://localhost:3000',
+          // 本地 dev 由 start.sh 传入 VITE_PROXY_TARGET；否则回落到 VITE_API_BASE_URL / 3000
+          target: process.env.VITE_PROXY_TARGET || process.env.VITE_API_BASE_URL || 'http://localhost:3000',
           changeOrigin: true,
           secure: false,
         },
