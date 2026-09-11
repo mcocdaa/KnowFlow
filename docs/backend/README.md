@@ -15,8 +15,8 @@
 
 ### 环境要求
 
-- Python 3.8+
-- MongoDB 4.4+
+- Python 3.11+
+- MongoDB 7
 
 ### 安装依赖
 
@@ -29,12 +29,15 @@ pip install -r requirements.txt
 
 ```bash
 # 使用 Docker
-docker run -d --name mongodb -p 27017:27017 mongo:latest
+docker run -d --name knowflow-mongo -p 27017:27017 -v knowflow-mongo:/data/db mongo:7
 ```
 
 ### 启动服务
 
+推荐在项目根目录执行 `./scripts/start.sh local backend`（自动加载 `.env`）；或直接：
+
 ```bash
+cd backend
 python main.py
 ```
 
@@ -44,7 +47,7 @@ python main.py
 
 ```bash
 curl http://localhost:3000/api/v1/health
-# 预期响应: {"status": "ok"}
+# 预期响应: {"code":0,"message":"ok","data":{"status":"ok"}}
 ```
 
 ## 后端代码位置

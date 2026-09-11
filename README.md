@@ -1,282 +1,141 @@
 # KnowFlow
 
-**KnowFlow** 是一个知识管理系统，旨在帮助用户高效管理、检索和组织各类知识资源。系统采用前后端分离架构，支持文件导入、动态属性管理、插件扩展和 AI 语义检索等功能。
+[![CI](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml)
 
-## 主要功能
+KnowFlow 是一个知识管理系统：文件导入、动态 Key-Value 属性、分类层级、插件扩展与 AI 语义检索。
 
-- 📁 **知识项管理**：支持拖拽上传、自动提取文件元数据、完整的 CRUD 操作
-- 🏷️ **Key-Value 系统**：动态属性管理，支持多种数据类型和分类层级
-- 🔍 **智能搜索**：关键词搜索、多维度排序、AI 语义检索
-- 🔌 **插件系统**：动态加载/卸载插件，支持知识源导入、检索、可视化等扩展
-- ⭐ **星级评分**：内置评分插件，支持对知识项进行星级评价
-- 🤖 **AI 集成**：集成豆包 AI 进行语义理解检索
-- 🖥️ **跨平台**：基于 Electron 构建，支持 Windows、macOS 和 Linux
+## 功能特性
 
-## 技术栈
+- **知识项管理**：拖拽上传、自动提取文件元数据、完整 CRUD
+- **Key-Value 系统**：动态属性、多种数据类型、分类层级
+- **搜索**：关键词搜索、多维度排序、AI 语义检索（可选）
+- **插件系统**：动态加载/卸载插件（星级评分、OpenClaw 导入等）
+- **跨平台**：Web 应用 + Electron 桌面端
 
-### 前端
+技术栈：React 19 + TypeScript + Vite + Ant Design；FastAPI + MongoDB（Python 3.11）。
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| React | 19.2.0 | UI 框架 |
-| TypeScript | 5.9.3 | 类型安全 |
-| Vite | 7.3.1 | 构建工具 |
-| Ant Design | 6.3.1 | UI 组件库 |
-| Redux Toolkit | 2.11.2 | 状态管理 |
-| Styled Components | 6.3.11 | CSS-in-JS 样式 |
-| Vitest | 4.0.18 | 测试框架 |
-| Electron | 40.7.0 | 桌面应用 |
+## 快速开始（Docker，推荐）
 
-### 后端
+环境要求：Docker 20+、Docker Compose 2.20+。
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Python | 3.8+ | 运行环境 |
-| FastAPI | - | Web 框架 |
-| Uvicorn | - | ASGI 服务器 |
-| MongoDB | 4.4+ | 数据库 |
-| pymongo | - | MongoDB 异步驱动（AsyncMongoClient） |
-| Docker | - | 容器化部署 |
+```bash
+git clone --recurse-submodules https://github.com/mcocdaa/KnowFlow.git
+cd KnowFlow
 
-## 系统架构
+cp .env.example .env
+vim .env                      # 可选：修改端口、填写 DOUBAO_API_KEY
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        前端应用                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │   React     │  │   Redux     │  │ Ant Design  │         │
-│  │   组件层    │  │  状态管理   │  │   UI 组件   │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │   插件系统   │  │  API 服务   │  │  Electron   │         │
-│  │  动态加载    │  │  HTTP 通信  │  │  桌面应用   │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ HTTP/REST API
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                        后端服务                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │   FastAPI   │  │  路由层     │  │  业务逻辑   │         │
-│  │  Web 框架   │  │  api/v1/    │  │  managers/  │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  插件加载器  │  │  Key 缓存   │  │  AI 集成    │         │
-│  │ plugin_loader│  │  300s TTL   │  │  豆包 API   │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ pymongo (异步驱动)
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       MongoDB 数据库                         │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │   items     │  │ categories  │  │    keys     │         │
-│  │  知识项     │  │   分类      │  │  Key 定义   │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-└─────────────────────────────────────────────────────────────┘
+docker compose up -d --build
 ```
 
-## 快速开始
+启动后：
 
-### 环境要求
+| 服务 | 地址 |
+|------|------|
+| 前端 | http://localhost:8002 |
+| 后端 | http://localhost:3002/api/v1/health |
 
-| 依赖 | 版本要求 |
-|------|---------|
-| Node.js | 18+ |
-| Docker | 20+ |
-| Docker Compose | 2+ |
+端口由 `.env` 中的 `FRONTEND_PORT` / `BACKEND_PORT` 控制。AI Key 可写入 `.env` 的 `DOUBAO_API_KEY`，或放到 `secrets/doubao_api_key.txt`（优先级更高，不会提交到 Git）；留空时 AI 功能自动降级，不影响其他功能。
 
-### 安装步骤
+常用命令：
 
-1. **克隆项目**
-   ```bash
-   git clone https://github.com/yourusername/knowflow.git
-   cd knowflow
-   ```
+```bash
+docker compose ps            # 查看状态
+docker compose logs -f       # 查看日志
+docker compose down          # 停止服务
+docker compose up -d --build # 更新代码后重建
+```
 
-2. **安装前端依赖**
-   ```bash
-   cd frontend
-   npm install
-   ```
+### 使用 docker run（不用 Compose）
 
-3. **启动后端服务（Docker 方式）**
-   ```bash
-   cd ../backend
-   docker-compose up -d
-   ```
-   后端服务将在 `http://localhost:3000` 启动，MongoDB 数据库在 `27017` 端口运行
+镜像由 CI 发布到 GHCR（`:main` 跟随主分支，也支持 `vX.Y.Z` 版本标签）：
 
-4. **验证后端服务**
-   ```bash
-   curl http://localhost:3000/api/v1/health
-   # 预期响应: {"status": "ok"}
-   ```
+```bash
+docker network create knowflow
 
-5. **启动前端开发服务器**
-   ```bash
-   cd ../frontend
-   npm run dev
-   ```
-   前端服务将在 `http://localhost:5173` 启动
+docker run -d --name knowflow-mongo --network knowflow \
+  -v knowflow-mongo:/data/db mongo:7
 
-6. **启动 Electron 应用**（可选）
-   ```bash
-   npm run electron:dev
-   ```
+docker run -d --name knowflow-backend --network knowflow -p 3000:3000 \
+  -e MONGODB_URL=mongodb://knowflow-mongo:27017 \
+  -v "$PWD/plugins:/app/plugins:ro" \
+  -v knowflow-data:/app/data \
+  ghcr.io/mcocdaa/knowflow-backend:main
+
+docker run -d --name knowflow-frontend --network knowflow -p 8000:8000 \
+  ghcr.io/mcocdaa/knowflow-frontend:main
+```
+
+前端 http://localhost:8000 ，后端 http://localhost:3000/api/v1/health 。
+
+## 本地开发（不用 Docker）
+
+环境要求：Python 3.11+、Node.js 20.19+、MongoDB 7（或 Docker 启动）。
+
+```bash
+cp .env.example .env
+
+# 启动 MongoDB（已有本地 MongoDB 可跳过）
+docker run -d --name knowflow-mongo -p 27017:27017 -v knowflow-mongo:/data/db mongo:7
+
+./scripts/start.sh local full
+```
+
+- 前端 http://localhost:5177 （Vite 代理 `/api` 到后端）
+- 后端 http://localhost:3000
+
+也可只启动单个服务：`./scripts/start.sh local backend` 或 `./scripts/start.sh local frontend`；停止脚本见 `scripts/stop.sh`。
+
+## 配置说明
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `BACKEND_PORT` | Docker 后端主机端口 | 3002 |
+| `FRONTEND_PORT` | Docker 前端主机端口 | 8002 |
+| `DOUBAO_API_KEY` | 豆包 AI Key（可选） | 空（AI 降级） |
+| `MONGODB_URL` | MongoDB 连接串 | Docker `mongodb://mongodb:27017`，本地 `localhost:27017` |
+| `MONGODB_DB_NAME` | 数据库名 | knowflow |
+
+完整配置见 [.env.example](.env.example)。
 
 ## 项目结构
 
 ```
 KnowFlow/
-├── backend/                    # 后端代码
-│   ├── main.py                 # 应用入口
-│   ├── api/                    # API 路由
-│   ├── managers/               # 业务逻辑
-│   ├── core/                   # 核心模块
-│   ├── config/                 # 配置
-│   ├── utils/                  # 工具函数
-│   ├── test/                   # 测试用例
-│   ├── data/                   # 数据目录
-│   ├── Dockerfile              # Docker 镜像构建文件
-│   └── docker-compose.yml      # Docker Compose 配置
-├── frontend/                   # 前端代码
-│   ├── src/
-│   │   ├── components/         # 组件
-│   │   ├── store/              # Redux 状态
-│   │   ├── hooks/              # 自定义 Hooks
-│   │   ├── services/           # API 服务
-│   │   ├── plugins/            # 插件系统
-│   │   ├── theme/              # 主题配置
-│   │   └── types/              # 类型定义
-│   ├── electron/               # Electron 主进程
-│   └── tests/                  # 测试用例
-├── docs/                       # 文档目录
-│   ├── backend/                # 后端文档
-│   ├── frontend/               # 前端文档
-│   ├── architecture.md         # 架构设计
-│   ├── key-system-design.md    # Key 系统设计
-│   └── plugin-system-design.md # 插件系统设计
-└── plugins/                    # 插件目录
+├── backend/          # FastAPI 后端（api/、managers/、插件加载、测试）
+├── frontend/         # React + Vite 前端（Web 与 Electron）
+├── docker/           # 分层 docker compose 文件
+├── compose.yaml      # 一键启动入口（include docker/）
+├── plugins/          # 插件目录（rating、knowflow_openclaw）
+├── scripts/          # start.sh / stop.sh
+├── docs/             # 项目文档
+└── secrets/          # 敏感配置（不提交）
 ```
-
-## API 文档
-
-### 基础信息
-
-- **Base URL**: `http://localhost:3000/api/v1`
-- **CORS**: 已启用跨域支持
-
-### 主要接口
-
-| 模块 | 接口 | 方法 | 说明 |
-|------|------|------|------|
-| 健康检查 | `/health` | GET | 服务状态检查 |
-| 知识项 | `/item` | GET/POST | 列表/创建 |
-| 知识项 | `/item/{id}` | GET/PUT/DELETE | 详情/更新/删除 |
-| 文件上传 | `/upload` | POST | 文件上传 |
-| 分类 | `/categories` | GET/POST | 列表/创建 |
-| 分类 | `/categories/{id}` | GET/PUT/DELETE | 详情/更新/删除 |
-| Key | `/keys` | GET/POST | 列表/创建 |
-| Key | `/keys/{name}` | GET/PUT/DELETE | 详情/更新/删除 |
-| 插件 | `/plugins/manifests` | GET | 插件清单 |
-| 插件 | `/plugins/{name}/frontend` | GET | 插件前端代码 |
-
-详细 API 文档请查看 [docs/backend/api.md](docs/backend/api.md)
-
-## 部署说明
-
-### Docker 常用命令
-
-```bash
-# 启动后端服务
-cd backend
-docker-compose up -d
-
-# 查看服务状态
-docker-compose ps
-
-# 查看日志
-docker-compose logs -f backend
-
-# 停止服务
-docker-compose down
-
-# 重新构建并启动
-docker-compose up -d --build
-```
-
-### 构建前端
-
-```bash
-cd frontend
-npm run build
-```
-
-构建产物输出到 `frontend/dist/` 目录
-
-### 构建 Electron 应用
-
-```bash
-cd frontend
-npm run electron:build
-```
-
-打包产物输出到 `frontend/dist/electron/` 目录
-
-| 平台 | 输出格式 |
-|------|----------|
-| Windows | NSIS, Portable |
-| macOS | DMG |
-| Linux | DEB, RPM, AppImage |
 
 ## 测试
 
-### 后端测试
-
 ```bash
-cd backend
-pytest -v
-```
+# 后端单元测试
+cd backend && pytest -q
 
-### 前端测试
+# 真实 API 回归检查（需后端已启动，见 --help）
+cd backend && python test/e2e_api_check.py
 
-```bash
-cd frontend
-npm run test
+# 前端检查与构建
+cd frontend && npm run lint && npx vitest run && npm run build
 ```
 
 ## 文档
 
-更多详细文档请查看 [docs](docs/index.md) 目录：
-
 | 文档 | 说明 |
 |------|------|
-| [快速开始](docs/quick-start.md) | 5 分钟启动项目 |
-| [项目概述](docs/summary.md) | 功能和技术架构 |
-| [架构设计](docs/architecture.md) | 技术选型、模块划分 |
-| [后端概述](docs/backend/overview.md) | 后端技术栈和结构 |
-| [前端概述](docs/frontend/overview.md) | 前端技术栈和结构 |
+| [快速开始](docs/quick-start.md) | 5 分钟上手 |
+| [项目概述](docs/summary.md) | 功能与技术架构 |
+| [架构设计](docs/architecture.md) | 模块划分与数据流 |
+| [后端文档](docs/backend/README.md) | API、数据库、部署 |
+| [前端文档](docs/frontend/README.md) | 组件与状态管理 |
 | [插件开发](docs/plugin-system-design.md) | 插件系统设计 |
-| [Key 系统](docs/key-system-design.md) | 动态属性系统 |
-
-## 贡献指南
-
-1. Fork 本仓库
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
-
-## 联系方式
-
-- 项目链接：[https://github.com/yourusername/knowflow](https://github.com/yourusername/knowflow)
-- 问题反馈：[Issues](https://github.com/yourusername/knowflow/issues)
-
----
-
-**KnowFlow - 让知识流动起来** 🚀
+[MIT](LICENSE)
