@@ -6,6 +6,11 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# 容器内默认路径（compose 会用 .env 覆盖为等价相对路径）
+ENV DATA_DIR=/app/data \
+    UPLOAD_DIR=/app/data/uploads \
+    PLUGINS_DIR=/app/plugins
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     curl \

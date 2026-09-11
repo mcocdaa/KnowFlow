@@ -97,13 +97,28 @@ resolve_local_path() {
 
 start_backend_local() {
     echo "启动本地后端服务..."
+    # 优先使用仓库虚拟环境，其次回退到 PATH 中的 python3/python
+    local python_bin="$BACKEND_DIR/.venv/bin/python"
+    if [ ! -x "$python_bin" ]; then
+        if command -v python3 >/dev/null 2>&1; then
+            python_bin="python3"
+        else
+            python_bin="python"
+        fi
+    fi
+
     # data 类路径相对 backend/（对应镜像内 /app）；plugins 在镜像内是根目录 bind mount
     export DATA_DIR="$(resolve_local_path "${DATA_DIR:-./data}" "$BACKEND_DIR")"
     export UPLOAD_DIR="$(resolve_local_path "${UPLOAD_DIR:-./data/uploads}" "$BACKEND_DIR")"
     export PLUGINS_DIR="$(resolve_local_path "${PLUGINS_DIR:-./plugins}" "$PROJECT_ROOT")"
 
-    cd "$BACKEND_DIR" && python main.py &
-    echo "✓ 本地后端已启动 (http://localhost:3000)"
+    # 本地模式连本机 MongoDB；用 _FILE 覆盖 secrets/mongodb_url.txt（其值为 Docker 内网地址）
+    MONGODB_URL_FILE="$(mktemp -t knowflow-mongodb-url.XXXXXX)"
+    printf '%s\n' "${MONGODB_URL:-mongodb://localhost:27017}" > "$MONGODB_URL_FILE"
+    export MONGODB_URL_FILE
+
+    cd "$BACKEND_DIR" && "$python_bin" main.py &
+    echo "✓ 本地后端已启动 (http://localhost:3000) [Python: $python_bin]"
     echo "  数据目录：$DATA_DIR"
     echo "  上传目录：$UPLOAD_DIR"
     echo "  插件目录：$PLUGINS_DIR"
@@ -132,9 +147,9 @@ case "$MODE" in
 
         case "$SERVICE" in
             backend)
-                COMPOSE_FILES="$COMPOSE_FILES -f $DOCKER_DIR/docker-compose.backend.yml"
+                # base 已含 MongoDB + 后端
                 ;;
-            frontend)
+            frontend|full)
                 COMPOSE_FILES="$COMPOSE_FILES -f $DOCKER_DIR/docker-compose.frontend.yml"
                 ;;
             frontend-local)
@@ -159,9 +174,6 @@ case "$MODE" in
                 echo "✓ 启动完成"
                 echo "========================================"
                 exit 0
-                ;;
-            full)
-                COMPOSE_FILES="$COMPOSE_FILES -f $DOCKER_DIR/docker-compose.backend.yml -f $DOCKER_DIR/docker-compose.frontend.yml"
                 ;;
             *)
                 echo "未知服务：$SERVICE"

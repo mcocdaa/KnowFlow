@@ -1,4 +1,9 @@
-version: "3.8"
+# ============================================
+# KnowFlow 基础服务（MongoDB + 后端）
+# 组合方式：
+#   根目录 compose.yaml        一键全栈：docker compose up -d --build
+#   scripts/start.sh           分模式启动（dev/local）
+# ============================================
 
 services:
   mongodb:
@@ -16,24 +21,24 @@ services:
       dockerfile: Dockerfile
     container_name: knowflow-backend
     restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
     volumes:
       - knowflow-data:/app/data
-      - ../backend/uploads:/app/uploads
       - ../plugins:/app/plugins:ro
+      # 可选：secrets/doubao_api_key.txt 存在时自动读取，无需额外配置
+      - ../secrets:/secrets:ro
     environment:
       - API_VERSION=${API_VERSION:-v1}
       - DATA_DIR=${DATA_DIR:-./data}
       - UPLOAD_DIR=${UPLOAD_DIR:-./data/uploads}
       - PLUGINS_DIR=${PLUGINS_DIR:-./plugins}
-      - MONGODB_URL_FILE=/run/secrets/mongodb_url
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongodb:27017}
       - MONGODB_DB_NAME=${MONGODB_DB_NAME:-knowflow}
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
-      - DOUBAO_BASE_URL=${DOUBAO_BASE_URL}
-      - DOUBAO_MODEL=${DOUBAO_MODEL}
-      - DOUBAO_API_KEY_FILE=/run/secrets/doubao_api_key
-    secrets:
-      - mongodb_url
-      - doubao_api_key
+      - DOUBAO_BASE_URL=${DOUBAO_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3/chat/completions}
+      - DOUBAO_MODEL=${DOUBAO_MODEL:-ep-20260304151850-xqxr9}
+      - DOUBAO_API_KEY=${DOUBAO_API_KEY:-}
     depends_on:
       - mongodb
     networks:
@@ -54,9 +59,3 @@ volumes:
     driver: local
   knowflow-data:
     driver: local
-
-secrets:
-  mongodb_url:
-    file: ../secrets/mongodb_url.txt
-  doubao_api_key:
-    file: ../secrets/doubao_api_key.txt

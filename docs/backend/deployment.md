@@ -2,9 +2,8 @@
 
 ## 环境要求
 
-- **Python**: 3.8+
-- **MongoDB**: 4.4+
-- **pip**: Python 包管理器
+- **Python**: 3.11+
+- **MongoDB**: 7（本地开发）或 Docker
 
 ## 依赖安装
 
@@ -18,83 +17,57 @@ pip install -r requirements.txt
 |------|------|
 | `fastapi` | Web 框架 |
 | `uvicorn` | ASGI 服务器 |
-| `httpx` | HTTP 客户端（用于 AI API） |
+| `httpx` | HTTP 客户端（测试与 AI API） |
 | `python-multipart` | 文件上传支持 |
-| `pymongo` | MongoDB 异步驱动（AsyncMongoClient） |
-| `pymongo` | MongoDB 同步驱动（用于工具） |
+| `pymongo` | MongoDB 驱动 |
 | `pyyaml` | YAML 配置解析 |
 | `python-dotenv` | 环境变量加载 |
-| `pytest` | 测试框架 |
-| `pytest-asyncio` | 异步测试支持 |
-| `pytest-mock` | Mock 支持 |
+| `pytest` / `pytest-asyncio` | 测试框架与异步测试支持 |
 
 ---
 
 ## 本地开发
 
-### 1. 启动 MongoDB
+推荐在项目根目录执行（配置项见 `.env.example`）：
 
 ```bash
-# 使用 Docker 启动 MongoDB
-docker run -d --name mongodb -p 27017:27017 mongo:latest
+# 1. 生成配置
+cp .env.example .env
 
-# 或使用本地安装的 MongoDB
-mongod --dbpath /path/to/data
+# 2. 启动 MongoDB（已有本地 MongoDB 可跳过）
+docker run -d --name knowflow-mongo -p 27017:27017 -v knowflow-mongo:/data/db mongo:7
+
+# 3. 启动后端（前端：./scripts/start.sh local frontend）
+./scripts/start.sh local backend
 ```
 
-### 2. 配置环境变量
-
-创建 `.env` 文件：
-
-```env
-# API 配置
-API_VERSION=v1
-
-# 数据目录
-DATA_DIR=./data
-UPLOAD_DIR=./data/uploads
-
-# MongoDB 配置
-MONGODB_URL=mongodb://localhost:27017
-MONGODB_DB_NAME=knowflow
-DB_RETRY_COUNT=3
-
-# CORS 配置
-CORS_ORIGINS=*
-
-# 插件目录
-PLUGINS_DIR=./plugins
-```
-
-### 3. 配置 AI API Key（可选）
-
-创建 `.secrets/doubao_api_key` 文件：
+后端在 `http://localhost:3000` 启动。验证服务：
 
 ```bash
-mkdir -p .secrets
-echo "your-api-key-here" > .secrets/doubao_api_key
-```
-
-### 4. 启动服务
-
-```bash
-# 方式一：直接运行
-python main.py
-
-# 方式二：使用 uvicorn（支持热重载）
-uvicorn main:app --host 0.0.0.0 --port 3000 --reload
-```
-
-服务将在 `http://0.0.0.0:3000` 启动。
-
-### 5. 验证服务
-
-```bash
-# 健康检查
 curl http://localhost:3000/api/v1/health
-
 # 预期响应
-{"status": "ok"}
+{"code":0,"message":"ok","data":{"status":"ok"}}
+```
+
+### 配置 AI API Key（可选）
+
+Key 留空时 AI 功能自动降级，不影响其他功能。二选一：
+
+```bash
+# 方式一：写入根目录 .env 的 DOUBAO_API_KEY
+# 方式二：使用 secrets 文件（优先级更高，不会提交到 Git）
+cp secrets/doubao_api_key.txt.example secrets/doubao_api_key.txt
+vim secrets/doubao_api_key.txt
+```
+
+### 直接运行（调试用）
+
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+# 或使用 uvicorn（支持热重载）
+uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 ```
 
 ---
@@ -171,70 +144,37 @@ python_functions = test_*
 
 ## Docker 部署
 
-### Dockerfile
-
-```dockerfile
-FROM python:3.12-slim
-
-WORKDIR /app
-
-# 安装依赖
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# 复制代码
-COPY . .
-
-# 创建必要目录
-RUN mkdir -p data/uploads .secrets
-
-EXPOSE 3000
-
-CMD ["python", "main.py"]
-```
-
-### docker-compose.yml
-
-```yaml
-version: '3.8'
-
-services:
-  backend:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - MONGODB_URL=mongodb://mongo:27017
-      - MONGODB_DB_NAME=knowflow
-    volumes:
-      - ./data:/app/data
-      - ./.secrets:/app/.secrets
-    depends_on:
-      - mongo
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-
-volumes:
-  mongodb_data:
-```
-
-### 启动服务
+### 一键全栈（推荐）
 
 ```bash
-# 构建并启动
-docker-compose up -d
-
-# 查看日志
-docker-compose logs -f backend
-
-# 停止服务
-docker-compose down
+cp .env.example .env
+vim .env                          # 按需修改端口 / 填写 DOUBAO_API_KEY
+docker compose up -d --build      # 在项目根目录执行
 ```
+
+- 前端：`http://localhost:8002`（nginx 托管并代理 `/api` 到后端）
+- 后端：`http://localhost:3002`（端口由 `.env` 的 `BACKEND_PORT`/`FRONTEND_PORT` 控制）
+
+相关文件：
+
+| 文件 | 说明 |
+|------|------|
+| `compose.yaml` | 根目录一键入口（include 以下两个文件） |
+| `docker/docker-compose.base.yml` | MongoDB + 后端 |
+| `docker/docker-compose.frontend.yml` | 前端 |
+| `backend/Dockerfile`、`frontend/Dockerfile` | 镜像构建 |
+
+### 分模式启动
+
+```bash
+./scripts/start.sh dev full       # Docker 启动前后端
+./scripts/start.sh dev backend    # 仅后端
+./scripts/stop.sh                 # 停止
+```
+
+### 使用预构建镜像
+
+CI 会把镜像推送到 GHCR（`ghcr.io/mcocdaa/knowflow-backend`、`ghcr.io/mcocdaa/knowflow-frontend`），可用 `docker run` 直接运行，详见根目录 [README](../../README.md)。
 
 ---
 
@@ -269,7 +209,7 @@ DB_RETRY_COUNT=5
 
 1. **API Key 安全**
    - 不要将 API Key 提交到版本控制
-   - 使用 `.secrets` 目录或环境变量存储敏感信息
+   - 使用 `secrets/` 目录（已加入 .gitignore）或环境变量存储敏感信息
    - 生产环境使用密钥管理服务
 
 2. **CORS 配置**
