@@ -1,6 +1,7 @@
 # ============================================
-# KnowFlow 全栈模式（后端 + 前端）
-# 使用: docker-compose -f docker-compose.full.yml -p knowflow up
+# KnowFlow 全栈模式（MongoDB + 后端 + 前端）
+# 根目录 compose.yaml 已 include 本文件，可直接：
+#   cp .env.example .env && docker compose up -d --build
 # ============================================
 
 services:
@@ -16,8 +17,8 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-8000}:8000"
-    environment:
-      - VITE_API_BASE_URL=http://knowflow-backend:3000
+    networks:
+      - knowflow-network
     depends_on:
       - backend
 

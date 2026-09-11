@@ -25,9 +25,11 @@ backend/py/db.json
 backend/.env
 frontend/.env
 
-# Secrets
+# Secrets（保留 .gitkeep 与 *.example 模板）
+secrets/*
+!secrets/.gitkeep
+!secrets/*.example
 backend/.secrets/
-secrets/
 *.key
 *.pem
 .gstack/

@@ -1,0 +1,12 @@
+# ============================================
+# KnowFlow 一键启动入口
+#   git clone --recurse-submodules <repo> && cd KnowFlow
+#   cp .env.example .env && vim .env
+#   docker compose up -d --build
+#
+# 分层定义见 docker/ 目录；分模式启动见 scripts/start.sh
+# ============================================
+
+include:
+  - docker/docker-compose.base.yml
+  - docker/docker-compose.full.yml
