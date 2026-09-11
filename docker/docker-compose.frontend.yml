@@ -1,9 +1,8 @@
 # ============================================
-# KnowFlow 仅前端模式
-# 使用: docker compose -p knowflow \
-#         -f docker/docker-compose.base.yml \
-#         -f docker/docker-compose.frontend.yml up -d
-# 注意：需要已有后端服务运行
+# KnowFlow 前端服务
+# 组合方式：
+#   根目录 compose.yaml        一键全栈：docker compose up -d --build
+#   scripts/start.sh           分模式启动（dev/local）
 # ============================================
 
 services:
@@ -19,7 +18,3 @@ services:
       - knowflow-network
     depends_on:
       - backend
-
-networks:
-  knowflow-network:
-    name: knowflow-network

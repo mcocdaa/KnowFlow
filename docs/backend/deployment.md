@@ -159,10 +159,9 @@ docker compose up -d --build      # 在项目根目录执行
 
 | 文件 | 说明 |
 |------|------|
-| `compose.yaml` | 根目录一键入口（include 分层文件） |
+| `compose.yaml` | 根目录一键入口（include 以下两个文件） |
 | `docker/docker-compose.base.yml` | MongoDB + 后端 |
-| `docker/docker-compose.frontend.yml` | 仅前端 |
-| `docker/docker-compose.full.yml` | 全栈（后端端口 + 前端） |
+| `docker/docker-compose.frontend.yml` | 前端 |
 | `backend/Dockerfile`、`frontend/Dockerfile` | 镜像构建 |
 
 ### 分模式启动

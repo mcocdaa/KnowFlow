@@ -147,9 +147,9 @@ case "$MODE" in
 
         case "$SERVICE" in
             backend)
-                COMPOSE_FILES="$COMPOSE_FILES -f $DOCKER_DIR/docker-compose.backend.yml"
+                # base 已含 MongoDB + 后端
                 ;;
-            frontend)
+            frontend|full)
                 COMPOSE_FILES="$COMPOSE_FILES -f $DOCKER_DIR/docker-compose.frontend.yml"
                 ;;
             frontend-local)
@@ -174,9 +174,6 @@ case "$MODE" in
                 echo "✓ 启动完成"
                 echo "========================================"
                 exit 0
-                ;;
-            full)
-                COMPOSE_FILES="$COMPOSE_FILES -f $DOCKER_DIR/docker-compose.backend.yml -f $DOCKER_DIR/docker-compose.frontend.yml"
                 ;;
             *)
                 echo "未知服务：$SERVICE"

@@ -21,6 +21,8 @@ services:
       dockerfile: Dockerfile
     container_name: knowflow-backend
     restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
     volumes:
       - knowflow-data:/app/data
       - ../plugins:/app/plugins:ro
