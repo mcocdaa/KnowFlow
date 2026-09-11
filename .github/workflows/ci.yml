@@ -20,15 +20,18 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          # 与 backend/Dockerfile 保持一致
+          python-version: '3.11'
           cache: pip
           cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
-        run: pip install -r requirements.txt ruff
+        run: pip install -r requirements.txt ruff==0.12.4
 
       - name: Lint (ruff)
         run: ruff check .
@@ -37,7 +40,7 @@ jobs:
         run: pytest -q
 
   frontend:
-    name: Frontend (lint + typecheck + test + build)
+    name: Frontend (lint + test + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -57,61 +60,109 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Typecheck
-        run: npx tsc -b
-
       - name: Test (vitest)
         run: npx vitest run
 
+      # npm run build = tsc -b && vite build，无需单独的 typecheck 步骤
       - name: Build
         run: npm run build
 
+  e2e:
+    name: API e2e (live backend + MongoDB)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start backend
+        run: |
+          nohup python main.py > "$RUNNER_TEMP/backend.log" 2>&1 &
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/v1/health > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/backend.log"
+          exit 1
+
+      - name: Run API e2e checks
+        run: python test/e2e_api_check.py
+
+  compose:
+    name: Compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate root compose entry
+        run: docker compose -f compose.yaml config -q
+
   docker:
-    name: Docker images (GHCR)
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    name: Docker (${{ matrix.image }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: backend
+            context: backend
+          - image: frontend
+            context: frontend
     steps:
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
+        if: github.event_name == 'push'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 每个镜像单独生成标签，避免多镜像时 tags 输出互相覆盖
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: |
-            ghcr.io/${{ github.repository }}-backend
-            ghcr.io/${{ github.repository }}-frontend
+          images: ghcr.io/${{ github.repository }}-${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
 
-      - name: Build & push backend
+      - name: Build image
         uses: docker/build-push-action@v6
         with:
-          context: backend
-          file: backend/Dockerfile
-          push: true
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile
+          push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build & push frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: frontend
-          file: frontend/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
