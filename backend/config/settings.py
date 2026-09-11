@@ -103,7 +103,7 @@ API_VERSION = os.getenv("API_VERSION", "v1")
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
 
-DATA_DIR = os.getenv("DATA_DIR", os.path.join(PROJECT_ROOT, "data"))
+DATA_DIR = os.getenv("DATA_DIR", os.path.join(BACKEND_DIR, "data"))
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", os.path.join(DATA_DIR, "uploads"))
 
 DEFAULT_KEYS_PATH = os.getenv("DEFAULT_KEYS_PATH", os.path.join(DATA_DIR, "default", "keys.yaml"))
@@ -164,6 +164,7 @@ CORS_ORIGINS = [
 
 __all__ = [
     "API_VERSION",
+    "DATA_DIR",
     "UPLOAD_DIR",
     "DEFAULT_KEYS_PATH",
     "DEFAULT_CATEGORIES_PATH",
