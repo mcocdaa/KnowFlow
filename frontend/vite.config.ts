@@ -54,10 +54,9 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-redux', '@reduxjs/toolkit'],
+            'react-vendor': ['react', 'react-dom', 'react-redux', '@reduxjs/toolkit', 'react-router'],
             antd: ['antd'],
             icons: ['@ant-design/icons'],
-            styled: ['styled-components'],
           },
         },
       },

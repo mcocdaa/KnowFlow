@@ -8,12 +8,14 @@ KnowFlow 采用模块化设计，前后端分离，通过 RESTful API 通信。
 
 | 模块 | 位置 | 功能 |
 |------|------|------|
-| 导航模块 | `Layout.tsx` | 左侧 Key 分类导航 |
-| 检索模块 | `SearchSection.tsx` | 搜索、排序、筛选 |
-| 导入模块 | `UploadSection.tsx` | 文件拖拽上传 |
-| 详情模块 | `DetailDrawer.tsx` | 文件 Key-Value 展示 |
-| 插件模块 | `plugins/` | 插件加载与渲染 |
-| 状态管理 | `store/` | Redux Store |
+| 布局模块 | `layouts/AppLayout.tsx`、`components/layout/SideNav.tsx` | 应用外壳与页面导航 |
+| 页面模块 | `pages/` | 知识库、分类、Key、插件、AI、404 六个路由页面 |
+| 检索模块 | `components/library/SearchToolbar.tsx` | 搜索、排序、高级筛选 |
+| 导入模块 | `components/library/UploadModal.tsx` | 文件上传与动态属性填写 |
+| 详情模块 | `components/library/ItemDetailDrawer.tsx` | Key-Value 展示与插件字段渲染 |
+| 插件模块 | `plugins/` | 插件注册表、渲染器与内置组件 |
+| 状态管理 | `store/` | Redux Store（library/catalog/plugins） |
+| 网络层 | `services/api.ts`、`hooks/` | API 封装与 Hook 数据流 |
 
 ---
 

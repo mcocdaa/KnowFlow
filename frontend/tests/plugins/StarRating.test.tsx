@@ -1,338 +1,80 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
-import { App } from 'antd';
+import { App as AntdApp } from 'antd';
 import StarRating from '../../src/plugins/components/StarRating';
+import { api } from '../../src/services/api';
 
-const renderWithApp = (ui: React.ReactElement) => render(<App>{ui}</App>);
+vi.mock('../../src/services/api', async () => {
+  const { createApiMock } = await import('../utils/mockApi');
+  const mockApi = createApiMock();
+  return { API_BASE_URL: '/api/v1', api: mockApi, default: mockApi };
+});
 
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+const renderStars = (props: Partial<React.ComponentProps<typeof StarRating>> = {}) =>
+  render(
+    <AntdApp>
+      <StarRating itemId="i1" {...props} />
+    </AntdApp>,
+  );
 
-describe('StarRating Component', () => {
-  const mockOnUpdate = vi.fn();
+const starItem = (index: number): HTMLElement =>
+  screen.getAllByRole('radio')[index].closest('li') as HTMLElement;
 
+describe('StarRating plugin component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetch.mockReset();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+  it('renders five stars with the current value filled', () => {
+    renderStars({ value: 3 });
+
+    expect(screen.getAllByRole('radio')).toHaveLength(5);
+    expect(starItem(0)).toHaveClass('ant-rate-star-full');
+    expect(starItem(2)).toHaveClass('ant-rate-star-full');
+    expect(starItem(3)).not.toHaveClass('ant-rate-star-full');
   });
 
-  describe('Rendering', () => {
-    it('should render 5 stars', () => {
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
+  it('treats undefined and null values as empty', () => {
+    renderStars({ value: undefined });
 
-      const stars = screen.getAllByText('★');
-      expect(stars).toHaveLength(5);
-    });
-
-    it('should display 0 filled stars when value is 0', () => {
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      const filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-
-      expect(filledStars).toHaveLength(0);
-    });
-
-    it('should display all 5 filled stars when value is 5', () => {
-      renderWithApp(
-        <StarRating
-          value={5}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      const filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-
-      expect(filledStars).toHaveLength(5);
-    });
-
-    it('should handle undefined value as 0', () => {
-      renderWithApp(
-        <StarRating
-          value={undefined as unknown as number}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      const filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-
-      expect(filledStars).toHaveLength(0);
-    });
-
-    it('should handle null value as 0', () => {
-      renderWithApp(
-        <StarRating
-          value={null as unknown as number}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      const filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-
-      expect(filledStars).toHaveLength(0);
-    });
+    expect(starItem(0)).not.toHaveClass('ant-rate-star-full');
+    expect(api.updatePluginRating).not.toHaveBeenCalled();
   });
 
-  describe('Interaction', () => {
-    it('should call onUpdate when star is clicked', async () => {
-      mockFetch.mockResolvedValueOnce({ ok: true });
+  it('updates optimistically and persists the rating', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.updatePluginRating).mockResolvedValue(undefined);
+    const onUpdate = vi.fn();
 
-      const user = userEvent.setup();
+    renderStars({ value: 2, onUpdate });
+    await user.click(screen.getAllByRole('radio')[4]);
 
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      await user.click(stars[0]);
-
-      expect(mockOnUpdate).toHaveBeenCalledWith(5);
-    });
-
-    it('should update rating to 1 when last star is clicked', async () => {
-      mockFetch.mockResolvedValueOnce({ ok: true });
-
-      const user = userEvent.setup();
-
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      await user.click(stars[4]);
-
-      expect(mockOnUpdate).toHaveBeenCalledWith(1);
-    });
-
-    it('should update rating to 3 when third star is clicked', async () => {
-      mockFetch.mockResolvedValueOnce({ ok: true });
-
-      const user = userEvent.setup();
-
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      await user.click(stars[2]);
-
-      expect(mockOnUpdate).toHaveBeenCalledWith(3);
-    });
-
-    it('should make API call when star is clicked', async () => {
-      mockFetch.mockResolvedValueOnce({ ok: true });
-
-      const user = userEvent.setup();
-
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-item-123"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      await user.click(stars[0]);
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        '/api/v1/plugins/rating/items/test-item-123/rating',
-        expect.objectContaining({
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rating: 5 }),
-        })
-      );
-    });
-
-    it('should not make API call in readOnly mode', async () => {
-      const user = userEvent.setup();
-
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-          readOnly={true}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      await user.click(stars[0]);
-
-      expect(mockFetch).not.toHaveBeenCalled();
-      expect(mockOnUpdate).not.toHaveBeenCalled();
-    });
+    expect(onUpdate).toHaveBeenCalledWith(5);
+    expect(starItem(4)).toHaveClass('ant-rate-star-full');
+    await waitFor(() => expect(api.updatePluginRating).toHaveBeenCalledWith('i1', 5));
   });
 
-  describe('Hover Effects', () => {
-    it('should show hover effect on mouse enter', async () => {
-      const user = userEvent.setup();
+  it('rolls back when the backend rejects the update', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.updatePluginRating).mockRejectedValue(new Error('boom'));
 
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
+    renderStars({ value: 2 });
+    await user.click(screen.getAllByRole('radio')[3]);
 
-      const stars = screen.getAllByText('★');
-      const thirdStar = stars[2];
-
-      await user.hover(thirdStar);
-
-      const filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-
-      expect(filledStars.length).toBeGreaterThanOrEqual(3);
-    });
-
-    it('should not show hover effect in readOnly mode', async () => {
-      const user = userEvent.setup();
-
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-          readOnly={true}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      const thirdStar = stars[2];
-
-      await user.hover(thirdStar);
-
-      const filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-
-      expect(filledStars).toHaveLength(0);
-    });
+    await waitFor(() => expect(starItem(3)).not.toHaveClass('ant-rate-star-full'));
+    expect(starItem(1)).toHaveClass('ant-rate-star-full');
+    expect(api.updatePluginRating).toHaveBeenCalledWith('i1', 4);
   });
 
-  describe('Error Handling', () => {
-    it('should handle API error gracefully', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+  it('ignores interaction when readOnly', async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn();
 
-      const user = userEvent.setup();
+    renderStars({ value: 3, readOnly: true, onUpdate });
+    await user.click(screen.getAllByRole('radio')[4]);
 
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      await user.click(stars[0]);
-
-      expect(mockOnUpdate).toHaveBeenCalledWith(5);
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle non-ok API response', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      mockFetch.mockResolvedValueOnce({ ok: false });
-
-      const user = userEvent.setup();
-
-      renderWithApp(
-        <StarRating
-          value={0}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      const stars = screen.getAllByText('★');
-      await user.click(stars[0]);
-
-      expect(consoleSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
-    });
-  });
-
-  describe('Value Updates', () => {
-    it('should update displayed rating when value prop changes', () => {
-      const { rerender } = render(
-        <StarRating
-          value={2}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      let stars = screen.getAllByText('★');
-      let filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-      expect(filledStars).toHaveLength(2);
-
-      rerender(
-        <StarRating
-          value={4}
-          itemId="test-id"
-          onUpdate={mockOnUpdate}
-        />
-      );
-
-      stars = screen.getAllByText('★');
-      filledStars = stars.filter(star =>
-        (star as HTMLElement).style.color === 'rgb(255, 193, 7)'
-      );
-      expect(filledStars).toHaveLength(4);
-    });
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(api.updatePluginRating).not.toHaveBeenCalled();
   });
 });

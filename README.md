@@ -133,7 +133,7 @@ cd frontend && npm run lint && npx vitest run && npm run build
 | [项目概述](docs/summary.md) | 功能与技术架构 |
 | [架构设计](docs/architecture.md) | 模块划分与数据流 |
 | [后端文档](docs/backend/README.md) | API、数据库、部署 |
-| [前端文档](docs/frontend/README.md) | 组件与状态管理 |
+| [前端文档](docs/frontend/index.md) | 架构、组件与部署 |
 | [插件开发](docs/plugin-system-design.md) | 插件系统设计 |
 
 ## 许可证

@@ -233,7 +233,7 @@ git commit -m "feat(frontend): add category management page with CRUD"
 
 ---
 
-### Task 7: Key 管理页
+### Task 7: Key 管理页 ✅
 
 **Files:** Create `pages/KeysPage.tsx`、`components/keys/KeyFormModal.tsx`、`hooks/useKeys.ts`（`components/keys/JsonValueField.tsx` 如 Task 5c 未建则在此建）；Create `tests/pages/KeysPage.test.tsx`；Delete `components/business/KeyManager.tsx`、`store/keySlice.ts`
 
@@ -251,7 +251,7 @@ git commit -m "feat(frontend): add key management page with full-field editor"
 
 ---
 
-### Task 8: 插件页 + AI 页
+### Task 8: 插件页 + AI 页 ✅
 
 **Files:** Create `pages/PluginsPage.tsx`、`pages/AIPage.tsx`、`hooks/usePlugins.ts`、`hooks/useAI.ts`；Create `tests/pages/PluginsPage.test.tsx`、`AIPage.test.tsx`；Delete `components/business/AIAssistant.tsx`；Modify `components/library/DetailDrawer`（如有 AI 入口引用）
 
