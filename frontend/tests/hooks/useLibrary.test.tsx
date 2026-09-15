@@ -9,12 +9,10 @@ import { api } from '../../src/services/api';
 import { createTestStore } from '../utils/renderWithProviders';
 import type { KnowledgeItem, PagedItems } from '../../src/types';
 
-vi.mock('../../src/services/api', () => {
-  const mockApi = {
-    searchItems: vi.fn(),
-    deleteItem: vi.fn(),
-  };
-  return { api: mockApi, default: mockApi };
+vi.mock('../../src/services/api', async () => {
+  const { createApiMock } = await import('../utils/mockApi');
+  const mockApi = createApiMock();
+  return { API_BASE_URL: '/api/v1', api: mockApi, default: mockApi };
 });
 
 const item1: KnowledgeItem = { id: '1', name: '部署手册', keyValues: {}, updatedAt: '2026-09-02T09:30:00' };

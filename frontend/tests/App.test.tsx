@@ -3,14 +3,10 @@ import { screen } from '@testing-library/react';
 import App from '../src/App';
 import { renderWithProviders } from './utils/renderWithProviders';
 
-vi.mock('../src/services/api', () => {
-  const mockApi = {
-    searchItems: vi.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 20, totalPages: 0 }),
-    fetchItems: vi.fn().mockResolvedValue([]),
-    fetchCategories: vi.fn().mockResolvedValue([]),
-    fetchKeys: vi.fn().mockResolvedValue([]),
-  };
-  return { api: mockApi, default: mockApi };
+vi.mock('../src/services/api', async () => {
+  const { createApiMock } = await import('./utils/mockApi');
+  const mockApi = createApiMock();
+  return { API_BASE_URL: '/api/v1', api: mockApi, default: mockApi };
 });
 
 describe('App Component', () => {

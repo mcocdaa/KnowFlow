@@ -7,14 +7,10 @@ import { renderWithProviders, LocationProbe } from '../utils/renderWithProviders
 import { deferred } from '../utils/deferred';
 import type { KnowledgeItem, PagedItems } from '../../src/types';
 
-vi.mock('../../src/services/api', () => {
-  const mockApi = {
-    searchItems: vi.fn(),
-    fetchKeys: vi.fn().mockResolvedValue([]),
-    fetchCategories: vi.fn().mockResolvedValue([]),
-    deleteItem: vi.fn(),
-  };
-  return { api: mockApi, default: mockApi };
+vi.mock('../../src/services/api', async () => {
+  const { createApiMock } = await import('../utils/mockApi');
+  const mockApi = createApiMock();
+  return { API_BASE_URL: '/api/v1', api: mockApi, default: mockApi };
 });
 
 const item1: KnowledgeItem = {
