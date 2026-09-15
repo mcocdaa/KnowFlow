@@ -5,7 +5,6 @@ import { Provider } from 'react-redux';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { configureStore } from '@reduxjs/toolkit';
-import knowledgeReducer from '../../src/store/knowledgeSlice';
 import libraryReducer from '../../src/store/librarySlice';
 import catalogReducer from '../../src/store/catalogSlice';
 import pluginsReducer from '../../src/store/pluginsSlice';
@@ -19,7 +18,6 @@ const testTheme = {
 export function createTestStore(preloadedState?: Record<string, unknown>) {
   return configureStore({
     reducer: {
-      knowledge: knowledgeReducer,
       library: libraryReducer,
       catalog: catalogReducer,
       plugins: pluginsReducer,
