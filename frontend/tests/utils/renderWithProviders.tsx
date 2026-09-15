@@ -7,6 +7,9 @@ import zhCN from 'antd/locale/zh_CN';
 import { configureStore } from '@reduxjs/toolkit';
 import knowledgeReducer from '../../src/store/knowledgeSlice';
 import keyReducer from '../../src/store/keySlice';
+import libraryReducer from '../../src/store/librarySlice';
+import catalogReducer from '../../src/store/catalogSlice';
+import pluginsReducer from '../../src/store/pluginsSlice';
 import { antdTheme } from '../../src/theme';
 
 export function createTestStore(preloadedState?: Record<string, unknown>) {
@@ -14,6 +17,9 @@ export function createTestStore(preloadedState?: Record<string, unknown>) {
     reducer: {
       knowledge: knowledgeReducer,
       key: keyReducer,
+      library: libraryReducer,
+      catalog: catalogReducer,
+      plugins: pluginsReducer,
     },
     preloadedState,
   });
