@@ -96,7 +96,7 @@ git commit -m "feat(frontend): add SVG brand logo, file icons and state placehol
 
 ---
 
-### Task 3: API 层与类型扩展
+### Task 3: API 层与类型扩展 ✅
 
 **Files:**
 - Modify: `frontend/src/types/index.ts`、`frontend/src/services/api.ts`
@@ -125,7 +125,7 @@ git commit -m "feat(frontend): extend api client for search, catalog, plugins an
 
 ---
 
-### Task 4: Store 重构（library / catalog / plugins）
+### Task 4: Store 重构（library / catalog / plugins） ✅
 
 **Files:**
 - Create: `frontend/src/store/librarySlice.ts`、`catalogSlice.ts`、`pluginsSlice.ts`
