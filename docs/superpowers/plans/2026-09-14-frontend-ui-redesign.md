@@ -215,7 +215,7 @@ git commit -m "feat(frontend): add item create/edit/upload modals with validatio
 
 ---
 
-### Task 6: 分类管理页
+### Task 6: 分类管理页 ✅
 
 **Files:** Create `pages/CategoriesPage.tsx`、`components/categories/CategoryFormModal.tsx`、`hooks/useCategories.ts`；Create `tests/pages/CategoriesPage.test.tsx`
 
