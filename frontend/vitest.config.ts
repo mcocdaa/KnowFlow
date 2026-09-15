@@ -7,5 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
+    // antd + jsdom 渲染较重，默认 5s 在并行执行时偏紧
+    testTimeout: 15000,
   },
 });

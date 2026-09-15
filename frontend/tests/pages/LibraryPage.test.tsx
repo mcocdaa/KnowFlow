@@ -169,6 +169,16 @@ describe('LibraryPage', () => {
     expect(await screen.findByText('仅删除记录，不会删除已上传的文件。')).toBeInTheDocument();
   });
 
+  it('renders upload and create actions in the toolbar', async () => {
+    vi.mocked(api.searchItems).mockResolvedValue(paged([]));
+
+    renderLibrary();
+    await screen.findByText(/暂无知识记录/);
+
+    expect(screen.getByRole('button', { name: /上传文件/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /新建记录/ })).toBeInTheDocument();
+  });
+
   it('ignores out-of-order responses', async () => {
     const user = userEvent.setup();
     const slow = deferred<PagedItems>();
