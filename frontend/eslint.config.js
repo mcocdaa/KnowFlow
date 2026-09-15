@@ -28,4 +28,11 @@ export default defineConfig([
       'react-hooks/static-components': 'off',
     },
   },
+  {
+    // 测试文件不参与 Fast Refresh，允许同时导出组件与辅助函数
+    files: ['tests/**'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

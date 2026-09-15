@@ -1,15 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { screen } from '@testing-library/react';
 import App from '../src/App';
-import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import knowledgeReducer from '../src/store/knowledgeSlice';
-import keyReducer from '../src/store/keySlice';
+import { renderWithProviders } from './utils/renderWithProviders';
 
-// 模拟 API 调用（默认导出为 api 对象）
 vi.mock('../src/services/api', () => {
   const mockApi = {
+    searchItems: vi.fn().mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 20, totalPages: 0 }),
     fetchItems: vi.fn().mockResolvedValue([]),
     fetchCategories: vi.fn().mockResolvedValue([]),
     fetchKeys: vi.fn().mockResolvedValue([]),
@@ -17,41 +13,21 @@ vi.mock('../src/services/api', () => {
   return { api: mockApi, default: mockApi };
 });
 
-const createTestStore = () => {
-  return configureStore({
-    reducer: {
-      knowledge: knowledgeReducer,
-      key: keyReducer
-    }
-  });
-};
-
 describe('App Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should render App component', async () => {
-    const store = createTestStore();
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>
-    );
+    renderWithProviders(<App />, { route: '/' });
 
     expect(await screen.findByText(/KnowFlow/i)).toBeInTheDocument();
   });
 
-  it('should render Layout component', async () => {
-    const store = createTestStore();
+  it('should render sidebar navigation', async () => {
+    renderWithProviders(<App />, { route: '/' });
 
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>
-    );
-
-    expect(await screen.findByRole('complementary')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /知识库/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /分类管理/ })).toBeInTheDocument();
   });
 });

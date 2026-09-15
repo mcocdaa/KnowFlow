@@ -1,0 +1,47 @@
+import type { ReactNode } from 'react';
+import { render } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router';
+import { Provider } from 'react-redux';
+import { App as AntdApp, ConfigProvider } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
+import { configureStore } from '@reduxjs/toolkit';
+import knowledgeReducer from '../../src/store/knowledgeSlice';
+import keyReducer from '../../src/store/keySlice';
+import { antdTheme } from '../../src/theme';
+
+export function createTestStore(preloadedState?: Record<string, unknown>) {
+  return configureStore({
+    reducer: {
+      knowledge: knowledgeReducer,
+      key: keyReducer,
+    },
+    preloadedState,
+  });
+}
+
+export type TestStore = ReturnType<typeof createTestStore>;
+
+export const LocationProbe = () => {
+  const location = useLocation();
+  return <span data-testid="location-search">{location.search}</span>;
+};
+
+interface RenderOptions {
+  route?: string;
+  store?: TestStore;
+}
+
+export function renderWithProviders(
+  children: ReactNode,
+  { route = '/', store = createTestStore() }: RenderOptions = {},
+) {
+  return render(
+    <ConfigProvider theme={antdTheme} locale={zhCN}>
+      <AntdApp>
+        <Provider store={store}>
+          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+        </Provider>
+      </AntdApp>
+    </ConfigProvider>,
+  );
+}
