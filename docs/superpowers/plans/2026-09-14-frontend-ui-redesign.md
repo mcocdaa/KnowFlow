@@ -146,7 +146,7 @@ git commit -m "refactor(frontend): add library/catalog/plugins slices"
 
 ---
 
-### Task 5: 知识库页（拆分 5a/5b/5c）
+### Task 5: 知识库页（拆分 5a/5b/5c） ✅
 
 #### Task 5a: 列表 + 服务端搜索 + 分页 + URL 同步 ✅
 
@@ -179,7 +179,7 @@ git commit -m "refactor(frontend): add library/catalog/plugins slices"
 git commit -m "feat(frontend): rebuild library page on server-side search and pagination"
 ```
 
-#### Task 5b: 详情抽屉
+#### Task 5b: 详情抽屉 ✅
 
 **Files:** Create `components/library/ItemDetailDrawer.tsx`、`components/common/JsonBlock.tsx`、`components/library/MediaPreviewModal.tsx`；Delete `components/layout/DetailDrawer.tsx`、`components/business/MediaPreview.tsx`；Create `tests/components/ItemDetailDrawer.test.tsx`
 
@@ -196,7 +196,7 @@ git commit -m "feat(frontend): rebuild library page on server-side search and pa
 git commit -m "feat(frontend): redesign item detail drawer around key_info"
 ```
 
-#### Task 5c: 上传 / 新建 / 编辑（含真实进度与校验）
+#### Task 5c: 上传 / 新建 / 编辑（含真实进度与校验） ✅
 
 **Files:** Create `components/library/ItemFormModal.tsx`、`components/library/UploadModal.tsx`、`components/common/DynamicKeyForm.tsx`；Delete `components/business/DynamicKeyForm.tsx`；Create `tests/components/ItemFormModal.test.tsx`、`UploadModal.test.tsx`、`DynamicKeyForm.test.tsx`
 
