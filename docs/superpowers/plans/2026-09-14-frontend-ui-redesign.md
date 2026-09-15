@@ -295,7 +295,7 @@ git commit -m "docs(frontend): update frontend docs for multi-page UI"
 
 ---
 
-### Task 10: 端到端验证与 PR
+### Task 10: 端到端验证与 PR ✅
 
 **Step 1: 全量静态与单测**
 `cd frontend && npm ci && npx vitest run && npm run lint && npm run build`
