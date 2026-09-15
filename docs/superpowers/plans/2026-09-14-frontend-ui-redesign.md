@@ -267,7 +267,7 @@ git commit -m "feat(frontend): add plugins and AI assistant pages"
 
 ---
 
-### Task 9: 清理、SVG 收尾与文档
+### Task 9: 清理、SVG 收尾与文档 ✅
 
 **Files:**
 - Modify: `components/common/ErrorBoundary.tsx`（💥→`WarningOutlined` + antd `Result`）、`plugins/components/StarRating.tsx`（`★`→antd `Rate`，保留乐观更新/回滚契约）、`tests/plugins/StarRating.test.tsx`（按 Rate 交互更新断言）
