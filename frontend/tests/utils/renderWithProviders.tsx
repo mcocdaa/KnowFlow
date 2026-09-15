@@ -12,6 +12,11 @@ import catalogReducer from '../../src/store/catalogSlice';
 import pluginsReducer from '../../src/store/pluginsSlice';
 import { antdTheme } from '../../src/theme';
 
+const testTheme = {
+  ...antdTheme,
+  token: { ...antdTheme.token, motion: false },
+};
+
 export function createTestStore(preloadedState?: Record<string, unknown>) {
   return configureStore({
     reducer: {
@@ -42,7 +47,7 @@ export function renderWithProviders(
   { route = '/', store = createTestStore() }: RenderOptions = {},
 ) {
   return render(
-    <ConfigProvider theme={antdTheme} locale={zhCN}>
+    <ConfigProvider theme={testTheme} locale={zhCN}>
       <AntdApp>
         <Provider store={store}>
           <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>

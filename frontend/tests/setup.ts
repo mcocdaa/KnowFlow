@@ -38,6 +38,6 @@ Object.defineProperty(window, 'matchMedia', {
 
 if (!window.requestAnimationFrame) {
   window.requestAnimationFrame = (callback: FrameRequestCallback) =>
-    window.setTimeout(() => callback(performance.now()), 0);
+    window.setTimeout(() => callback(performance.now()), 16);
   window.cancelAnimationFrame = (id: number) => window.clearTimeout(id);
 }
