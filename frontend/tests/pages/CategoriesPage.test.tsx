@@ -93,7 +93,6 @@ describe('CategoriesPage', () => {
   });
 
   it('surfaces backend delete errors without reloading', async () => {
-    const user = userEvent.setup();
     vi.mocked(api.deleteCategory).mockRejectedValue(
       new Error('cannot delete category with existing children'),
     );
