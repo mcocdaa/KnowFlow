@@ -3,8 +3,10 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 
 const SRC_ROOT = join(process.cwd(), 'src');
-const BANNED =
-  /[\u{1F000}-\u{1FAFF}\u{2300}-\u{23FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/u;
+const EMOJI_RANGES = /[\u{1F000}-\u{1FAFF}\u{2300}-\u{23FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u;
+// ZWJ/FE0F 属于组合字符，不能放进字符类（会触发 no-misleading-character-class），单独判断
+const hasBannedCharacter = (line: string): boolean =>
+  EMOJI_RANGES.test(line) || line.includes('\u200D') || line.includes('\uFE0F');
 
 const collectSourceFiles = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -21,9 +23,8 @@ describe('SVG-only icon policy', () => {
       readFileSync(file, 'utf8')
         .split('\n')
         .forEach((line, index) => {
-          const match = line.match(BANNED);
-          if (match) {
-            offenders.push(`${file.replace(SRC_ROOT, 'src')}:${index + 1} → ${match[0]}`);
+          if (hasBannedCharacter(line)) {
+            offenders.push(`${file.replace(SRC_ROOT, 'src')}:${index + 1}`);
           }
         });
     }
