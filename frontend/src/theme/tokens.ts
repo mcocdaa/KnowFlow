@@ -41,7 +41,7 @@ export const FLOW_COLORS = {
   borderLight: '#F1F5F9',
 
   white: '#FFFFFF',
-  sidebarBg: '#1E293B',
+  sidebarBg: '#FFFFFF',
 
   violet: '#7C3AED',
 

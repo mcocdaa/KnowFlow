@@ -19,3 +19,25 @@ if (typeof window !== 'undefined' && !window.ResizeObserver) {
     }
   };
 }
+
+// jsdom 不实现 matchMedia；antd 的 Grid/Row/Col 在订阅断点时会直接调用
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string): MediaQueryList =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList,
+});
+
+if (!window.requestAnimationFrame) {
+  window.requestAnimationFrame = (callback: FrameRequestCallback) =>
+    window.setTimeout(() => callback(performance.now()), 16);
+  window.cancelAnimationFrame = (id: number) => window.clearTimeout(id);
+}

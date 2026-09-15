@@ -17,7 +17,7 @@
 
 | 角色 | 推荐文档 |
 |------|---------|
-| 前端开发者 | [前端概述](./frontend/overview.md) → [组件文档](./frontend/components.md) |
+| 前端开发者 | [前端文档](./frontend/index.md) → [组件文档](./frontend/components.md) |
 | 后端开发者 | [后端概述](./backend/overview.md) → [API 文档](./backend/api.md) |
 | 运维人员 | [后端部署](./backend/deployment.md) → [前端部署](./frontend/deployment.md) |
 | 插件开发者 | [插件系统设计](./plugin-system-design.md) |
@@ -47,10 +47,10 @@
 
 | 文档 | 说明 |
 |------|------|
-| [前端概述](./frontend/overview.md) | 技术栈、目录结构、设计系统 |
-| [前端架构](./frontend/architecture.md) | Redux Store、数据流 |
-| [组件文档](./frontend/components.md) | 主要组件说明 |
-| [前端部署](./frontend/deployment.md) | 构建、测试、Electron 打包 |
+| [前端文档](./frontend/index.md) | 技术栈、目录结构、文档索引 |
+| [前端架构](./frontend/architecture.md) | 多页路由、数据流、主题与插件 |
+| [组件文档](./frontend/components.md) | 前端组件清单与职责 |
+| [前端部署](./frontend/deployment.md) | 构建、测试、Electron 与 Docker 部署 |
 
 ---
 
@@ -97,13 +97,8 @@ docs/
 │   └── deployment.md           # 部署与测试
 │
 └── frontend/                   # 前端文档
-    ├── overview.md             # 前端概述
+    ├── index.md                # 前端文档索引
     ├── architecture.md         # 前端架构
-    ├── components.md           # 组件索引
-    ├── components/             # 组件详细文档
-    │   ├── core.md             # 核心组件
-    │   ├── layout-parts.md     # 布局子组件
-    │   ├── features.md         # 功能组件
-    │   └── plugins.md          # 插件组件
+    ├── components.md           # 组件清单
     └── deployment.md           # 部署文档
 ```

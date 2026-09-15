@@ -1,338 +1,188 @@
+---
+title: 前端架构
+version: 1.0
+keywords: [架构, 路由, 数据流, Redux, 主题, 插件, 测试]
+description: KnowFlow 前端多页应用架构说明
+---
+
 # 前端架构
 
-## 状态管理
+KnowFlow 前端是一个多页单页应用（SPA）：`react-router` 负责页面路由，Redux Toolkit 负责跨页共享的服务端状态，钩子负责把“URL 参数 → API → Store”串联起来，Ant Design 6 提供 UI 与主题令牌。
 
-使用 Redux Toolkit 进行状态管理，包含两个主要的 slice。
+## 技术栈
 
-### Store 配置
+| 领域 | 选型 | 版本 | 说明 |
+|------|------|------|------|
+| 框架 | React | 19.2 | 严格模式渲染 |
+| 构建 | Vite | 7.3 | 开发端口 `5177`，构建产物 `dist/` |
+| 语言 | TypeScript | 5.9 | 全量类型约束 |
+| UI 组件库 | Ant Design | 6.3 | 主题通过 `ConfigProvider` 注入 |
+| 图标 | @ant-design/icons | 6.3 | 线性图标，配套内联 SVG 品牌标志 |
+| 路由 | react-router | 7.18 | `BrowserRouter` + 嵌套路由 |
+| 状态管理 | Redux Toolkit | 2.11 | 配合 react-redux 9.2 |
+| 测试 | Vitest | 4.0 | jsdom 环境，20 个测试文件 / 114 个用例 |
+| 桌面端 | Electron | 40.7 | 主进程 `electron/main.cjs` |
 
-**文件**: [frontend/src/store/index.ts](../../frontend/src/store/index.ts)
+样式方案为 Ant Design 的 CSS-in-JS 令牌，配合 `styles/index.css` 全局样式。
 
-```typescript
-import { configureStore } from '@reduxjs/toolkit';
-import keyReducer from './keySlice';
-import knowledgeReducer from './knowledgeSlice';
+## 目录结构
 
-export const store = configureStore({
-  reducer: {
-    key: keyReducer,
-    knowledge: knowledgeReducer,
-  },
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+```
+frontend/
+├── src/
+│   ├── App.tsx                     # 路由表 + ErrorBoundary
+│   ├── main.tsx                    # 应用装配入口
+│   ├── layouts/
+│   │   └── AppLayout.tsx           # Header + Sider + Content(Outlet)
+│   ├── components/
+│   │   ├── layout/SideNav.tsx      # 左侧导航菜单
+│   │   ├── common/                 # BrandLogo/ErrorBoundary/StatePlaceholder/
+│   │   │                           # DynamicKeyForm/FileIcon/JsonBlock
+│   │   ├── library/                # SearchToolbar/ItemTable/ItemDetailDrawer/
+│   │   │                           # ItemFormModal/UploadModal/MediaPreviewModal
+│   │   ├── categories/CategoryFormModal.tsx
+│   │   └── keys/KeyFormModal.tsx
+│   ├── pages/                      # LibraryPage/CategoriesPage/KeysPage/
+│   │                               # PluginsPage/AIPage/NotFoundPage
+│   ├── hooks/                      # useLibrary/useCatalog/useCategories/
+│   │                               # useKeys/usePlugins/useAI
+│   ├── services/api.ts             # fetch 封装、XHR 上传、线上字段映射
+│   ├── store/                      # index/librarySlice/catalogSlice/pluginsSlice
+│   ├── plugins/                    # index.tsx/loader.tsx/components/StarRating.tsx
+│   ├── theme/                      # index.ts/tokens.ts/antd.ts
+│   ├── utils/                      # categoryTree/dynamicForm/format/helpers/electron
+│   ├── types/                      # index.ts/electron.d.ts
+│   └── styles/index.css
+├── tests/                          # setup + utils + 各层测试（114 用例）
+├── electron/                       # main.cjs/preload.cjs
+├── public/favicon.svg
+├── index.html
+├── vite.config.ts / vitest.config.ts / eslint.config.js
+└── Dockerfile / nginx.conf
 ```
 
-### knowledgeSlice (知识项状态)
+## 应用装配
 
-**文件**: [frontend/src/store/knowledgeSlice.ts](../../frontend/src/store/knowledgeSlice.ts)
+[frontend/src/main.tsx](../../frontend/src/main.tsx) 的 Provider 顺序固定为：
 
-#### 状态结构
-
-```typescript
-interface KnowledgeState {
-  items: KnowledgeItem[];
-  searchResults: KnowledgeItem[];
-  selectedItem: KnowledgeItem | null;
-}
+```
+StrictMode
+└── ConfigProvider(theme=antdTheme, locale=zhCN)
+    └── AntdApp（message/modal 上下文）
+        └── Provider(store)
+            └── BrowserRouter
+                └── App
 ```
 
-#### Action 类型
+[frontend/src/App.tsx](../../frontend/src/App.tsx) 在模块加载时调用 `initializePlugins()` 注册内置插件组件，随后渲染 `ErrorBoundary` 包裹的路由树。所有业务页面都作为 `AppLayout` 的子路由通过 `<Outlet />` 渲染。
 
-| Action | 说明 |
-|--------|------|
-| `setItems` | 设置知识项列表 |
-| `clearKnowledgeItems` | 清空所有知识项 |
-| `addKnowledgeItem` | 添加知识项 |
-| `updateKnowledgeItem` | 更新知识项 |
-| `deleteKnowledgeItem` | 删除知识项 |
-| `setSearchResults` | 设置搜索结果 |
-| `selectItem` | 选中知识项 |
+## 路由表
 
-### keySlice (Key 定义状态)
+| 路径 | 页面组件 | 说明 |
+|------|----------|------|
+| `/` | `Navigate to="/library"` | 根路径重定向到知识库 |
+| `/library` | `LibraryPage` | 知识库：搜索、筛选、分页、上传、新建、详情、编辑 |
+| `/categories` | `CategoriesPage` | 分类管理：树形父子关系维护 |
+| `/keys` | `KeysPage` | Key 管理：定义、类型、可见性、来源插件 |
+| `/plugins` | `PluginsPage` | 插件清单：后端 manifest 与前端组件注册状态 |
+| `/ai` | `AIPage` | AI 助手：语义检索、自动打标签 |
+| `*` | `NotFoundPage` | 404 结果页，提供返回知识库入口 |
 
-**文件**: [frontend/src/store/keySlice.ts](../../frontend/src/store/keySlice.ts)
+布局壳 [frontend/src/layouts/AppLayout.tsx](../../frontend/src/layouts/AppLayout.tsx) 由 `Header`（品牌 Logo + 标题）、可折叠 `Sider`（[frontend/src/components/layout/SideNav.tsx](../../frontend/src/components/layout/SideNav.tsx)）和 `Content` 组成。导航项用 `NavLink` 渲染、以 `pathname` 作为 `selectedKeys`，因此当前页高亮完全由 URL 决定。
 
-#### 状态结构
+## 数据流：URL 即状态
 
-```typescript
-interface KeyState {
-  categories: CategoryDefinition[];
-  definitions: Record<string, KeyDefinition>;
-  definitionList: KeyDefinition[];
-}
-```
+知识库的检索条件不保存在组件里，而是写入地址栏查询参数，由 `useLibrary` 双向同步：
 
-#### Action 类型
+1. 用户在 `SearchToolbar` 输入 → `updateParams()` 合并补丁并用 `setSearchParams` 写回 URL（默认值会被删除，保持链接干净）。
+2. `useSearchParams` 变化 → `useLibrary` 用 `useMemo` 解析出 `params`（`q`、`key`、`key_value`、`sort`、`page`、`page_size`）。
+3. `params` 变化触发 effect → `dispatch(setQuery/setLoading)`，调用 `api.searchItems(params)`。
+4. 请求成功后 `dispatch(setResult)`；失败 `dispatch(setError)`。使用自增 `requestIdRef` 丢弃乱序响应。
 
-| Action | 说明 |
-|--------|------|
-| `setCategories` | 设置分类列表 |
-| `setDefinitions` | 设置 Key 定义列表 |
+整体链路为 **hooks → api → slices**：
 
-## 自定义 Hooks
+| Hook | 消费/更新 | 依赖 API |
+|------|-----------|----------|
+| `useLibrary` | `librarySlice`（items/total/page/pageSize/loading/error） | `searchItems`/`deleteItem` |
+| `useCatalog` | `catalogSlice`（只读加载 keys + categories） | `fetchKeys`/`fetchCategories` |
+| `useCategories` | `catalogSlice` + 本地 submitting | 分类 CRUD |
+| `useKeys` | `catalogSlice` + 本地 submitting | Key CRUD |
+| `usePlugins` | `pluginsSlice` | `fetchPluginManifests` |
+| `useAI` | 组件本地 state（不落 store） | `aiSearch`/`autoTag` |
 
-**文件**: [frontend/src/hooks/useKnowledge.ts](../../frontend/src/hooks/useKnowledge.ts)
+`catalogSlice` 被 `useCatalog`、`useCategories`、`useKeys` 共用，保证 Key/分类数据在页面间一致；`AIPage` 的检索结果是一次性交互产物，因此保留在 `useAI` 的本地 state 中而不进入全局 store。
 
-### useInitialData
-
-初始化数据加载 Hook，在组件挂载时自动加载知识项、分类和 Key 定义。
-
-```typescript
-export const useInitialData = () => {
-  // 自动加载 items, categories, keys
-  // 错误处理并显示提示消息
-};
-```
-
-### useKnowledgeItems
-
-知识项操作 Hook，提供完整的 CRUD 操作和搜索功能。
-
-#### 返回值
-
-| 属性/方法 | 类型 | 说明 |
-|-----------|------|------|
-| `items` | KnowledgeItem[] | 知识项列表 |
-| `searchResults` | KnowledgeItem[] | 搜索结果 |
-| `selectedItem` | KnowledgeItem \| null | 选中的知识项 |
-| `selectedItemId` | string \| null | 选中的知识项 ID |
-| `handleItemClick` | (item: KnowledgeItem) => void | 处理知识项点击 |
-| `handleSearch` | (value: string, sortBy: string) => void | 处理搜索 |
-| `handleKeyClick` | (keyName: string) => void | 处理 Key 点击筛选 |
-| `handleDeleteItem` | (itemId: string) => Promise<void> | 删除知识项 |
-| `handleUpdateItem` | (item: KnowledgeItem) => Promise<KnowledgeItem> | 更新知识项 |
-| `handleUploadFile` | (file: File, values: Record<string, unknown>) => Promise<KnowledgeItem> | 上传文件 |
-| `handleCreateItem` | (values: Record<string, unknown>) => Promise<KnowledgeItem> | 创建知识项 |
-| `getSortedItems` | (sortBy: string) => KnowledgeItem[] | 获取排序后的列表 |
-| `getDefaultFormValues` | () => Record<string, unknown> | 获取表单默认值 |
+Redux store 由三个 reducer 组成：`library`、`catalog`、`plugins`（见 [frontend/src/store/index.ts](../../frontend/src/store/index.ts)）。写操作统一采用“先调 API、成功后 `upsertItem`/`reload`”的乐观刷新策略。
 
 ## API 服务层
 
-**文件**: [frontend/src/services/api.ts](../../frontend/src/services/api.ts)
+[frontend/src/services/api.ts](../../frontend/src/services/api.ts) 提供全部网络访问：
 
-### 数据转换
+- **Base URL**：`window.knowflow?.apiBase`（Electron）优先，其次 `import.meta.env.VITE_API_BASE_URL`，都为空时回落到相对路径 `/api/v1`。
+- **统一信封**：后端返回 `{ code, message, data }`；`request()` 在 HTTP 非 2xx 或 `code !== 0` 时抛出 `Error(message)`。
+- **线上/内部字段映射**：`transformItemData` 把线上的 `attributes`、`key_info`、`created_at` 转成内部的 `keyValues`、`keyInfo`、`createdAt`/`updatedAt`；写请求再映射回 `attributes`。
+- **上传进度**：`uploadFile` 使用 `XMLHttpRequest`，通过 `xhr.upload.onprogress` 回调百分比，供 `UploadModal` 的进度条展示。
+- **插件评分**：`updatePluginRating` 调用 `PUT /plugins/rating/items/{id}/rating`。
 
-`transformItemData` 函数负责将后端返回的数据格式转换为前端使用的格式：
+## 三态 UX 模式
 
-```typescript
-export const transformItemData = (itemWrapper: ItemWrapper): KnowledgeItem => ({
-  id: itemWrapper.item?.id || itemWrapper.id || '',
-  name: itemWrapper.item?.name || itemWrapper.name || itemWrapper.attributes?.name || '',
-  keyValues: (itemWrapper.attributes || {}) as Record<string, unknown>,
-  createdAt: itemWrapper.item?.created_at || itemWrapper.attributes?.created_at || '',
-});
+每个列表页都遵循同一套渲染分支，由 `StatePlaceholder` 统一外观：
+
+```
+error   ? <StatePlaceholder variant="error" onRetry=... />
+: loading && 无数据 ? <StatePlaceholder variant="loading" />
+: 无数据           ? <StatePlaceholder variant="empty" ... />
+: <Table ... />
 ```
 
-### API 方法
+- `loading`：骨架屏（`Skeleton`）。
+- `empty`：`Empty` 占位，可附带操作引导。
+- `error`：`Result` + “重试”按钮，回调各 Hook 的 `reload`/`refresh`。
 
-| 方法 | 说明 |
-|------|------|
-| `api.fetchItems()` | 获取知识项列表 |
-| `api.fetchCategories()` | 获取分类列表 |
-| `api.fetchKeys()` | 获取 Key 定义列表 |
-| `api.updateItem(item)` | 更新知识项 |
-| `api.deleteItem(id)` | 删除知识项 |
-| `api.uploadFile(file, keyValues)` | 上传文件 |
-| `api.createItem(name, keyValues)` | 创建知识项 |
+有数据时的 `loading` 交给 `Table` 自身的 `loading` 属性，避免刷新时整页闪烁。
+
+## 主题与令牌系统
+
+主题集中在 [frontend/src/theme/](../../frontend/src/theme/)：
+
+- [tokens.ts](../../frontend/src/theme/tokens.ts) 定义 `FLOW_COLORS`、`FLOW_SPACING`、`FLOW_BORDER_RADIUS`、`FLOW_FONT_SIZES`、`FLOW_FONT_WEIGHTS`、`FLOW_SHADOWS`、`FLOW_TRANSITIONS`、`FLOW_FONT_FAMILY`，并导出 `COLORS`、`SPACING` 等短别名。主色为 `#2563EB`，品牌渐变为蓝紫 `#2563EB → #7C3AED`。
+- [antd.ts](../../frontend/src/theme/antd.ts) 将令牌映射为 Ant Design `ThemeConfig`，同时覆盖 Button/Input/Select/Table/Menu/Layout 等组件的圆角、间距与阴影。
+- [index.ts](../../frontend/src/theme/index.ts) 聚合导出，供 `main.tsx` 的 `ConfigProvider` 与测试注入。
+- 组件内需要动态令牌时使用 `theme.useToken()`，禁止硬编码颜色体系统一值。
 
 ## 插件系统
 
-### 插件加载器
+插件系统由“后端清单 + 前端组件注册表”两部分组成：
 
-**文件**: [frontend/src/plugins/loader.tsx](../../frontend/src/plugins/loader.tsx)
+- **注册表** [frontend/src/plugins/loader.tsx](../../frontend/src/plugins/loader.tsx)：`registerPluginComponent(name, component)`、`getPluginComponent(name)`、`hasPluginComponent(name)` 维护 `loadedPlugins` 映射。
+- **内置注册** [frontend/src/plugins/index.tsx](../../frontend/src/plugins/index.tsx)：`initializePlugins()` 注册 `rating` → `StarRating`。新增插件只需在此追加注册并在 `plugins/components/` 添加组件。
+- **渲染器** `PluginRenderer`：按 `pluginName` 查表，命中则渲染组件并通过 `Suspense` 提供加载态；未命中则回退显示原始值文本，保证插件缺失时页面不崩。
+- **评分插件** [frontend/src/plugins/components/StarRating.tsx](../../frontend/src/plugins/components/StarRating.tsx)：点击即通过 `api.updatePluginRating` 持久化，失败时回滚本地状态并提示。
+- **挂载点**：`ItemDetailDrawer` 在字段的 `definition.plugin_name` 命中注册表时改用 `PluginRenderer` 渲染，其余字段按 `value_type` 走布尔/数字/JSON/文本分支。
+- **管理页**：`PluginsPage` 拉取 `/plugins/manifests`，用 `hasPluginComponent` 标注每个插件是“已注册 UI 组件”还是“仅后端”。
 
-#### 核心接口
+## 图标策略与 no-emoji 测试
 
-```typescript
-export interface PluginManifest {
-  name: string;
-  version: string;
-  description: string;
-  author: string;
-  frontend_entry: string;
-  path: string;
-}
+前端只允许两类图标来源：
 
-export interface PluginComponentProps {
-  value: unknown;
-  itemId: string;
-  keyDefinition: {
-    name: string;
-    title: string;
-    value_type: string;
-  };
-  onUpdate: (value: unknown) => void;
-  readOnly?: boolean;
-}
+1. `@ant-design/icons` 的线性 SVG 图标；
+2. 手写内联 SVG（如 `BrandLogo`）。
+
+禁止在源码中使用 emoji 或 Unicode 象形字符。[frontend/tests/no-emoji-icons.test.ts](../../frontend/tests/no-emoji-icons.test.ts) 会递归扫描 `src/` 下的 `.ts`/`.tsx`，用 Unicode 区间正则匹配并断言无命中，从而在 CI 中强制该策略。
+
+## 测试体系
+
+- **配置** [frontend/vitest.config.ts](../../frontend/vitest.config.ts)：`jsdom` 环境、`globals: true`、`setupFiles: ./tests/setup.ts`、`testTimeout: 15000`（antd 渲染较重）。
+- **环境准备** [frontend/tests/setup.ts](../../frontend/tests/setup.ts)：引入 `@testing-library/jest-dom`，补齐 jsdom 缺失的 `ResizeObserver`、`matchMedia`、`requestAnimationFrame`。
+- **渲染工具** [frontend/tests/utils/renderWithProviders.tsx](../../frontend/tests/utils/renderWithProviders.tsx)：`renderWithProviders` 复刻生产 Provider 链（`ConfigProvider` + `AntdApp` + Redux `Provider` + `MemoryRouter`），并把主题 `token.motion` 设为 `false` 关闭动画以稳定断言；`createTestStore` 支持注入 `preloadedState`。
+- **Mock**：`tests/utils/mockApi.ts` 提供 API 替身，`mockXhr.ts` 覆盖上传进度场景，`deferred.ts` 控制异步时序（含乱序响应测试）。
+- **覆盖**：`tests/` 按 `pages/`、`components/`、`hooks/`、`store/`、`services/`、`plugins/` 分层，另有 `App.test.tsx`、`routing.test.tsx` 与 `no-emoji-icons.test.ts`。当前共 **20 个测试文件、114 个用例**。
+
+运行方式：
+
+```bash
+cd frontend
+npm run lint          # ESLint
+npx vitest run        # 单次运行全部测试
+npm run build         # tsc -b + vite build
 ```
-
-#### 核心函数
-
-| 函数 | 说明 |
-|------|------|
-| `registerPluginComponent(name, component)` | 注册插件组件 |
-| `getPluginComponent(name)` | 获取插件组件 |
-| `hasPluginComponent(name)` | 检查插件组件是否存在 |
-| `fetchPluginManifests()` | 从后端获取插件清单 |
-
-#### PluginRenderer 组件
-
-用于渲染插件组件的包装器：
-
-```tsx
-<PluginRenderer
-  pluginName="rating"
-  value={value}
-  itemId={itemId}
-  keyDefinition={keyDefinition}
-  onUpdate={onUpdate}
-  readOnly={readOnly}
-/>
-```
-
-### 插件入口
-
-**文件**: [frontend/src/plugins/index.tsx](../../frontend/src/plugins/index.tsx)
-
-`initializePlugins()` 函数在应用启动时注册内置插件组件：
-
-- `rating`: 星级评分插件
-
-## 数据流
-
-### 数据加载流程
-
-1. `App` 组件挂载，调用 `initializePlugins()` 初始化插件
-2. `Layout` 组件挂载，调用 `useInitialData()` Hook
-3. Hook 内部并行请求后端 API：
-   - `GET /api/v1/item` → 加载知识项
-   - `GET /api/v1/categories` → 加载分类
-   - `GET /api/v1/keys` → 加载 Key 定义
-4. 通过 dispatch 更新 Redux store
-
-### 用户交互流程
-
-以"点击知识项"为例：
-
-1. 用户点击知识项卡片
-2. 触发 `handleItemClick(item)`
-3. dispatch `selectItem(item.id)` 更新选中状态
-4. 右侧抽屉显示知识项详情
-
-## 组件层次
-
-```
-App.tsx
-└── ConfigProvider (Ant Design 主题)
-    └── AntdApp (Ant Design 上下文)
-        └── Provider (Redux Store)
-            └── Layout.tsx
-                ├── GlobalStyle (全局样式)
-                ├── StyledLayout
-                │   ├── StyledHeader
-                │   │   ├── Logo
-                │   │   └── AI 助手按钮
-                │   ├── AntLayout
-                │   │   ├── StyledSider (侧边栏)
-                │   │   │   └── StyledMenu (分类菜单)
-                │   │   └── Content
-                │   │       ├── StyledTabs (推荐/全部/搜索)
-                │   │       ├── SearchSection (搜索区域)
-                │   │       ├── UploadSection (上传区域)
-                │   │       ├── ResultsSection (结果列表)
-                │   │       │   └── FileCard[] (文件卡片)
-                │   │       └── DetailDrawer (详情抽屉)
-                │   └── Modal (编辑表单弹窗)
-                ├── KeyManager (Key 管理弹窗)
-                ├── AIAssistant (AI 助手弹窗)
-                └── MediaPreview (媒体预览弹窗)
-```
-
-## 类型定义
-
-**文件**: [frontend/src/types/index.ts](../../frontend/src/types/index.ts)
-
-### 核心类型
-
-```typescript
-export type ValueType = 'string' | 'number' | 'boolean' | 'array' | 'object';
-
-export interface KeyDefinition {
-  name: string;
-  title: string;
-  value_type: ValueType;
-  default_value: any;
-  description: string;
-  category_name: string;
-  is_required: boolean;
-  is_visible: boolean;
-  plugin_name: string;
-  delete_with_plugin: boolean;
-  is_public: boolean;
-  is_private: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CategoryDefinition {
-  name: string;
-  title: string;
-  parent_name: string | null;
-  is_builtin: boolean;
-}
-
-export interface KnowledgeItem {
-  id: string;
-  name: string;
-  keyValues: Record<string, unknown>;
-  createdAt?: string;
-}
-```
-
-## 主题系统
-
-**文件**: [frontend/src/theme/index.ts](../../frontend/src/theme/index.ts)
-
-### 设计令牌
-
-主题系统导出以下设计令牌：
-
-- `COLORS`: 颜色规范
-- `SPACING`: 间距规范
-- `BORDER_RADIUS`: 圆角规范
-- `FONT_SIZES`: 字体大小
-- `FONT_WEIGHTS`: 字体粗细
-- `SHADOWS`: 阴影规范
-- `TRANSITIONS`: 过渡动画
-
-### Ant Design 主题配置
-
-`antdTheme` 对象配置了 Ant Design 组件的主题定制，包括：
-
-- 品牌色、背景色、文字色
-- 边框、状态色
-- 圆角、阴影
-- 字体、间距
-- 各组件的特定样式覆盖
-
-## 搜索功能
-
-### 搜索流程
-
-1. 用户输入搜索关键词
-2. 触发 `handleSearch(value, sortBy)`
-3. 过滤知识项列表：
-   - 匹配 `name` 字段
-   - 匹配 `keyValues.file_path` 字段
-4. 应用排序（按最近添加）
-5. dispatch `setSearchResults(results)` 更新搜索结果
-
-### Key 点击筛选
-
-点击侧边栏的 Key 时：
-
-1. 触发 `handleKeyClick(keyName)`
-2. 过滤包含该 Key 值的知识项
-3. 更新搜索结果并切换到搜索 Tab
