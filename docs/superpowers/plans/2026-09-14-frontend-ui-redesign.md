@@ -148,7 +148,7 @@ git commit -m "refactor(frontend): add library/catalog/plugins slices"
 
 ### Task 5: 知识库页（拆分 5a/5b/5c）
 
-#### Task 5a: 列表 + 服务端搜索 + 分页 + URL 同步
+#### Task 5a: 列表 + 服务端搜索 + 分页 + URL 同步 ✅
 
 **Files:**
 - Create: `frontend/src/pages/LibraryPage.tsx`、`components/library/SearchToolbar.tsx`、`components/library/ItemTable.tsx`、`hooks/useLibrary.ts`
