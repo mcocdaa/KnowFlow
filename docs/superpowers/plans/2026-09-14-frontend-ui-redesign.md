@@ -96,7 +96,7 @@ git commit -m "feat(frontend): add SVG brand logo, file icons and state placehol
 
 ---
 
-### Task 3: API 层与类型扩展 ✅
+### Task 3: API 层与类型扩展
 
 **Files:**
 - Modify: `frontend/src/types/index.ts`、`frontend/src/services/api.ts`
@@ -125,7 +125,7 @@ git commit -m "feat(frontend): extend api client for search, catalog, plugins an
 
 ---
 
-### Task 4: Store 重构（library / catalog / plugins） ✅
+### Task 4: Store 重构（library / catalog / plugins）
 
 **Files:**
 - Create: `frontend/src/store/librarySlice.ts`、`catalogSlice.ts`、`pluginsSlice.ts`
@@ -146,7 +146,7 @@ git commit -m "refactor(frontend): add library/catalog/plugins slices"
 
 ---
 
-### Task 5: 知识库页 ✅（拆分 5a/5b/5c）
+### Task 5: 知识库页（拆分 5a/5b/5c）
 
 #### Task 5a: 列表 + 服务端搜索 + 分页 + URL 同步
 
@@ -215,7 +215,7 @@ git commit -m "feat(frontend): add item create/edit/upload modals with validatio
 
 ---
 
-### Task 6: 分类管理页 ✅
+### Task 6: 分类管理页
 
 **Files:** Create `pages/CategoriesPage.tsx`、`components/categories/CategoryFormModal.tsx`、`hooks/useCategories.ts`；Create `tests/pages/CategoriesPage.test.tsx`
 
@@ -233,7 +233,7 @@ git commit -m "feat(frontend): add category management page with CRUD"
 
 ---
 
-### Task 7: Key 管理页 ✅
+### Task 7: Key 管理页
 
 **Files:** Create `pages/KeysPage.tsx`、`components/keys/KeyFormModal.tsx`、`hooks/useKeys.ts`（`components/keys/JsonValueField.tsx` 如 Task 5c 未建则在此建）；Create `tests/pages/KeysPage.test.tsx`；Delete `components/business/KeyManager.tsx`、`store/keySlice.ts`
 
@@ -251,7 +251,7 @@ git commit -m "feat(frontend): add key management page with full-field editor"
 
 ---
 
-### Task 8: 插件页 + AI 页 ✅
+### Task 8: 插件页 + AI 页
 
 **Files:** Create `pages/PluginsPage.tsx`、`pages/AIPage.tsx`、`hooks/usePlugins.ts`、`hooks/useAI.ts`；Create `tests/pages/PluginsPage.test.tsx`、`AIPage.test.tsx`；Delete `components/business/AIAssistant.tsx`；Modify `components/library/DetailDrawer`（如有 AI 入口引用）
 
@@ -267,7 +267,7 @@ git commit -m "feat(frontend): add plugins and AI assistant pages"
 
 ---
 
-### Task 9: 清理、SVG 收尾与文档 ✅
+### Task 9: 清理、SVG 收尾与文档
 
 **Files:**
 - Modify: `components/common/ErrorBoundary.tsx`（💥→`WarningOutlined` + antd `Result`）、`plugins/components/StarRating.tsx`（`★`→antd `Rate`，保留乐观更新/回滚契约）、`tests/plugins/StarRating.test.tsx`（按 Rate 交互更新断言）
@@ -295,7 +295,7 @@ git commit -m "docs(frontend): update frontend docs for multi-page UI"
 
 ---
 
-### Task 10: 端到端验证与 PR ✅
+### Task 10: 端到端验证与 PR
 
 **Step 1: 全量静态与单测**
 `cd frontend && npm ci && npx vitest run && npm run lint && npm run build`

@@ -1,5 +1,6 @@
 import { Layout } from 'antd';
 import { Outlet } from 'react-router';
+import BrandLogo from '../components/common/BrandLogo';
 import SideNav from '../components/layout/SideNav';
 
 const { Header, Sider, Content } = Layout;
@@ -16,21 +17,7 @@ const AppLayout = () => (
         borderBottom: '1px solid #E2E8F0',
       }}
     >
-      <span
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
-          color: '#ffffff',
-          fontWeight: 700,
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        K
-      </span>
+      <BrandLogo />
       <span style={{ fontSize: 18, fontWeight: 600, color: '#0F172A' }}>KnowFlow</span>
     </Header>
     <Layout>
