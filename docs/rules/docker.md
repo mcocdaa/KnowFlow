@@ -314,7 +314,7 @@ echo "✅ 服务已停止"
 
 ```dockerfile
 # 构建阶段
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
@@ -322,7 +322,7 @@ COPY . .
 RUN npm run build
 
 # 运行阶段
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 # 安全：使用非 root 用户
@@ -346,7 +346,7 @@ CMD ["node", "dist/main.js"]
 
 ```dockerfile
 # 构建阶段
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
