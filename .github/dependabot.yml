@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # GitHub Actions 依赖
+  # GitHub Actions 依赖（action 常以 major tag 发布，全部并入一个 PR）
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -9,20 +9,26 @@ updates:
       actions:
         patterns: ['*']
 
-  # 前端 npm 依赖（每周合并为一个 PR，减少噪音）
+  # 前端 npm 依赖（仅 minor/patch 并入一个 PR；major 单独评估）
   - package-ecosystem: npm
     directory: /frontend
     schedule:
       interval: weekly
     groups:
-      npm:
+      npm-minor-patch:
         patterns: ['*']
+        update-types: ['minor', 'patch']
+    ignore:
+      # typescript-eslint peer 要求 typescript <6.1，暂不跟进 TS major
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
-  # 后端 pip 依赖
+  # 后端 pip 依赖（仅 minor/patch 并入一个 PR；major 单独评估）
   - package-ecosystem: pip
     directory: /backend
     schedule:
       interval: weekly
     groups:
-      pip:
+      pip-minor-patch:
         patterns: ['*']
+        update-types: ['minor', 'patch']
