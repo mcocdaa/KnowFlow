@@ -14,7 +14,7 @@ version: "2.0"
 | 方式 | 依赖 |
 |------|------|
 | Docker 部署（推荐） | Docker 20+、Docker Compose 2.20+ |
-| 本地开发 | Python 3.11+、Node.js 20.19+、MongoDB 7 |
+| 本地开发 | Python 3.11+、Node.js 22.12+、MongoDB 7 |
 
 ---
 

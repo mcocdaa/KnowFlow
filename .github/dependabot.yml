@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # GitHub Actions 依赖
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  # 前端 npm 依赖（每周合并为一个 PR，减少噪音）
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ['*']
+
+  # 后端 pip 依赖
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      pip:
+        patterns: ['*']

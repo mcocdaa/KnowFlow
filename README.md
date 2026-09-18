@@ -1,6 +1,8 @@
 # KnowFlow
 
 [![CI](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/mcocdaa/KnowFlow?display_name=tag&sort=semver)](https://github.com/mcocdaa/KnowFlow/releases)
+[![License](https://img.shields.io/github/license/mcocdaa/KnowFlow)](LICENSE)
 
 KnowFlow 是一个知识管理系统：文件导入、动态 Key-Value 属性、分类层级、插件扩展与 AI 语义检索。
 
@@ -48,7 +50,7 @@ docker compose up -d --build # 更新代码后重建
 
 ### 使用 docker run（不用 Compose）
 
-镜像由 CI 发布到 GHCR（`:main` 跟随主分支，也支持 `vX.Y.Z` 版本标签）：
+镜像由 CI 发布到 GHCR（`:main` 跟随主分支，`:latest` 指向最新 Release，也可用 `:X.Y.Z` / `:X.Y` 固定版本）：
 
 ```bash
 docker network create knowflow
@@ -70,7 +72,7 @@ docker run -d --name knowflow-frontend --network knowflow -p 8000:8000 \
 
 ## 本地开发（不用 Docker）
 
-环境要求：Python 3.11+、Node.js 20.19+、MongoDB 7（或 Docker 启动）。
+环境要求：Python 3.11+、Node.js 22.12+、MongoDB 7（或 Docker 启动）。
 
 ```bash
 cp .env.example .env
@@ -123,6 +125,15 @@ cd backend && python test/e2e_api_check.py
 
 # 前端检查与构建
 cd frontend && npm run lint && npx vitest run && npm run build
+```
+
+## 版本发布
+
+推送 `vX.Y.Z` 形式的 tag 即触发发布：CI 全绿后自动构建并推送 GHCR 镜像（`:X.Y.Z` / `:X.Y` / `:latest`），并创建 [GitHub Release](https://github.com/mcocdaa/KnowFlow/releases)（自动生成变更日志）。
+
+```bash
+git tag -a v1.1.0 -m "v1.1.0"
+git push origin v1.1.0
 ```
 
 ## 文档

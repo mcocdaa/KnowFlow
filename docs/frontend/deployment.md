@@ -9,7 +9,7 @@ description: 前端开发构建测试与部署
 
 ## 环境要求
 
-- Node.js 20.19+
+- Node.js 22.12+
 - npm（仓库使用 `package-lock.json`，推荐 `npm ci`）
 
 依赖安装：
@@ -109,7 +109,7 @@ npm run build            # tsc -b 会执行类型检查
 
 ## Docker 部署
 
-前端镜像由两层构成：`node:20-alpine` 构建 `dist/`，再由 `nginx:alpine` 托管，容器内固定监听 `8000`。相关文件：[frontend/Dockerfile](../../frontend/Dockerfile)、[frontend/nginx.conf](../../frontend/nginx.conf)、[docker/docker-compose.frontend.yml](../../docker/docker-compose.frontend.yml)。
+前端镜像由两层构成：`node:22-alpine` 构建 `dist/`，再由 `nginx:alpine` 托管，容器内固定监听 `8000`。相关文件：[frontend/Dockerfile](../../frontend/Dockerfile)、[frontend/nginx.conf](../../frontend/nginx.conf)、[docker/docker-compose.frontend.yml](../../docker/docker-compose.frontend.yml)。
 
 ### Compose（推荐）
 
@@ -170,7 +170,7 @@ Electron 运行时还可以通过 `window.knowflow?.apiBase` 覆盖 API 地址�
 ### 依赖安装失败
 
 - 删除 `node_modules` 与 `package-lock.json` 后重新安装
-- 确认 Node.js 版本满足 20.19+
+- 确认 Node.js 版本满足 22.12+
 
 ### 测试失败
 
