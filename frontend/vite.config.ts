@@ -49,14 +49,18 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       emptyOutDir: true,
-      // antd 组件库固有体积较大（约 1.2MB minified），vendor 已拆分，此处设合理阈值
-      chunkSizeWarningLimit: 1300,
+      // antd 组件库固有体积较大（约 1.4MB minified），vendor 已拆分，此处设合理阈值
+      chunkSizeWarningLimit: 1500,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-redux', '@reduxjs/toolkit', 'react-router'],
-            antd: ['antd'],
-            icons: ['@ant-design/icons'],
+          // vite 8（rolldown）只接受函数形式；按需拆 vendor
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return
+            if (id.includes('@ant-design/icons')) return 'icons'
+            if (id.includes('/antd/') || id.includes('/rc-') || id.includes('@rc-component')) return 'antd'
+            if (/node_modules\/(react|react-dom|react-redux|@reduxjs|react-router|scheduler)/.test(id)) {
+              return 'react-vendor'
+            }
           },
         },
       },

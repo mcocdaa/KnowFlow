@@ -167,7 +167,7 @@ export const api = {
       };
 
       xhr.onload = () => {
-        let body: Envelope<ItemWrapper> | null = null;
+        let body: Envelope<ItemWrapper> | null;
         try {
           body = JSON.parse(xhr.responseText) as Envelope<ItemWrapper>;
         } catch {
