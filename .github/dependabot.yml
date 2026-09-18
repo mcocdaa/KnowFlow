@@ -32,3 +32,30 @@ updates:
       pip-minor-patch:
         patterns: ['*']
         update-types: ['minor', 'patch']
+
+  # --- 以下为补充配置 ---
+  # Docker 基础镜像
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: monthly
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule:
+      interval: monthly
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: docker-compose
+    directory: /.devcontainer
+    schedule:
+      interval: monthly
+  # gitsubmodule
+  - package-ecosystem: gitsubmodule
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(submodule)'
