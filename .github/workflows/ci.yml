@@ -194,6 +194,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      # gh release create --verify-tag 需要本地 git 仓库
+      - uses: actions/checkout@v5
+
       # 全部检查通过后，为 tag 创建 GitHub Release（自动生成变更日志）
       - name: Create GitHub Release
         env:
