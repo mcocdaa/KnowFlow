@@ -45,7 +45,7 @@ const Harness = ({ onFinish }: { onFinish: (values: Record<string, unknown>) => 
 
 describe('DynamicKeyForm', () => {
   it('renders widgets by value_type and hides invisible keys', () => {
-    renderWithProviders(<Harness onFinish={vi.fn()} />);
+    const { unmount } = renderWithProviders(<Harness onFinish={vi.fn()} />);
 
     expect(screen.getByLabelText('名称')).toBeInTheDocument();
     expect(screen.getByLabelText('页数')).toBeInTheDocument();
@@ -53,23 +53,27 @@ describe('DynamicKeyForm', () => {
     expect(screen.getByLabelText('标签')).toBeInTheDocument();
     expect(screen.getByLabelText('元数据')).toBeInTheDocument();
     expect(screen.queryByLabelText('隐藏字段')).not.toBeInTheDocument();
+    unmount();
   });
 
   it('blocks submit when a required key is empty', async () => {
     const user = userEvent.setup();
     const onFinish = vi.fn();
-    renderWithProviders(<Harness onFinish={onFinish} />);
+    const { unmount } = renderWithProviders(<Harness onFinish={onFinish} />);
 
     await user.click(screen.getByRole('button', { name: /提\s*交/ }));
 
     expect(await screen.findByText('请输入名称')).toBeInTheDocument();
-    expect(onFinish).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onFinish).not.toHaveBeenCalled();
+    });
+    unmount();
   });
 
   it('rejects invalid JSON before submitting', async () => {
     const user = userEvent.setup();
     const onFinish = vi.fn();
-    renderWithProviders(<Harness onFinish={onFinish} />);
+    const { unmount } = renderWithProviders(<Harness onFinish={onFinish} />);
 
     await user.type(screen.getByLabelText('名称'), '部署手册');
     await user.click(screen.getByLabelText('标签'));
@@ -77,13 +81,16 @@ describe('DynamicKeyForm', () => {
     await user.click(screen.getByRole('button', { name: /提\s*交/ }));
 
     expect(await screen.findByText('JSON 格式不正确')).toBeInTheDocument();
-    expect(onFinish).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onFinish).not.toHaveBeenCalled();
+    });
+    unmount();
   });
 
   it('parses JSON fields into arrays and objects on submit', async () => {
     const user = userEvent.setup();
     const onFinish = vi.fn();
-    renderWithProviders(<Harness onFinish={onFinish} />);
+    const { unmount } = renderWithProviders(<Harness onFinish={onFinish} />);
 
     await user.type(screen.getByLabelText('名称'), '部署手册');
     await user.type(screen.getByLabelText('页数'), '12');
@@ -97,5 +104,6 @@ describe('DynamicKeyForm', () => {
     expect(onFinish).toHaveBeenCalledWith(
       expect.objectContaining({ name: '部署手册', pages: 12, tag_list: ['a', 'b'], meta: { owner: 'ops' } }),
     );
+    unmount();
   });
 });

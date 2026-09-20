@@ -29,8 +29,8 @@ const definitions: KeyDefinition[] = [
 ];
 
 describe('ItemFormModal', () => {
-  it('prefills initial values in edit mode', () => {
-    renderWithProviders(
+  it('prefills initial values in edit mode', async () => {
+    const { unmount } = renderWithProviders(
       <ItemFormModal
         open
         mode="edit"
@@ -41,19 +41,20 @@ describe('ItemFormModal', () => {
       />,
     );
 
-    expect(screen.getByText('编辑记录')).toBeInTheDocument();
+    expect(await screen.findByText('编辑记录')).toBeInTheDocument();
     expect(screen.getByLabelText('名称')).toHaveValue('旧名称');
     expect(screen.getByLabelText('标签')).toHaveValue('[\n  "x"\n]');
+    unmount();
   });
 
   it('submits parsed values', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    renderWithProviders(
+    const { unmount } = renderWithProviders(
       <ItemFormModal open mode="create" definitions={definitions} onCancel={vi.fn()} onSubmit={onSubmit} />,
     );
 
-    expect(screen.getByText('新建记录')).toBeInTheDocument();
+    expect(await screen.findByText('新建记录')).toBeInTheDocument();
     await user.type(screen.getByLabelText('名称'), '新记录');
     await user.click(screen.getByLabelText('标签'));
     await user.paste('["k1"]');
@@ -62,21 +63,26 @@ describe('ItemFormModal', () => {
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ name: '新记录', tag_list: ['k1'] })),
     );
+    unmount();
   });
 
   it('does not submit invalid JSON', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    renderWithProviders(
+    const { unmount } = renderWithProviders(
       <ItemFormModal open mode="create" definitions={definitions} onCancel={vi.fn()} onSubmit={onSubmit} />,
     );
 
+    expect(await screen.findByText('新建记录')).toBeInTheDocument();
     await user.type(screen.getByLabelText('名称'), '新记录');
     await user.click(screen.getByLabelText('标签'));
     await user.paste('{oops');
     await user.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     expect(await screen.findByText('JSON 格式不正确')).toBeInTheDocument();
-    expect(onSubmit).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+    unmount();
   });
 });
