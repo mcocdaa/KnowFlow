@@ -1,8 +1,13 @@
 # KnowFlow
 
+> 具备动态 Key-Value 属性、分类层级与插件化 AI 检索的个人/团队知识管理系统。
+
+[![Family: *Flow](https://img.shields.io/badge/family-*Flow-8A2BE2.svg)](https://github.com/mcocdaa)
 [![CI](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/mcocdaa/KnowFlow?display_name=tag&sort=semver)](https://github.com/mcocdaa/KnowFlow/releases)
-[![License](https://img.shields.io/github/license/mcocdaa/KnowFlow)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](compose.yaml)
 
 KnowFlow 是一个知识管理系统：文件导入、动态 Key-Value 属性、分类层级、插件扩展与 AI 语义检索。
 

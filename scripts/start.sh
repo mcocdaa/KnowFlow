@@ -58,12 +58,17 @@ usage() {
     exit 1
 }
 
-if [ $# -lt 1 ]; then
-    usage
+MODE="${1:-dev}"
+SERVICE="${2:-full}"
+
+if [ "$MODE" = "docker" ]; then
+    MODE="dev"
 fi
 
-MODE="$1"
-SERVICE="${2:-full}"
+case "$MODE" in
+    local|dev) ;;
+    *) echo "未知模式：$MODE"; usage ;;
+esac
 
 stop_docker_services() {
     echo "停止已有 Docker 服务..."
