@@ -13,6 +13,6 @@ python3 -m pytest test/ -q 2>/dev/null || true
 cd "$PROJECT_ROOT/frontend"
 echo "==> [KnowFlow] Frontend lint & test..."
 npm run lint
-npm test
+npm test -- --run
 
 echo "✓ 全部检查通过 (KnowFlow)"
