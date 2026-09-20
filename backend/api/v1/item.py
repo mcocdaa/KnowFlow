@@ -25,8 +25,19 @@ async def search_items(
     sort: str = Query("recent", pattern="^(recent|rating|name)$"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    category_name: str | None = None,
 ):
-    return ok(await manager.search(q=q, key=key, key_value=key_value, sort=sort, page=page, page_size=page_size))
+    return ok(
+        await manager.search(
+            q=q,
+            key=key,
+            key_value=key_value,
+            sort=sort,
+            page=page,
+            page_size=page_size,
+            category_name=category_name,
+        )
+    )
 
 
 @router.get("/item/{item_id}")

@@ -5,10 +5,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_ROOT/backend"
+PYTHON_BIN="python3"
+if [ -x "$PROJECT_ROOT/backend/.venv/bin/python" ]; then
+  PYTHON_BIN="$PROJECT_ROOT/backend/.venv/bin/python"
+fi
+
 echo "==> [KnowFlow] Backend ruff check..."
-python3 -m ruff check . 2>/dev/null || true
+"$PYTHON_BIN" -m ruff check .
 echo "==> [KnowFlow] Backend pytest..."
-python3 -m pytest test/ -q 2>/dev/null || true
+"$PYTHON_BIN" -m pytest test/ -q
 
 cd "$PROJECT_ROOT/frontend"
 echo "==> [KnowFlow] Frontend lint & test..."

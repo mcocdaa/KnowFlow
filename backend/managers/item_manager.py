@@ -81,7 +81,7 @@ class ItemManager:
         return str(value) if value is not None else ""
 
     def _convert_to_string(self, value: Any, value_type: str) -> str:
-        """将输入值按 value_type 规范化为存储字符串"""
+        """将输入值按 value_type 规范化为存储字符串（向后兼容）"""
         if value_type == "boolean":
             if isinstance(value, str):
                 return value.lower()
@@ -91,6 +91,58 @@ class ItemManager:
                 return value
             return json.dumps(value, ensure_ascii=False)
         return str(value) if value is not None else ""
+
+    def _sanitize_to_bson(self, value: Any, value_type: str) -> Any:
+        """规范化输入值为 MongoDB 原生 BSON 类型（数字、布尔、原生数组/对象）"""
+        if value is None:
+            return None
+        if value_type == "number":
+            if isinstance(value, bool):
+                return int(value)
+            if isinstance(value, int | float):
+                return value
+            val_str = str(value).strip()
+            try:
+                return int(val_str)
+            except ValueError:
+                try:
+                    return float(val_str)
+                except ValueError:
+                    return value
+        elif value_type == "boolean":
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.lower() in ("true", "1", "yes")
+            return bool(value)
+        elif value_type == "array":
+            if isinstance(value, list | tuple):
+                return list(value)
+            if isinstance(value, str):
+                val_str = value.strip()
+                if val_str.startswith("[") and val_str.endswith("]"):
+                    try:
+                        parsed = json.loads(val_str)
+                        if isinstance(parsed, list):
+                            return parsed
+                    except (ValueError, TypeError):
+                        pass
+                if val_str:
+                    return [item.strip() for item in val_str.split(",") if item.strip()]
+                return []
+            return [value]
+        elif value_type == "object":
+            if isinstance(value, dict):
+                return value
+            if isinstance(value, str):
+                try:
+                    parsed = json.loads(value)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except (ValueError, TypeError):
+                    pass
+            return value
+        return str(value)
 
     async def _get_key_dict(self) -> dict[str, dict[str, Any]]:
         """获取全部 Key 定义，构建 name -> key_def 映射"""
@@ -117,6 +169,10 @@ class ItemManager:
 
         if "name" in item:
             knowflow_item["name"] = item["name"]
+
+        if "category_name" in item and item["category_name"]:
+            knowflow_item["category_name"] = item["category_name"]
+            item_attributes["category_name"] = item["category_name"]
 
         for key_name in ["created_at", "updated_at"]:
             if key_name in item and item[key_name]:
@@ -176,11 +232,17 @@ class ItemManager:
         if "name" in item_data:
             knowflow_item["name"] = item_data["name"]
 
+        category_name = item_data.get("category_name")
         key_values = extract_key_values(item_data)
+        if not category_name and "category_name" in key_values:
+            category_name = key_values["category_name"]
+        if category_name:
+            knowflow_item["category_name"] = str(category_name)
+
         for key_name, value in key_values.items():
             if key_name in key_dict:
                 key_def = key_dict[key_name]
-                knowflow_item[key_name] = self._convert_to_string(value, key_def["value_type"])
+                knowflow_item[key_name] = self._sanitize_to_bson(value, key_def["value_type"])
 
         item_id = await db_manager.insert_one(self.items_collection, knowflow_item)
         item = await db_manager.find_one(self.items_collection, {"_id": item_id})
@@ -205,13 +267,19 @@ class ItemManager:
         if "name" in updates:
             update_fields["name"] = updates["name"]
 
-        key_dict = await self._get_key_dict()
+        category_name = updates.get("category_name")
         key_values = extract_key_values(updates)
+        if not category_name and "category_name" in key_values:
+            category_name = key_values["category_name"]
+        if category_name is not None:
+            update_fields["category_name"] = str(category_name)
+
+        key_dict = await self._get_key_dict()
 
         for key_name, value in key_values.items():
             if key_name in key_dict:
                 key_def = key_dict[key_name]
-                update_fields[key_name] = self._convert_to_string(value, key_def["value_type"])
+                update_fields[key_name] = self._sanitize_to_bson(value, key_def["value_type"])
 
         if update_fields:
             update_fields["updated_at"] = now
@@ -241,6 +309,7 @@ class ItemManager:
         sort: str = "recent",
         page: int = 1,
         page_size: int = 20,
+        category_name: str | None = None,
     ) -> dict[str, Any]:
         """
         搜索知识项
@@ -250,7 +319,10 @@ class ItemManager:
 
         key_dict = await self._get_key_dict()
 
-        query = {}
+        query: dict[str, Any] = {}
+
+        if category_name:
+            query["category_name"] = category_name
 
         if q:
             search_fields = ["name", *key_dict.keys()]
@@ -259,19 +331,65 @@ class ItemManager:
             query["$or"] = or_conditions
 
         if key and key_value:
-            if key not in key_dict:
+            if key == "category_name":
+                query["category_name"] = key_value
+            elif key not in key_dict:
                 raise ValueError(f"unknown key: {key}")
-            query[key] = {"$regex": re.escape(key_value), "$options": "i"}
+            else:
+                key_def = key_dict[key]
+                val_type = key_def.get("value_type", "string")
+                raw_val = key_value.strip()
+
+                if val_type == "number":
+                    # 支持原生数值范围查询与精确匹配
+                    if raw_val.startswith(">="):
+                        try:
+                            num = float(raw_val[2:].strip())
+                            query[key] = {"$gte": num}
+                        except ValueError:
+                            query[key] = {"$regex": re.escape(key_value), "$options": "i"}
+                    elif raw_val.startswith("<="):
+                        try:
+                            num = float(raw_val[2:].strip())
+                            query[key] = {"$lte": num}
+                        except ValueError:
+                            query[key] = {"$regex": re.escape(key_value), "$options": "i"}
+                    elif raw_val.startswith(">"):
+                        try:
+                            num = float(raw_val[1:].strip())
+                            query[key] = {"$gt": num}
+                        except ValueError:
+                            query[key] = {"$regex": re.escape(key_value), "$options": "i"}
+                    elif raw_val.startswith("<"):
+                        try:
+                            num = float(raw_val[1:].strip())
+                            query[key] = {"$lt": num}
+                        except ValueError:
+                            query[key] = {"$regex": re.escape(key_value), "$options": "i"}
+                    else:
+                        try:
+                            num = float(raw_val)
+                            num_target = int(num) if num.is_integer() else num
+                            query[key] = {"$in": [num_target, num, raw_val]}
+                        except ValueError:
+                            query[key] = {"$regex": re.escape(key_value), "$options": "i"}
+                elif val_type == "boolean":
+                    b_val = raw_val.lower() in ("true", "1", "yes")
+                    query[key] = {"$in": [b_val, "true" if b_val else "false"]}
+                elif val_type == "array":
+                    query[key] = {"$in": [raw_val, re.compile(re.escape(raw_val), re.IGNORECASE)]}
+                else:
+                    query[key] = {"$regex": re.escape(key_value), "$options": "i"}
 
         skip = (page - 1) * page_size
 
         if sort == "rating":
-            # rating 以字符串存储，需要数值化排序（兼容存量数据）
+            # 兼容原生数值与存量字符串排序
             items = await db_manager.aggregate(
                 self.items_collection,
                 [
                     {"$match": query},
-                    {"$addFields": {"_sort_rating": {"$toDouble": {"$ifNull": ["$rating", "0"]}}}},
+                    {"$addFields": {"_sort_rating": {"$toDouble": {"$ifNull": ["$rating", 0]}}}},
                     {"$sort": {"_sort_rating": -1}},
                     {"$skip": skip},
                     {"$limit": page_size},

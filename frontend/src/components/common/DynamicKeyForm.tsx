@@ -1,7 +1,8 @@
-import { Form, Input, InputNumber, Switch } from 'antd';
+import { DatePicker, Form, Input, InputNumber, Switch } from 'antd';
 import type { FormInstance } from 'antd';
 import type { KeyDefinition } from '../../types';
 import { buildFieldRules, serializeInitialValues, transformJsonValues } from '../../utils/dynamicForm';
+import ArrayTagInput from './ArrayTagInput';
 
 interface DynamicKeyFormProps {
   form: FormInstance;
@@ -27,7 +28,9 @@ const DynamicKeyForm = ({ form, definitions, initialValues, onFinish }: DynamicK
     >
       {visibleDefinitions.map((definition) => {
         const isBoolean = definition.value_type === 'boolean';
-        const isJson = definition.value_type === 'array' || definition.value_type === 'object';
+        const isArray = definition.value_type === 'array';
+        const isDate = (definition.value_type as string) === 'date';
+        const isObject = definition.value_type === 'object';
 
         return (
           <Form.Item
@@ -42,10 +45,14 @@ const DynamicKeyForm = ({ form, definitions, initialValues, onFinish }: DynamicK
               <Switch />
             ) : definition.value_type === 'number' ? (
               <InputNumber style={{ width: '100%' }} />
+            ) : isArray ? (
+              <ArrayTagInput />
+            ) : isDate ? (
+              <DatePicker style={{ width: '100%' }} />
             ) : (
               <Input.TextArea
-                autoSize={{ minRows: isJson ? 2 : 1, maxRows: isJson ? 8 : 6 }}
-                placeholder={isJson ? '例如 ["a","b"] 或 {"key":"value"}' : undefined}
+                autoSize={{ minRows: isObject ? 2 : 1, maxRows: isObject ? 8 : 6 }}
+                placeholder={isObject ? '例如 {"key":"value"}' : undefined}
               />
             )}
           </Form.Item>

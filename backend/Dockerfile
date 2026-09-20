@@ -1,10 +1,12 @@
 # backend/Dockerfile
-FROM python:3.14-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_SYSTEM_PYTHON=1 \
+    UV_COMPILE_BYTECODE=1
 
 # 容器内默认路径（compose 会用 .env 覆盖为等价相对路径）
 ENV DATA_DIR=/app/data \
@@ -16,8 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+COPY pyproject.toml .
+RUN uv pip install -r pyproject.toml
 
 RUN addgroup --gid 1001 appgroup && \
     adduser --uid 1001 --ingroup appgroup --disabled-password --gecos "" appuser
