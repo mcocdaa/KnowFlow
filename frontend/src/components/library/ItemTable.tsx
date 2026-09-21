@@ -95,6 +95,14 @@ const ItemTable = ({
       columns={columns}
       dataSource={items}
       loading={loading}
+      onRow={(record) => ({
+        draggable: true,
+        onDragStart: (e) => {
+          e.dataTransfer.setData('text/plain', record.id);
+          e.dataTransfer.effectAllowed = 'copyMove';
+        },
+        style: { cursor: 'grab' },
+      })}
       pagination={{
         current: page,
         pageSize,

@@ -305,3 +305,53 @@ class TestItemManager:
             assert result["total"] == 1
             mock_db_manager.aggregate.assert_not_called()
             assert mock_db_manager.find.call_args.kwargs["sort"] == [("created_at", -1)]
+
+    def test_sanitize_to_bson(self, item_manager):
+        assert item_manager._sanitize_to_bson(42, "number") == 42
+        assert item_manager._sanitize_to_bson("3.14", "number") == 3.14
+        assert item_manager._sanitize_to_bson(True, "boolean") is True
+        assert item_manager._sanitize_to_bson("true", "boolean") is True
+        assert item_manager._sanitize_to_bson(["a", "b"], "array") == ["a", "b"]
+        assert item_manager._sanitize_to_bson('["x", "y"]', "array") == ["x", "y"]
+        assert item_manager._sanitize_to_bson({"k": "v"}, "object") == {"k": "v"}
+
+    @pytest.mark.asyncio
+    async def test_search_category_filter(self, item_manager, mock_db_manager):
+        mock_db_manager.find.return_value = []
+        mock_db_manager.count_documents.return_value = 0
+
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(return_value=[])
+            await item_manager.search(category_name="docs")
+
+            query = mock_db_manager.find.call_args.kwargs["query"]
+            assert query["category_name"] == "docs"
+
+    @pytest.mark.asyncio
+    async def test_search_number_range_queries(self, item_manager, mock_db_manager):
+        mock_db_manager.find.return_value = []
+        mock_db_manager.count_documents.return_value = 0
+
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(
+                return_value=[{"name": "rating", "title": "Rating", "value_type": "number"}]
+            )
+
+            await item_manager.search(key="rating", key_value=">=4")
+            query = mock_db_manager.find.call_args.kwargs["query"]
+            assert query["rating"] == {"$gte": 4.0}
+
+            await item_manager.search(key="rating", key_value="<=2.5")
+            query = mock_db_manager.find.call_args.kwargs["query"]
+            assert query["rating"] == {"$lte": 2.5}
+
+    @pytest.mark.asyncio
+    async def test_search_key_category_name(self, item_manager, mock_db_manager):
+        mock_db_manager.find.return_value = []
+        mock_db_manager.count_documents.return_value = 0
+
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(return_value=[])
+            await item_manager.search(key="category_name", key_value="backend_core")
+            query = mock_db_manager.find.call_args.kwargs["query"]
+            assert query["category_name"] == "backend_core"

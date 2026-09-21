@@ -231,3 +231,47 @@ class TestAutoTag:
 
             assert response.status_code == 200
             assert response.json()["data"]["results"] == {"id_1": ["标签A"]}
+
+
+class TestFastEmbedSearch:
+    def test_fastembed_search_local(self, app, client):
+        _, ai_module = app
+
+        class FakeEmbeddingModel:
+            def embed(self, texts):
+                import numpy as np
+
+                results = []
+                for text in texts:
+                    if "深度学习" in text:
+                        results.append(np.array([1.0, 0.0], dtype=float))
+                    else:
+                        results.append(np.array([0.0, 1.0], dtype=float))
+                return results
+
+        with patch.object(ai_module, "get_embedding_model", return_value=FakeEmbeddingModel()):
+            response = client.post(
+                "/ai/search",
+                json={
+                    "query": "深度学习模型训练",
+                    "items": [
+                        {"id": "doc_1", "name": "PyTorch 深度学习模型教程", "attributes": {"category": "AI"}},
+                        {"id": "doc_2", "name": "行政报销审批规范", "attributes": {"category": "行政"}},
+                    ],
+                },
+            )
+            assert response.status_code == 200
+            data = response.json()["data"]
+            assert len(data) >= 1
+            assert data[0]["id"] == "doc_1"
+
+    def test_run_fastembed_search_fallback_when_no_model(self, app):
+        _, ai_module = app
+        with patch.object(ai_module, "get_embedding_model", return_value=None):
+            items = [
+                ai_module.ItemBrief(id="1", name="PyTorch 深度学习模型教程", attributes={"category": "AI"}),
+                ai_module.ItemBrief(id="2", name="行政报销审批规范", attributes={"category": "行政"}),
+            ]
+            results = ai_module.run_fastembed_search("深度学习模型训练", items)
+            assert len(results) >= 1
+            assert results[0]["id"] == "1"

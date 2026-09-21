@@ -82,9 +82,18 @@ class DBManager:
         创建必要的索引
         """
         await self.db["categories"].create_index([("name", 1)], unique=True)
+        await self.db["categories"].create_index([("parent_name", 1)])
         await self.db["keys"].create_index([("name", 1)], unique=True)
+        await self.db["keys"].create_index([("category_name", 1)])
         await self.db["items"].create_index([("name", 1)])
         await self.db["items"].create_index([("created_at", -1)])
+        await self.db["items"].create_index([("category_name", 1), ("created_at", -1)])
+        await self.db["items"].create_index([("rating", -1)])
+        await self.db["items"].create_index(
+            [("name", "text"), ("content_text", "text"), ("summary", "text")],
+            name="item_fulltext_index",
+            default_language="none",
+        )
 
     @retry_on_connection_error
     async def insert_one(self, collection: str, document: dict[str, Any]) -> Any:

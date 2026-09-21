@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { Button, Flex, Input, Popover, Select, Space, Typography } from 'antd';
-import { FilterOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Button, Flex, Input, Popover, Segmented, Select, Space, Typography } from 'antd';
+import { AppstoreOutlined, BarsOutlined, FilterOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ItemSort, KeyDefinition } from '../../types';
 import type { LibraryQueryParams } from '../../hooks/useLibrary';
 
@@ -13,6 +13,8 @@ interface SearchToolbarProps {
   onPageSizeChange: (pageSize: number) => void;
   onUpload?: () => void;
   onCreate?: () => void;
+  viewMode?: 'table' | 'card';
+  onViewModeChange?: (mode: 'table' | 'card') => void;
 }
 
 const sortOptions = [
@@ -32,6 +34,8 @@ const SearchToolbar = ({
   onPageSizeChange,
   onUpload,
   onCreate,
+  viewMode = 'table',
+  onViewModeChange,
 }: SearchToolbarProps) => {
   const [value, setValue] = useState(params.q);
   const [lastQ, setLastQ] = useState(params.q);
@@ -71,7 +75,7 @@ const SearchToolbar = ({
           allowClear
           placeholder="搜索名称或任意属性值"
           value={value}
-          style={{ width: 300 }}
+          style={{ width: 280 }}
           onChange={(event) => {
             setValue(event.target.value);
             scheduleSearch(event.target.value);
@@ -80,7 +84,7 @@ const SearchToolbar = ({
         />
 
         <span data-testid="sort-select">
-          <Select value={params.sort} options={sortOptions} onChange={onSortChange} style={{ width: 120 }} />
+          <Select value={params.sort} options={sortOptions} onChange={onSortChange} style={{ width: 110 }} />
         </span>
 
         <Popover
@@ -136,8 +140,21 @@ const SearchToolbar = ({
         </Popover>
 
         <span data-testid="page-size-select">
-          <Select value={params.pageSize} options={pageSizeOptions} onChange={onPageSizeChange} style={{ width: 120 }} />
+          <Select value={params.pageSize} options={pageSizeOptions} onChange={onPageSizeChange} style={{ width: 110 }} />
         </span>
+
+        {onViewModeChange && (
+          <span data-testid="view-mode-toggle">
+            <Segmented
+              value={viewMode}
+              onChange={(val) => onViewModeChange(val as 'table' | 'card')}
+              options={[
+                { value: 'table', icon: <BarsOutlined />, label: '表格' },
+                { value: 'card', icon: <AppstoreOutlined />, label: '卡片' },
+              ]}
+            />
+          </span>
+        )}
       </Flex>
 
       <Space>

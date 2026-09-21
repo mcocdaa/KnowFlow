@@ -1,5 +1,8 @@
 fastapi
+fastembed>=0.4.0
 httpx
+numpy>=1.26.0
+pydantic>=2.9.0
 pymongo>=4.18.1,<5
 pytest
 pytest-asyncio
