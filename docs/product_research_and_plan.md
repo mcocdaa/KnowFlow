@@ -1,7 +1,7 @@
 # KnowFlow 产品深度调研与全景演进白皮书 (Product Research & Evolution Whitepaper)
 
-> **版本**：v2.0-Architecture Draft
-> **作者**：KnowFlow 架构专家委员会 / 企业级 RAG 架构团队
+> **版本**：v2.1-Pruned & Focused Edition
+> **战略原则（明确指示）**：“补充功能有些没有必要，简单就好，不需要复杂。现有功能完善和优化就很好了”。
 > **更新日期**：2026年9月
 > **项目路径**：`/home/mcocdaa/AI_CODE/KnowFlow`
 
@@ -9,18 +9,22 @@
 
 ## 执行摘要 (Executive Summary)
 
-**KnowFlow** 是一款面向个人重度知识工作者与敏捷技术团队的**下一代动态结构化元数据与深度混合检索知识资产管理系统**。
+**KnowFlow** 是一款面向个人知识工作者与敏捷技术团队的**极简、高效、动态结构化元数据知识资产管理系统**。
 
-当前，知识管理系统正处于从“静态文件柜/Wiki”向“智能 Agentic RAG 知识大脑”迁移的范式转变期。然而，市面上现存工具普遍存在“**结构化属性与非结构化内容割裂**”的痛点：要么如传统文档管理系统（如 Paperless-ngx），虽然元数据组织完善，但缺乏原生 AI 深度切分与向量语义检索；要么如新一代 RAG 对话工具（如 AnythingLLM、Khoj），黑盒向量切分导致元数据丢失，无法支持严肃的多属性过滤、层级分类归档与精准资产管理；或者如双链笔记（如 Obsidian），高度依赖用户手工维护且在团队协同与二进制大文件处理上力不从心。
+在数字化与 AI 时代，知识管理工具的痛点往往不是“功能太少”，而是“工具太重、心智负担过高”：要么如传统文档管理系统（如 Paperless-ngx），虽然元数据完善但架构沉重难以轻量部署；要么如纯向量 RAG 对话工具（如 AnythingLLM），将文档黑盒切片丢进向量库，导致精准元数据丢失、无法进行清晰的多维过滤与层级资产盘点；或者如双链笔记工具，高度依赖手工维护且对二进制大文件和跨端团队协同力不从心。
 
-KnowFlow 凭借 **“动态 Key-Value 属性系统 + 层级分类目录 + 微内核插件化架构 + 混合检索引擎 + 桌面/Web 双模态”** 的独特组合，精准切入了这一高价值市场空白区。本白皮书基于对 KnowFlow 现有代码库（FastAPI 后端、React 19 前端、MongoDB、Docker 及插件生态）的全面审查，深入剖析其架构优势与现存瓶颈，并提出了涵盖**技术栈现代化（Python 3.12 + uv）、数据库存储与索引加固、UI/UX 第一印象重塑、多模态无感知文档解析、本地轻量级 Embedding 混合 RAG 与知识图谱关联**的完整演进规划。
+KnowFlow 坚守 **“简单就好、极简实用、将核心体验打磨至极致”** 的战略原则，拒绝为技术而技术的繁复堆砌（如 2D/3D 力导向知识图谱、重度 OCR 识别流水线、企业级多租户等）。项目聚焦于四大核心支柱：
+1. **BSON 原生动态 Key-Value 属性存储**：免迁移、类型严谨（数字、布尔、数组、对象），原生支持 MongoDB 范围查询与排序；
+2. **现代三栏式分类树工作空间**：左侧无限级分类树（支持拖拽重构与拖拽归档）、中间内容流、右侧实时检查器；
+3. **极速多格式实时预览**：原生嵌入式 PDF.js 渲染、Markdown 极速解析、Monaco Editor 代码高亮与多媒体播放；
+4. **即时 Facet 属性过滤**：评分、文件类型、自定义动态属性无缝即时筛选与重置。
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                           KnowFlow 核心价值三角矩阵                              │
 │                                                                                 │
 │                       [灵活结构化引擎 (Flexible Schema)]                         │
-│                           动态 KV 属性 / 层级分类目录                             │
+│                     BSON 动态 KV 属性 / 层级分类目录树                            │
 │                                      ▲                                          │
 │                                     / \                                         │
 │                                    /   \                                        │
@@ -30,8 +34,8 @@ KnowFlow 凭借 **“动态 Key-Value 属性系统 + 层级分类目录 + 微内
 │                                /   Flow    \                                    │
 │                               /             \                                   │
 │                              ▼               ▼                                  │
-│         [非结构化深度 RAG 检索] ◄──────────────► [微内核插件与多模态资产]         │
-│       BM25 + 密集向量 + 多模态切分              PDF/DOCX/OCR 解析 / Web+桌面统一   │
+│         [极速即时检索与过滤] ◄────────────────► [三栏工作空间与多维实时预览]        │
+│      MongoDB 全文 + 本地 Fastembed 向量         PDF/Markdown/代码原生预览 / Facet 过滤 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -47,7 +51,7 @@ KnowFlow 凭借 **“动态 Key-Value 属性系统 + 层级分类目录 + 微内
 flowchart LR
     A["1.0 静态 Wiki / 目录树\n(Confluence, MediaWiki)\n强人工分类 / 关键字模糊匹配"] --> B["2.0 数字文档柜 / DMS\n(Paperless-ngx, SharePoint)\nOCR 归档 / 基础元数据表单"]
     B --> C["3.0 纯向量 RAG 对话\n(ChatPDF, AnythingLLM)\n黑盒 Chunk / 语义相似度召回"]
-    C --> D["4.0 结构化与语义双引擎\n(KnowFlow 目标架构)\n动态 Schema + 混合检索 + 图谱"]
+    C --> D["4.0 动态结构化与即时检索时代\n(KnowFlow 目标架构)\n动态 Schema + 本地向量 + 实时预览"]
 ```
 
 1. **1.0 静态 Wiki / 目录树时代（1995-2010）**：
@@ -65,19 +69,17 @@ flowchart LR
      - **精确过滤失效**：无法精准回答“找出 2025 年之后法务部审核通过且评分大于 4 星的所有安全规范”。
      - **向量检索稀释**：大段落切分后缺乏上下文，细微数字、版本号、代码变量极易漏召或发生幻觉。
      - **无法支撑资产盘点**：纯 RAG 仅适合“问答（Q&A）”，无法支撑团队对资产的结构化浏览、分类聚合与统计分析。
-4. **4.0 结构化元数据与混合语义双引擎时代（2025 至今）**：
-   - **核心趋势**：**“Schema-Augmented Hybrid RAG”**。将强类型的动态 Key-Value 元数据、严格的层级分类目录与全文关键词检索（BM25）、稠密向量检索（Dense Vector）、知识图谱（Knowledge Graph）深度统一。
+4. **4.0 动态结构化元数据与即时检索时代（2025 至今）**：
+   - **核心趋势**：**“Schema-First & Lightweight Instant Retrieval”**。将强类型的动态 Key-Value 元数据、清晰的层级分类树与本地极速全文/向量检索深度统一，既能毫秒级精确过滤，又能即时语义召回与原地预览。
 
-### 1.2 结构化动态属性与非结构化向量检索融合的必然性
+### 1.2 动态结构化属性与快速检索融合的必然性
 
-在真实的企业知识库和资深个人工作流中，**检索从来不是单一的自然语言提问，而是复合维度的精准筛选**：
+在真实的个人与敏捷团队知识工作流中，**检索从来不是单一的自然语言提问，而是复合维度的精准筛选**：
 
-$$\text{Final Relevance Score} = \alpha \cdot \text{Lexical Score (BM25)} + \beta \cdot \text{Vector Score (Cosine)} + \gamma \cdot \text{Metadata Match Penalty}$$
-
-- **元数据是第一道硬性防线（Pre-filtering）**：根据租户、项目 ID、涉密等级、有效期限、分类目录进行毫秒级关系过滤，将百万级候选池缩小至千百级；
-- **关键词是第二道精确防线（BM25）**：捕捉精确的产品代号、函数名、人名、流水号，弥补向量对专有名词的模糊性；
-- **语义向量是第三道意图防线（Dense Vector）**：跨语言、跨表达习惯理解用户真实意图；
-- **重排序（Rerank）与图谱推导是最终确认（Cross-Encoder / Graph）**：重排语义相关性，并补充关联文档的知识脉络。
+- **动态属性是第一道硬性防线（Metadata Pre-filtering）**：根据分类目录、评分、项目、文件类型等进行原生 BSON 毫秒级关系过滤，将海量候选精准剪枝；
+- **关键词是第二道精确防线（Exact / Regex / Text Index）**：捕捉精确的产品代号、函数名、文件名，弥补向量对专有名词的模糊性；
+- **本地语义向量是第三道意图防线（Local Fastembed Vector）**：利用轻量本地模型理解自然语言语义，零 API 成本、极速响应；
+- **三栏实时预览是最终落地（Live Preview Inspector）**：免下载、原地快速查阅 PDF、Markdown 与代码，完成知识确认闭环。
 
 ---
 
@@ -123,29 +125,29 @@ $$\text{Final Relevance Score} = \alpha \cdot \text{Lexical Score (BM25)} + \bet
 
 ### 3.1 核心定位
 
-> **KnowFlow 是一座连接“结构化资产管理（DMS）”与“深度智能向量检索（RAG）”的桥梁。**
-> 它是**首款以动态 Key-Value 属性与层级分类树为骨架、以微内核插件化多源解析为血肉、以混合语义检索与知识图谱为灵魂**的现代数字知识库系统。
+> **KnowFlow 是一座连接“结构化资产管理（DMS）”与“即时语义检索”的桥梁。**
+> 它是**以动态 Key-Value 属性与层级分类树为骨架、以微内核插件化为血肉、以本地极速检索与三栏实时预览为核心**的现代简明知识资产中枢。
 
 ### 3.2 五大差异化杀手级特性 (Killer Features)
 
 ```mermaid
 graph TD
-    subgraph Feature1["1. 动态 Key-Value 属性系统"]
+    subgraph Feature1["1. 动态 BSON 原生属性系统"]
         F1_1[免迁移定义任意类型属性]
         F1_2[分类绑定与必填校验]
-        F1_3[插件专属属性生命周期管控]
+        F1_3[原生数字/布尔/数组查询]
     end
 
     subgraph Feature2["2. 层级分类目录树"]
         F2_1[无限级父子层级关系]
         F2_2[可视化拖拽调整架构]
-        F2_3[分类属性继承与级联]
+        F2_3[文档拖拽秒级归档]
     end
 
-    subgraph Feature3["3. 混合检索双引擎"]
-        F3_1[精确属性条件预过滤]
-        F3_2[BM25 关键词倒排索引]
-        F3_3[密集向量语义相似度召回]
+    subgraph Feature3["3. 多维即时检索过滤"]
+        F3_1[原生属性范围与比较筛选]
+        F3_2[MongoDB 全文文本检索]
+        F3_3[本地 CPU 毫秒级向量语义召回]
     end
 
     subgraph Feature4["4. 微内核插件架构"]
@@ -154,24 +156,24 @@ graph TD
         F4_3[如 Rating 评分 / OpenClaw 溯源]
     end
 
-    subgraph Feature5["5. 桌面与 Web 统一体验"]
-        F5_1[Electron 本地高效运行]
-        F5_2[Docker 轻量级团队协同部署]
-        F5_3[统一 React 19 技术栈与交互规范]
+    subgraph Feature5["5. 三栏工作空间与实时预览"]
+        F5_1[左树/中文档流/右检查器]
+        F5_2[PDF/Markdown/代码原生渲染]
+        F5_3[桌面端与 Web 体验一致]
     end
 ```
 
 1. **高度自由的动态 Key-Value 属性引擎 (Dynamic Schema Engine)**：
    - 告别传统关系型数据库繁琐的 `ALTER TABLE` 与固定模型，用户或插件可在运行时按需定义 `string`、`number`、`boolean`、`array`、`object` 等多种属性。
-   - 属性可标记 `is_required`（必填）、`is_visible`（前端展示）、`category_name`（归属分类），天然适配多变的多领域知识建模。
+   - 原生存储为 BSON 类型，支持数字比较（`>=`, `<=`, `>`, `<`）、布尔匹配与数组包含，天然适配多变的多领域知识建模。
 2. **直观可视的层级分类目录树 (Hierarchical Taxonomy)**：
-   - 具备清晰的父子继承与层级视图，既可作为管理后台的归类标准，又可在知识库主浏览界面作为侧边导航，支持百万级资产的树状快速定位。
-3. **结构化属性过滤 + 非结构化语义混合检索 (Tri-Engine Hybrid Retrieval)**：
-   - 将属性精确筛选（如：`rating >= 4`、`project_id = "PROJ-2026"`）与文本全文检索、稠密语义向量检索无缝融为一体，实现“所想即所搜”。
+   - 具备清晰的父子继承与层级视图，左侧分类树支持拖拽调整父子层级，更支持直接将知识项拖拽至分类节点实现秒级归档与计数。
+3. **结构化属性过滤 + 文本与向量即时检索 (Structured & Semantic Instant Retrieval)**：
+   - 将原生属性范围与精确筛选（如：`rating >= 4`、`category_name = "论文"`）与文本及轻量语义向量检索无缝融为一体，实现“所想即所搜”。
 4. **前后端一体化的微内核插件架构 (Micro-kernel Plugin Architecture)**：
-   - 采用标准目录化清单（`plugin.yaml`），后端通过生命周期 Hooks（`ITEM_CREATE_BEFORE/AFTER`、`SEARCH_BEFORE/AFTER` 等）进行业务无侵入拦截，前端动态加载定制组件（如已实现的星级评分、OpenClaw AI 溯源等），具备无限扩展可能。
-5. **Web 协同与 Electron 桌面端原生一致性 (Dual-Delivery Parity)**：
-   - 单一前端代码库（React 19 + TypeScript + Ant Design 6 + Vite）既可构建为极低资源的静态 Web 服务供团队私有化协同，亦可通过 Electron 封装为个人本地独立桌面应用，兼顾团队协作与个人本地隐私。
+   - 采用标准目录化清单（`plugin.yaml`），后端通过生命周期 Hooks（`ITEM_CREATE_BEFORE/AFTER`、`SEARCH_BEFORE/AFTER` 等）进行业务无侵入拦截，前端动态加载定制组件（如已实现的星级评分、OpenClaw AI 溯源等），具备灵活扩展可能。
+5. **现代三栏工作空间与实时极速预览 (Three-Column Workspace & Live Preview)**：
+   - 将分类树、知识列表（表格与卡片双模态）及右侧文档检查器/实时预览窗（原生嵌入 PDF.js、Markdown 渲染、Monaco Editor 高亮）有机融为一体，查阅与归档极速顺畅。
 
 ---
 
@@ -520,155 +522,136 @@ async def _create_indexes(self):
 
 ---
 
-## 8. 缺失关键功能补充与痛点攻坚技术方案 (Deep Technical Solutions)
+## 8. 核心关键功能实现与修剪演进技术方案 (Core Implementation & Pragmatic Solutions)
 
-### 8.1 多模态附件（PDF/DOCX/图片 OCR）无感知自动化切分流水线
+对照用户的最高战略指示：**“补充功能有些没有必要，简单就好，不需要复杂。现有功能完善和优化就很好了”**，KnowFlow 在架构与功能演进上进行了果断而坚决的**去粗取精、修剪繁琐**：
 
-当前 KnowFlow 上传附件后仅存盘而未处理，这是知识检索的核心断点。必须构建标准化的**异步摄取与切分流水线（Ingestion Pipeline）**：
+### 8.1 实用型文件文本提取与轻量检索支持 (Lightweight Text Extraction & Search)
 
-```mermaid
-flowchart TD
-    Upload[用户上传文件 / API 导入] --> Detect[MIME 类型探测与格式分发]
-    Detect -->|PDF 文件| PDF_Engine[pypdf / pdfplumber 提取文字与版面]
-    Detect -->|DOCX 文件| DOCX_Engine[python-docx 提取段落与标题结构]
-    Detect -->|图片 / 扫描件| OCR_Engine[RapidOCR / Tesseract 提取字符]
-    Detect -->|纯文本 / MD| Text_Engine[直接读取结构化 Markdown]
+- **架构修剪**：
+  - ✂️ **剔除繁复臃肿路线**：彻底弃用沉重的外部 OCR 引擎（如 Tesseract、RapidOCR-onnxruntime 等）、多层级递归滑动窗口、父子切片（Parent-Child）等重度复杂机制。避免在小内存机器上引入巨大的 C++ 动态库依赖与多阶段处理卡顿。
+  - 🎯 **保留与坚持极简路线**：采用高性能轻量级纯 Python 解析方案（如 `pypdf` 与原生文本读取）。在上传阶段同步或轻量异步提取 PDF、Markdown 与纯文本文件的正文文本，将清洗后的纯文本直接存入条目的 `content_text` 字段。
+- **检索联动**：
+  - 存储后的 `content_text` 与 `name`、`summary` 一道无缝命中 MongoDB 原生 `$text` 全文索引与 fastembed 语义推理，无需维护外部向量库集群，实现零运维、零侵入的全文检索。
 
-    PDF_Engine --> Normalizer[统一纯文本与章节规范化器]
-    DOCX_Engine --> Normalizer
-    OCR_Engine --> Normalizer
-    Text_Engine --> Normalizer
+### 8.2 极简本地 Embedding 语义检索与属性组合过滤 (Fastembed Semantic Search)
 
-    Normalizer --> Chunker[智能分块引擎: 语义递归切分 + 滑动重叠窗口]
-    Chunker --> Embedder[向量化引擎: Local ONNX / Cloud API]
-    Embedder --> Storage[(MongoDB / 向量索引持久化)]
-```
+- **架构现状与已落地能力**：
+  - 已在 `backend/api/v1/ai.py` 中引入 `fastembed`（使用 `BAAI/bge-small-zh-v1.5` 模型）。
+  - **优势**：纯 Python ONNX Runtime 驱动，仅 60MB 模型体积，无需 GPU，CPU 推理仅需毫秒级；单机自包含，无需任何云端 API Key，兼具 100% 隐私安全与零费用。
+- **架构修剪**：
+  - ✂️ **剔除过度设计**：取消复杂的 BM25 + Vector + Rerank 三重加权打分及倒数排名融合（RRF）算法库，避免引入额外算法负担。
+  - 🎯 **聚焦现有机制强化**：利用 MongoDB 原生 BSON 查询进行第一阶段高效过滤（如分类 `category_name`、评分 `rating >= 4`、文件类型等），并在候选集上直接运行 fastembed 余弦相似度召回，实现“精准属性剪枝 + 语义相似召回”的极简高效闭环。
 
-#### 1. 核心技术实现路径
-- **文档解析层**：
-  - 针对通用 PDF：使用 `pypdf` 进行极速低消耗文本抽取，提取章节与页码元数据；
-  - 针对扫描件与图片：引入轻量级本地 ONNX OCR 库（如 `RapidOCR-onnxruntime`），完全无需复杂的外部二进制部署，跨平台免配置运行；
-  - 针对 Office 文档：使用 `python-docx` 提取大纲标题（Heading 1/2/3），天然保留结构树。
-- **智能分块切分器（Context-Aware Recursive Chunker）**：
-  - 依据 Markdown 标题、段落换行、句号等分层分割，控制每块在 300~500 Tokens，配置 50 Tokens 重叠滑动窗口（Overlap），防止上下文截断；
-  - **元数据继承**：切片后生成的每一个 Chunk 必须继承根文档的所有动态属性（`item_id`, `category_name`, `rating`, `openclaw_project_id` 等），为混合检索奠定物理基础。
+### 8.3 剔除不必要繁琐特性清单说明 (Pruning & Descoping Decisions)
 
-### 8.2 离线本地轻量级 Embedding 模型与真正混合检索机制
+针对早期规划中的非核心复杂特性，明确执行**修剪与废除**：
 
-彻底废除将前 50 条文档塞入 LLM 对话的假 RAG，建立标准化双模态嵌入检索架构：
-
-#### 1. 双模态向量嵌入引擎 (Dual Embedding Providers)
-- **本地零成本离线模式（推荐默认）**：
-  - 集成 `fastembed` 运行 `bge-small-zh-v1.5`（模型仅 60MB，CPU 推理延迟 < 20ms，无外部服务依赖，纯 Python 包跨平台自包含）；
-  - 纯离线环境或隐私敏感用户可完全单机运行，零 API 费用，响应如飞。
-- **云端高维扩展模式（可选配置）**：
-  - 兼容现有豆包向量模型（`Doubao Embedding`）或 OpenAI `text-embedding-3-small`，通过配置一键切换。
-
-#### 2. 三重混合检索与倒数排名融合 (RRF: Reciprocal Rank Fusion)
-当用户在前端输入检索语句时，后台检索流程如下：
-
-```
-1. 语法与意图分流:
-   Query -> 提取过滤条件 (如: "category:论文 2026架构")
-         -> 过滤条件转化为 Mongo Criteria
-         -> 搜索词划分为: 关键词 "2026架构"
-
-2. 阶段一: 元数据精准剪枝 (Pre-filtering)
-   Mongo Filter: {"category_name": "论文", "is_visible": true}
-   命中缩小至候选集合 S
-
-3. 阶段二: 双引擎并发打分
-   分支 A (BM25 全文打分)   -> Score_BM25
-   分支 B (向量余弦相似度打分) -> Score_Vector
-
-4. 阶段三: RRF 融合排序 (Reciprocal Rank Fusion)
-   RRF_Score(d) = 1 / (60 + Rank_BM25(d)) + 1 / (60 + Rank_Vector(d))
-
-5. 阶段四: 返回 Top-K 并附带高亮 Snippets 与所在页码
-```
-
-### 8.3 知识图谱与文档关联关系可视化 (Knowledge Graph)
-
-现代知识资产不仅需要纵向归类（分类树），更需要横向互联（关系网络）：
-
-#### 1. 关系数据建模
-在 MongoDB 中建立轻量级 `relations` 关联集合：
-```json
-{
-  "_id": ObjectId("..."),
-  "source_id": "item_id_1",
-  "target_id": "item_id_2",
-  "relation_type": "references | cites | derives_from | child_of",
-  "weight": 1.0,
-  "created_at": ISODate("2026-09-20T00:00:00Z")
-}
-```
-
-#### 2. 关系发现机制
-- **显式双向引用**：支持文档正文或富文本中解析 `[[文档名称]]` Wiki 风格双向链接；
-- **动态属性关联**：当两个文档的特定 Key（如 `openclaw_project_id` 或 `author`）一致时，自动在图谱中生成虚线聚合关系；
-- **前端力导向图呈现**：基于 `@antv/g6` 或 `react-force-graph`，在右侧检查器或全屏模式下渲染动态物理力导向拓扑图，直观展现知识孤岛与核心枢纽。
+| 规划特性 | 原始设想 | 修剪/剔除原因 | 替代/优化方案 |
+| :--- | :--- | :--- | :--- |
+| **2D/3D 力导向知识图谱** | `@antv/g6` 拓扑图、双向链接网 | 极度花哨、代码量巨大、前端重渲染卡顿，个人/小团队在日常管理中极少使用 | 强化左侧层级分类树与标签（Tags）属性过滤，简单清晰直观 |
+| **重度 OCR 识别流水线** | 引入 OCR 识别扫描件图片 | 镜像体积激增数百 MB，依赖复杂，跨平台与容器构建脆弱 | 聚焦原生数字 PDF/Markdown/代码/文本的轻量提取，保持轻快 |
+| **企业级多租户与 RBAC 权限** | 组织机构树、数据隔离、角色权限表 | 脱离个人与敏捷小团队实际场景，使简单 CRUD 变得繁琐重型 | 保持单租户轻量化，聚焦本地/局域网私有化自部署 |
+| **桌面端后台目录守护监控** | 文件系统变更自动扫描并静默归档 | 容易产生文件锁、循环触发、CPU 空转与误归档，缺乏用户掌控感 | 保留用户主动拖拽上传与即时分类归档，明确可控 |
+| **外部 AutoFlow 复杂事件同步** | 双向远程事件触发与状态机同步 | 外部强耦合，增加网络与接口断裂风险 | 保持现有标准的 REST API 与微内核 Hook 即可 |
 
 ---
 
-## 9. 未来分期演进计划（P0 / P1 / P2 里程碑） (Phased Roadmap)
+## 9. 计划实施状态与简明未来规划 (Implementation Status & Pragmatic Roadmap)
 
-按照敏捷交付、小步快跑的原则，将白皮书规划拆解为三个清晰可落地的工程里程碑：
+### 9.1 核心功能实际实施状态盘点 (Actual Delivery Status)
+
+当前代码库已高质量交付**核心现代化改造与三栏工作空间**（通过全部 191 项后端测试与 127 项前端测试）：
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                          KnowFlow 核心功能实施状态总览矩阵                             │
+├──────────────────────────┬──────────┬──────────────────────────────────────────────────┤
+│ 模块 / 特性              │ 交付状态 │ 核心技术落地与实现细节                           │
+├──────────────────────────┼──────────┼──────────────────────────────────────────────────┤
+│ 1. Python 3.12 & uv 底座 │ 100% 交付│ 全面采用 uv.lock 与 pyproject.toml，优化构建缓存 │
+│ 2. BSON 原生动态属性存储 │ 100% 交付│ _sanitize_to_bson 支持原生数值、布尔、数组与比较 │
+│ 3. 数据库索引与性能加固  │ 100% 交付│ 复合索引 (category, created_at) 与 fulltext 索引 │
+│ 4. 三栏分类树工作空间    │ 100% 交付│ CategorySidebarTree 拖拽重组、拖入归档、计数徽标 │
+│ 5. PDF/MD/代码实时预览   │ 100% 交付│ LivePreviewPanel 内嵌 PDF.js、marked 与 Monaco   │
+│ 6. 动态 Facet 快速过滤   │ 100% 交付│ FacetFilterChips 评分/类型/自定义 Key 即时重置   │
+│ 7. 表格与卡片双视图模式  │ 100% 交付│ ItemTable 与 ItemCardGrid 多维平滑切换           │
+│ 8. 本地 Fastembed 向量   │ 100% 交付│ bge-small-zh-v1.5 CPU 毫秒级语义推理与降级兜底   │
+│ 9. 动态表单标签交互优化  │ 100% 交付│ ArrayTagInput 替代手输 JSON，可视化标签输入      │
+└──────────────────────────┴──────────┴──────────────────────────────────────────────────┘
+```
+
+#### 详细盘点要点：
+1. **BSON 原生存储**：
+   - 彻底废除旧版全字段字符串强转（`_convert_to_string`）；
+   - `ItemManager` 统一通过 `_sanitize_to_bson` 写入原生 `int`、`float`、`bool`、`list`、`dict`；
+   - 搜索层原生支持数值范围比较操作符（`>=`, `<=`, `>`, `<`），布尔精准匹配，数组包含；
+   - 排序管道保持向下兼容（`$toDouble` + `$ifNull`）。
+2. **三栏分类树工作空间**：
+   - 左栏（260px）：`CategorySidebarTree`，无限级树形结构，拖拽调整分类父子关系，文档拖拽直达分类归档，节点动态统计计数，100% SVG 图标；
+   - 中栏：`LibraryPage` 工作台，工具栏、Facet 快捷过滤条、`ItemTable`（紧凑表格）与 `ItemCardGrid`（富信息卡片）自由切换；
+   - 右栏（380px）：`LivePreviewPanel`，分栏常驻，即选即显。
+3. **PDF / Markdown 实时预览**：
+   - **PDF**：原生 `iframe` 嵌入浏览器原生 PDF.js 阅读器（带 `#toolbar=1`），提供新标签独立打开；
+   - **Markdown**：`marked` 高性能解析，支持标准排版与代码高亮；
+   - **代码/文本**：Monaco Editor 代码编辑器内嵌高亮预览；
+   - **多媒体**：原生图片查看器、音视频内嵌播放；
+   - **元数据与插件**：Segmented 选项卡秒级切换属性检查器与插件交互（如星级评分）。
+4. **动态 Facet 过滤**：
+   - `FacetFilterChips` 提取高频维度：评星筛选（全部、>=4星、5星）、文件类型筛选（全部、PDF、Markdown、图片、文档）；
+   - 激活筛选状态胶囊展示，支持单个条件快速清除与“重置筛选”一键清空；
+   - 与 URL 状态及 Redux 完全双向同步。
+
+---
+
+### 9.2 精简实用的未来规划（P1 里程碑：现有功能完善与优化）
+
+坚定秉持**“简单就好，不需要复杂。现有功能完善和优化就很好了”**的宗旨，不再规划庞杂多余路线，集中精力将现有能力做深做透：
 
 ```mermaid
 gantt
-    title KnowFlow 演进里程碑规划
+    title KnowFlow 简明实用演进规划
     dateFormat  YYYY-MM-DD
-    section P0 基础设施与体验筑基
-    Python 3.12 与 uv 规范化         :active, p0_1, 2026-10-01, 10d
-    MongoDB 索引加固与 BSON 规范化   :p0_2, after p0_1, 12d
-    三栏式 UI 布局与分类树集成       :p0_3, after p0_1, 15d
-    PDF / Markdown 基础内嵌预览      :p0_4, after p0_3, 10d
-    section P1 多模态摄取与混合 RAG
-    文档解析流水线 (pypdf/docx)      :p1_1, 2026-11-01, 14d
-    本地 fastembed 向量检索与 BM25   :p1_2, after p1_1, 18d
-    动态属性表单丰富控件重构         :p1_3, after p1_1, 12d
-    搜索过滤 Facet Chips 面板        :p1_4, after p1_3, 10d
-    section P2 知识图谱与生态纵深
-    知识图谱关系建模与可视化         :p2_1, 2026-12-15, 20d
-    OpenClaw AI 自动化管道深度打通   :p2_2, after p2_1, 15d
-    轻量多租户与权限体系完善         :p2_3, after p2_2, 15d
+    section P0 核心底座与工作空间 (已全部交付)
+    Python 3.12 / uv / Docker 现代化 :done, p0_1, 2026-09-01, 10d
+    BSON 原生类型与复合全文索引加固 :done, p0_2, after p0_1, 10d
+    三栏式 UI 与分类树拖拽归档       :done, p0_3, after p0_2, 10d
+    PDF / Markdown / Monaco 实时预览 :done, p0_4, after p0_3, 10d
+    动态 Facet 过滤与双视图模式      :done, p0_5, after p0_4, 5d
+    本地 Fastembed CPU 向量推理      :done, p0_6, after p0_5, 5d
+    section P1 现有功能打磨与实用优化 (未来重点)
+    轻量文本提取入库 (PDF/MD/TXT)    :active, p1_1, 2026-10-01, 10d
+    全局快捷键流式导航 (Cmd+K / Esc) :p1_2, after p1_1, 7d
+    知识项批量操作 (批量分类/删除)   :p1_3, after p1_2, 8d
+    简明实用整库备份与导出 (JSON/Zip):p1_4, after p1_3, 7d
+    预览器细节体验打磨 (缩放/TOC目录):p1_5, after p1_4, 7d
 ```
 
-### 9.1 P0 里程碑：基础设施现代化与第一印象筑基（1~2 个月）
-- **工程底座**：
-  - [x] 收敛 Python 版本至 3.12，引入 `pyproject.toml` 与 `uv` 管理依赖，更新 Dockerfile 多阶段构建；
-  - [x] 重构 MongoDB 数据类型，废除字符串全转模式，动态 Key 存储支持原生数字与布尔；
-  - [x] 建立分类、时间、全文字段复合索引，消除全表正则扫描；
-  - [x] 修复前端 Ant Design 6 的警告项（如 `Drawer.width` -> `size`，`Alert.message` -> `title`）。
-- **交互与体验**：
-  - [x] 将分类管理直接整合进知识库主页左侧栏，实现目录树与文档列表一体化联动；
-  - [x] 引入基于 PDF.js 和 Markdown 的右侧文档极速实时预览面板；
-  - [x] 提供表格与卡片（Card Grid）双视图切换。
-
-### 9.2 P1 里程碑：多模态流水线与真正混合 RAG（3~4 个月）
-- **摄取与处理**：
-  - [x] 封装异步 `IngestionManager`，支持上传 PDF、DOCX、Markdown 自动提取纯文本与章节大纲；
-  - [x] 集成 `RapidOCR`，自动对无文字层扫描件图片执行后台 OCR 识别；
-  - [x] 实现带滑动窗口的自适应文档分块算法，分块继承宿主文档动态属性。
-- **检索与 AI**：
-  - [x] 引入 `fastembed`（BGE-small-zh），实现本地 CPU 毫秒级稠密向量检索；
-  - [x] 构建 BM25 倒排索引与 RRF 融合排序算法，彻底替换前端传 50 条数据的伪 RAG；
-  - [x] 重构 `DynamicKeyForm`，为标签数组、日期时间、枚举选项提供原生组件支持。
-
-### 9.3 P2 里程碑：知识图谱互联与生态深度拓展（5~6 个月）
-- **高级知识能力**：
-  - [x] 建立 `relations` 关系网络模型，支持双向引用解析与属性关联推断；
-  - [x] 前端落地交互式 2D/3D 力导向知识图谱（Knowledge Graph Visualizer）；
-  - [x] 实现全局智能问答（Chat with Knowledge Base），基于多源检索生成带精确引用源的回答。
-- **生态与协同**：
-  - [x] 深度增强 `knowflow_openclaw` 插件，支持与 AutoFlow 工作流双向事件同步；
-  - [x] 完善 Electron 桌面端离线本地文件目录监控（Local Directory Watcher），文件变动自动静默归档。
+#### P1 重点优化任务清单：
+1. **轻量文件正文提取入库（支持全文与语义检索）**：
+   - 上传 PDF、Markdown、TXT 等通用文件时，后台自动提取纯文本填充到 `content_text` 字段；
+   - 无任何重型外部 OCR 或切片依赖，直接复用已有的 MongoDB `$text` 索引和 Fastembed 向量匹配。
+2. **流畅键盘快捷键与流式交互（提升操作爽快感）**：
+   - 支持 `Cmd/Ctrl + K` 随时唤起全局快速检索框；
+   - 支持 `Esc` 键快速关闭右侧预览抽屉；
+   - 键盘 `↑` / `↓` 快速在知识列表项间跳转并联动更新右侧预览。
+3. **知识项批量操作（提高管理效率）**：
+   - 在表格模式下提供复选框，支持批量移动至指定分类；
+   - 支持批量更新标签（Tag）与批量安全删除。
+4. **纯粹实用的数据备份与迁移（数据自主可控）**：
+   - 提供简明的一键导出功能（导出包含元数据 JSON 与附件的 ZIP 包）；
+   - 提供对应的一键导入与覆盖恢复功能，保障用户数据完全可控、无迁移壁垒。
+5. **实时预览器细节打磨**：
+   - 记录 PDF 预览上次阅读的缩放比例；
+   - 为长篇 Markdown 自动提取生成右侧大纲导航（TOC）；
+   - 大文本文件分段平滑渲染，保障极佳流畅度。
 
 ---
 
-## 10. 结论与架构师寄语 (Conclusion)
+## 10. 结论与极简主义寄语 (Conclusion)
 
-在数字化与大模型纵深发展的时代，知识管理工具的胜负手**不在于谁能提供花哨的通用闲聊机器人，而在于谁能把用户珍贵的、非结构化的数字资产以最高保真度、最灵活的元数据结构、最迅速的混合检索能力妥善守护与盘活**。
+**简单就是力量。真正的生产力工具不在于概念的新奇或功能的繁复堆砌，而在于核心闭环的极致流畅与可靠稳定。**
 
-KnowFlow 现有的架构底座具备非常优秀的高起点：清爽的微内核插件系统、FastAPI 异步架构、MongoDB 文档灵活性以及 React 19 + Electron 现代前端。只要坚定执行本白皮书提出的**“类型加固 -> 三栏工作空间重塑 -> 多模态无感知摄取 -> 本地与云端混合 RAG -> 知识图谱横向互联”**演进战略，KnowFlow 必将在开源知识管理领域脱颖而出，成长为个人知识工作者与敏捷团队不可或缺的智能知识资产中枢。
+KnowFlow 现已拥有稳固的基础设施（Python 3.12 + uv + MongoDB 7 原生 BSON）、优雅的交互结构（现代三栏分类树工作空间 + 即选即看的实时预览）以及灵活敏捷的属性体系。
+
+遵循用户的战略指示，KnowFlow 卸下了力导向知识图谱、重度 OCR、复杂多租户等不必要的包袱。未来，项目将一以贯之地聚焦于**现有核心功能的完善、打磨与性能优化**，让每一次分类拖拽、每一次属性过滤、每一篇文档预览都如丝般顺滑，成为知识工作者手中真正趁手、安心、轻快的资产管理利器。
