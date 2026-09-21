@@ -119,14 +119,23 @@ def run_fastembed_search(query: str, items: list[ItemBrief], top_k: int = 20) ->
 
     model = get_embedding_model()
     if model is None:
-        # 无模型时降级为关键字模糊匹配
+        # 无模型时降级为基于分词与 n-gram 覆盖率的关键字模糊检索
         q_lower = query.lower()
-        matched = []
+        tokens = [w for w in re.split(r"\s+", q_lower) if w]
+        bigrams = [q_lower[i : i + 2] for i in range(len(q_lower) - 1)] if len(q_lower) >= 2 else []
+        candidates = []
         for item in items:
             text = f"{item.name} {json.dumps(item.attributes, ensure_ascii=False)}".lower()
             if q_lower in text:
-                matched.append(item.model_dump())
-        return matched[:top_k]
+                candidates.append((100, item))
+            else:
+                matched_tokens = sum(1 for t in tokens if len(t) >= 2 and t in text)
+                matched_bigrams = sum(1 for b in bigrams if b in text)
+                score = matched_tokens * 2 + matched_bigrams
+                if score > 0:
+                    candidates.append((score, item))
+        candidates.sort(key=lambda x: x[0], reverse=True)
+        return [item.model_dump() for _, item in candidates][:top_k]
 
     # 构建每个知识项的特征文本
     doc_texts = []
