@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       actions:
         patterns: ['*']
@@ -13,7 +13,7 @@ updates:
   - package-ecosystem: npm
     directory: /frontend
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       npm-minor-patch:
         patterns: ['*']
@@ -27,7 +27,7 @@ updates:
   - package-ecosystem: pip
     directory: /backend
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       pip-minor-patch:
         patterns: ['*']
@@ -55,7 +55,7 @@ updates:
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     open-pull-requests-limit: 5
     commit-message:
       prefix: 'chore(submodule)'
