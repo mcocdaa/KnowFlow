@@ -20,6 +20,7 @@ export interface LibraryQueryParams {
   q: string;
   key: string;
   keyValue: string;
+  categoryName?: string;
   sort: ItemSort;
   page: number;
   pageSize: number;
@@ -33,17 +34,18 @@ export const useLibrary = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const requestIdRef = useRef(0);
 
-  const params: LibraryQueryParams = useMemo(
-    () => ({
+  const params: LibraryQueryParams = useMemo(() => {
+    const categoryName = searchParams.get('category_name') ?? '';
+    return {
       q: searchParams.get('q') ?? '',
       key: searchParams.get('key') ?? '',
       keyValue: searchParams.get('key_value') ?? '',
+      ...(categoryName ? { categoryName } : {}),
       sort: (searchParams.get('sort') as ItemSort) || 'recent',
       page: Math.max(1, Number(searchParams.get('page')) || 1),
       pageSize: Number(searchParams.get('page_size')) || DEFAULT_PAGE_SIZE,
-    }),
-    [searchParams],
-  );
+    };
+  }, [searchParams]);
 
   useEffect(() => {
     const requestId = requestIdRef.current + 1;
@@ -90,6 +92,7 @@ export const useLibrary = () => {
       setOrDelete('q', merged.q, '');
       setOrDelete('key', merged.key, '');
       setOrDelete('key_value', merged.keyValue, '');
+      setOrDelete('category_name', merged.categoryName ?? '', '');
       setOrDelete('sort', merged.sort, 'recent');
       setOrDelete('page', String(merged.page), '1');
       setOrDelete('page_size', String(merged.pageSize), String(DEFAULT_PAGE_SIZE));

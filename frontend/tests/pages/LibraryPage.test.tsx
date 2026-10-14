@@ -196,4 +196,29 @@ describe('LibraryPage', () => {
     await waitFor(() => expect(screen.queryByText('部署手册')).not.toBeInTheDocument());
     expect(screen.getByText('架构图')).toBeInTheDocument();
   });
+
+  it('combines category selection with facet filter chips without collision', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.fetchCategories).mockResolvedValue([
+      { name: 'tech', title: '技术分类', parent_name: null, is_builtin: false },
+    ]);
+    vi.mocked(api.searchItems).mockResolvedValue(paged([item1]));
+
+    renderLibrary();
+    expect(await screen.findByText('技术分类')).toBeInTheDocument();
+
+    await user.click(screen.getByText('技术分类'));
+    await waitFor(() =>
+      expect(api.searchItems).toHaveBeenLastCalledWith(
+        expect.objectContaining({ categoryName: 'tech', key: '', keyValue: '' }),
+      ),
+    );
+
+    await user.click(screen.getByText('4星及以上'));
+    await waitFor(() =>
+      expect(api.searchItems).toHaveBeenLastCalledWith(
+        expect.objectContaining({ categoryName: 'tech', key: 'rating', keyValue: '>=4' }),
+      ),
+    );
+  });
 });

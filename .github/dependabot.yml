@@ -39,10 +39,20 @@ updates:
     directory: /backend
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: python
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
   - package-ecosystem: docker
     directory: /frontend
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
   - package-ecosystem: docker-compose
     directory: /
     schedule:

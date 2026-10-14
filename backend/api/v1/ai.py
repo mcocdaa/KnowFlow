@@ -2,6 +2,7 @@
 # @brief AI 能力接口：语义检索、自动打标签（基于豆包 Doubao）
 # @create 2026-08-08 10:00:00
 
+import asyncio
 import json
 import logging
 import re
@@ -179,10 +180,15 @@ async def ai_search(payload: AISearchRequest):
     if not items:
         return ok([])
 
-    # 判断是否显式测试 Doubao 逻辑（测试夹具 patch 了 _doubao_config）
-    is_mocked_doubao = hasattr(_doubao_config, "assert_called") or hasattr(_doubao_config, "_mock_self")
-    if is_mocked_doubao:
-        _doubao_config()
+    try:
+        config = _doubao_config()
+    except HTTPException as exc:
+        if exc.status_code == 503 and exc.detail == "AI 功能未启用，请配置 DOUBAO_API_KEY":
+            config = None
+        else:
+            raise
+
+    if config:
         catalog = "\n".join(
             f"{i}. id: {item.id}, name: {item.name}, attributes: {json.dumps(item.attributes, ensure_ascii=False)}"
             for i, item in enumerate(items, start=1)
@@ -210,7 +216,7 @@ async def ai_search(payload: AISearchRequest):
         return ok([item.model_dump() for item in items if item.id in matched_ids])
 
     # 本地离线自包含推理检索 (fastembed bge-small-zh-v1.5 CPU 毫秒级)
-    results = run_fastembed_search(query, items)
+    results = await asyncio.to_thread(run_fastembed_search, query, items)
     return ok(results)
 
 

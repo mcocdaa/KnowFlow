@@ -21,6 +21,15 @@ router = APIRouter()
 _CHUNK_SIZE = 1024 * 1024
 
 
+def _normalize_file_type(filename: str, content_type: str) -> str:
+    ext = os.path.splitext(filename)[1].lower()
+    if ext in (".md", ".markdown"):
+        return "markdown"
+    if ext == ".pdf":
+        return "pdf"
+    return content_type
+
+
 @router.post("/upload")
 async def upload_file(
     manager: ItemManager = Depends(get_item_manager),
@@ -32,9 +41,10 @@ async def upload_file(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data field")
 
+    filename = file.filename or ""
     key_values = extract_key_values(item_data)
-    key_values["file_path"] = file.filename or ""
-    key_values["file_type"] = file.content_type or ""
+    key_values["file_path"] = filename
+    key_values["file_type"] = _normalize_file_type(filename, file.content_type or "")
 
     if "name" not in key_values and "name" in item_data:
         key_values["name"] = item_data["name"]

@@ -67,4 +67,37 @@ describe('LivePreviewPanel', () => {
     expect(screen.getByText('创建时间')).toBeInTheDocument();
     expect(screen.getByText('更新时间')).toBeInTheDocument();
   });
+
+  it('sanitizes dangerous HTML in markdown preview to prevent XSS', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: () =>
+          Promise.resolve(
+            '# 安全标题\n<script>window.__xss=1</script><img src="x" onerror="alert(1)" /><a href="javascript:alert(2)">链接</a>',
+          ),
+      }),
+    );
+
+    const item: KnowledgeItem = {
+      id: 'i-xss',
+      name: 'xss.md',
+      keyValues: {
+        file_path: '/api/v1/uploads/xss.md',
+        file_type: 'markdown',
+      },
+    };
+
+    const { container } = renderWithProviders(
+      <LivePreviewPanel item={item} categories={[]} keys={[]} onClose={vi.fn()} />,
+    );
+
+    expect(await screen.findByText('安全标题')).toBeInTheDocument();
+    expect(container.querySelector('script')).toBeNull();
+    const img = container.querySelector('img');
+    expect(img?.getAttribute('onerror')).toBeNull();
+    const link = container.querySelector('a');
+    expect(link?.getAttribute('href') ?? '').not.toContain('javascript:');
+  });
 });

@@ -1,6 +1,5 @@
 const { app, BrowserWindow, shell, ipcMain, session } = require('electron');
 const path = require('path');
-const url = require('url');
 
 const DEV_SERVER_URL = 'http://localhost:5177';
 const LOAD_RETRY_MAX = 10;
@@ -8,7 +7,7 @@ const LOAD_RETRY_INTERVAL_MS = 1000;
 
 // 生产环境后端 API 地址（通过 KNOWFLOW_API_URL 注入，默认空则使用同源/相对路径）
 const API_URL = process.env.KNOWFLOW_API_URL || '';
-const API_ORIGIN = API_URL ? url.parse(API_URL).origin : '';
+const API_ORIGIN = API_URL ? new URL(API_URL).origin : '';
 
 // 确保应用只运行一个实例
 const gotTheLock = app.requestSingleInstanceLock();

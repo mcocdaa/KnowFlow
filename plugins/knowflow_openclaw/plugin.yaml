@@ -11,10 +11,10 @@ keys:
     default_value: ""
     description: 项目唯一ID（必填）按项目隔离归档，核心字段
     category_name: openclaw_category
-    is_required: true
+    is_required: false
     is_visible: true
     plugin_name: "knowflow_openclaw"
-    delete_with_plugin: false
+    delete_with_plugin: true
     is_public: true
     is_private: false
     created_at: "2026-03-12"
@@ -29,7 +29,7 @@ keys:
     is_required: false
     is_visible: true
     plugin_name: "knowflow_openclaw"
-    delete_with_plugin: false
+    delete_with_plugin: true
     is_public: true
     is_private: false
     created_at: "2026-03-12"
@@ -44,7 +44,7 @@ keys:
     is_required: false
     is_visible: true
     plugin_name: "knowflow_openclaw"
-    delete_with_plugin: false
+    delete_with_plugin: true
     is_public: true
     is_private: false
     created_at: "2026-03-12"
@@ -59,7 +59,7 @@ keys:
     is_required: false
     is_visible: true
     plugin_name: "knowflow_openclaw"
-    delete_with_plugin: false
+    delete_with_plugin: true
     is_public: true
     is_private: false
     created_at: "2026-03-12"
@@ -74,7 +74,7 @@ keys:
     is_required: false
     is_visible: true
     plugin_name: "knowflow_openclaw"
-    delete_with_plugin: false
+    delete_with_plugin: true
     is_public: true
     is_private: false
     created_at: "2026-03-12"
@@ -89,7 +89,7 @@ keys:
     is_required: false
     is_visible: true
     plugin_name: "knowflow_openclaw"
-    delete_with_plugin: false
+    delete_with_plugin: true
     is_public: true
     is_private: false
     created_at: "2026-03-12"
