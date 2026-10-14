@@ -13,6 +13,12 @@ from fastapi.testclient import TestClient
 from api.errors import register_exception_handlers
 
 
+@pytest.fixture(autouse=True)
+def temp_upload_dir(tmp_path, monkeypatch):
+    monkeypatch.setattr("utils.file_util.UPLOAD_DIR", str(tmp_path))
+    return tmp_path
+
+
 @pytest.fixture
 def app():
     app = FastAPI()
@@ -47,6 +53,18 @@ class TestUpload:
         assert response.status_code == 200
         assert response.json()["code"] == 0
         mock_item_manager.create.assert_called_once()
+
+    def test_upload_normalizes_markdown_and_pdf_file_type(self, app, client):
+        _, mock_item_manager = app
+        mock_item_manager.create.return_value = {"item": {"id": "item_md", "name": "doc.md"}, "attributes": {}}
+
+        client.post("/upload", **make_upload(b"# title", filename="doc.md", content_type="application/octet-stream"))
+        created_md = mock_item_manager.create.call_args.args[0]
+        assert created_md["attributes"]["file_type"] == "markdown"
+
+        client.post("/upload", **make_upload(b"%PDF", filename="manual.pdf", content_type="application/pdf"))
+        created_pdf = mock_item_manager.create.call_args.args[0]
+        assert created_pdf["attributes"]["file_type"] == "pdf"
 
     def test_upload_invalid_json(self, client):
         response = client.post(

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { App, Flex, Typography } from 'antd';
 import { useDispatch } from 'react-redux';
 import SearchToolbar from '../components/library/SearchToolbar';
@@ -32,6 +32,8 @@ const LibraryPage = () => {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadSubmitting, setUploadSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [allItems, setAllItems] = useState<KnowledgeItem[]>([]);
+  const [cachedUnfilteredItems, setCachedUnfilteredItems] = useState<KnowledgeItem[]>([]);
 
   const hasItems = items.length > 0;
 
@@ -40,26 +42,60 @@ const LibraryPage = () => {
     [items, selectedId],
   );
 
-  const selectedCategory = params.key === 'category_name' ? params.keyValue : null;
+  const selectedCategory = params.categoryName || (params.key === 'category_name' ? params.keyValue : null) || null;
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .fetchItems()
+      .then((list) => {
+        if (!cancelled && Array.isArray(list) && list.length > 0) {
+          setAllItems(list);
+        }
+      })
+      .catch(() => {
+        // Ignore background catalog count errors
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [items]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    items.forEach((item) => {
+    const sourceItems =
+      allItems.length > 0
+        ? allItems
+        : !selectedCategory
+          ? items
+          : cachedUnfilteredItems.length > 0
+            ? cachedUnfilteredItems
+            : items;
+    sourceItems.forEach((item) => {
       const cat = (item.keyValues.category_name as string) || '';
       if (cat) counts[cat] = (counts[cat] || 0) + 1;
     });
+    if (selectedCategory && allItems.length === 0) {
+      counts[selectedCategory] = items.length;
+    }
     return counts;
-  }, [items]);
+  }, [allItems, cachedUnfilteredItems, items, selectedCategory]);
+
+  const sidebarTotalCount =
+    allItems.length > 0 ? allItems.length : !selectedCategory ? total : Math.max(total, cachedUnfilteredItems.length);
 
   const handleSelectCategory = useCallback(
     (categoryName: string | null) => {
-      if (!categoryName) {
-        updateParams({ key: '', keyValue: '', page: 1 });
-      } else {
-        updateParams({ key: 'category_name', keyValue: categoryName, page: 1 });
+      if (!selectedCategory && items.length > 0) {
+        setCachedUnfilteredItems(items);
       }
+      updateParams({
+        categoryName: categoryName || '',
+        ...(params.key === 'category_name' ? { key: '', keyValue: '' } : {}),
+        page: 1,
+      });
     },
-    [updateParams],
+    [items, params.key, selectedCategory, updateParams],
   );
 
   const handleArchiveItem = useCallback(
@@ -196,7 +232,7 @@ const LibraryPage = () => {
   );
 
   const handleResetFilters = useCallback(() => {
-    updateParams({ q: '', key: '', keyValue: '', sort: 'recent', page: 1 });
+    updateParams({ q: '', key: '', keyValue: '', categoryName: '', sort: 'recent', page: 1 });
   }, [updateParams]);
 
   return (
@@ -210,7 +246,7 @@ const LibraryPage = () => {
             selectedCategory={selectedCategory}
             onSelectCategory={handleSelectCategory}
             itemCounts={categoryCounts}
-            totalCount={total}
+            totalCount={sidebarTotalCount}
             onArchiveItem={handleArchiveItem}
             onUpdateCategoryParent={handleUpdateCategoryParent}
             onCreateCategory={handleCreateCategory}

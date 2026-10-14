@@ -25,6 +25,7 @@ import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
 import Editor from '@monaco-editor/react';
+import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import FileIcon from '../common/FileIcon';
 import type { CategoryDefinition, KeyDefinition, KnowledgeItem } from '../../types';
@@ -102,9 +103,10 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
   const renderedMarkdown = useMemo(() => {
     if (!fileContent) return '';
     try {
-      return marked.parse(fileContent) as string;
+      const rawHtml = marked.parse(fileContent) as string;
+      return DOMPurify.sanitize(rawHtml);
     } catch {
-      return fileContent;
+      return DOMPurify.sanitize(fileContent);
     }
   }, [fileContent]);
 

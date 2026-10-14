@@ -17,7 +17,7 @@ const PROD_CSP_META =
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const rootEnv = loadEnv(mode, resolve(__dirname, '..'), '')
+  const rootEnv = loadEnv(mode, resolve(import.meta.dirname, '..'), '')
   // 根目录 .env 仅作为默认值注入；已存在的进程环境变量优先，
   // 便于 start.sh 在本地下发时覆盖（如 VITE_API_BASE_URL="" 走相对路径）
   for (const [key, value] of Object.entries(rootEnv)) {
@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
+    base: './',
     plugins: [
       react(),
       {

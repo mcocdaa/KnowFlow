@@ -28,6 +28,7 @@ from .db_manager import db_manager
 from .key_manager import key_manager
 
 VALID_SORTS = ("recent", "rating", "name")
+GLOBAL_KEY_CATEGORIES = (None, "", "basic_category", "inner_category", "time_category")
 
 
 def extract_key_values(item_data: dict[str, Any]) -> dict[str, Any]:
@@ -149,6 +150,26 @@ class ItemManager:
         all_keys = await key_manager.get_all()
         return {key["name"]: key for key in all_keys}
 
+    async def _get_category_ancestors(self, category_name: str) -> set[str]:
+        """获取分类自身及其所有祖先分类名称集合"""
+        ancestors = {category_name}
+        curr = category_name
+        try:
+            from .category_manager import category_manager
+
+            for _ in range(20):
+                cat_doc = await category_manager.get_by_name(curr)
+                if not isinstance(cat_doc, dict):
+                    break
+                parent = cat_doc.get("parent_name")
+                if not parent or parent in ("None", "") or parent in ancestors:
+                    break
+                ancestors.add(parent)
+                curr = parent
+        except Exception:
+            pass
+        return ancestors
+
     def _format_item_response(self, item: dict, key_dict: dict[str, dict[str, Any]]) -> dict[str, Any]:
         item_attributes = {}
         key_info = {}
@@ -159,7 +180,10 @@ class ItemManager:
                     value = item[key_name]
                     item_attributes[key_name] = self._convert_value(value, key_def["value_type"])
                     key_info[key_name] = key_def
-                elif key_def.get("is_required", False):
+                elif key_def.get("is_required", False) and (
+                    key_def.get("category_name") in GLOBAL_KEY_CATEGORIES
+                    or key_def.get("category_name") == item.get("category_name")
+                ):
                     item_attributes[key_name] = self._convert_value(key_def["default_value"], key_def["value_type"])
                     key_info[key_name] = key_def
 
@@ -219,7 +243,31 @@ class ItemManager:
 
         key_dict = await self._get_key_dict()
 
-        required_keys = [key for key in key_dict.values() if key.get("is_required", False)]
+        category_name = item_data.get("category_name")
+        key_values = extract_key_values(item_data)
+        if not category_name and "category_name" in key_values:
+            category_name = key_values["category_name"]
+
+        item_cat = str(category_name) if category_name else ""
+        has_scoped_required = any(
+            key.get("is_required", False)
+            and key.get("category_name") not in GLOBAL_KEY_CATEGORIES
+            and key.get("category_name") != item_cat
+            for key in key_dict.values()
+        )
+        if item_cat and has_scoped_required:
+            item_categories = await self._get_category_ancestors(item_cat)
+        elif item_cat:
+            item_categories = {item_cat}
+        else:
+            item_categories = set()
+
+        required_keys = [
+            key
+            for key in key_dict.values()
+            if key.get("is_required", False)
+            and (key.get("category_name") in GLOBAL_KEY_CATEGORIES or key.get("category_name") in item_categories)
+        ]
         missing = validate_required(item_data, required_keys)
         if missing:
             raise ValueError(f"Missing required keys: {', '.join(missing)}")
@@ -232,10 +280,6 @@ class ItemManager:
         if "name" in item_data:
             knowflow_item["name"] = item_data["name"]
 
-        category_name = item_data.get("category_name")
-        key_values = extract_key_values(item_data)
-        if not category_name and "category_name" in key_values:
-            category_name = key_values["category_name"]
         if category_name:
             knowflow_item["category_name"] = str(category_name)
 

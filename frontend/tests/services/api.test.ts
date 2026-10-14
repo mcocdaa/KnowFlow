@@ -67,6 +67,18 @@ describe('api.searchItems', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/item/search?page=1', undefined);
   });
+
+  it('passes categoryName alongside key filter without collision', async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockReturnValueOnce(jsonResponse({ items: [], total: 0, page: 1, page_size: 20, total_pages: 0 }));
+
+    await api.searchItems({ categoryName: 'tech', key: 'rating', keyValue: '>=4', page: 1 });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/item/search?key=rating&key_value=%3E%3D4&category_name=tech&page=1',
+      undefined,
+    );
+  });
 });
 
 describe('api error handling', () => {

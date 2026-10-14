@@ -77,6 +77,7 @@ export const api = {
     if (params.q) query.set('q', params.q);
     if (params.key) query.set('key', params.key);
     if (params.keyValue) query.set('key_value', params.keyValue);
+    if (params.categoryName) query.set('category_name', params.categoryName);
     if (params.sort) query.set('sort', params.sort);
     if (params.page) query.set('page', String(params.page));
     if (params.pageSize) query.set('page_size', String(params.pageSize));

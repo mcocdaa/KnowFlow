@@ -15,6 +15,7 @@ frontend/dist/
 .idea/
 
 # Data & Uploads
+/data/
 backend/uploads/
 backend/data/
 backend/py/db.json

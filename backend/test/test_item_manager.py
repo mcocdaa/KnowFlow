@@ -163,6 +163,68 @@ class TestItemManager:
         mock_db_manager.insert_one.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_create_category_scoped_required_keys(self, item_manager, mock_db_manager):
+        """特定分类的 is_required Key 仅在该分类（或其子分类）下强制必填，不阻塞普通记录"""
+        mock_inserted_id = ObjectId("507f1f77bcf86cd799439011")
+        mock_db_manager.insert_one.return_value = mock_inserted_id
+        mock_db_manager.find_one.return_value = {"_id": mock_inserted_id, "name": "Normal Item"}
+
+        keys = [
+            {
+                "name": "name",
+                "title": "名称",
+                "value_type": "string",
+                "category_name": "basic_category",
+                "is_required": True,
+                "is_visible": True,
+            },
+            {
+                "name": "openclaw_project_id",
+                "title": "项目ID",
+                "value_type": "string",
+                "category_name": "openclaw_category",
+                "is_required": True,
+                "is_visible": True,
+            },
+        ]
+
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(return_value=keys)
+
+            # 1. 普通记录（无分类或非 openclaw_category）无需提供 openclaw_project_id
+            result = await item_manager.create({"name": "Normal Item", "attributes": {"name": "Normal Item"}})
+            assert result is not None
+
+            # 2. 属于 openclaw_category 的记录缺失 openclaw_project_id 时抛出 ValueError
+            with pytest.raises(ValueError, match="Missing required keys: openclaw_project_id"):
+                await item_manager.create(
+                    {
+                        "name": "OC Item",
+                        "category_name": "openclaw_category",
+                        "attributes": {"name": "OC Item"},
+                    }
+                )
+
+            # 3. 属于 openclaw_category 子分类的记录同样强制校验父分类必填 Key
+            from managers.category_manager import category_manager
+
+            with patch.object(
+                category_manager,
+                "get_by_name",
+                AsyncMock(
+                    side_effect=lambda n: {"name": n, "parent_name": "openclaw_category"} if n == "sub_oc" else None
+                ),
+            ):
+                with pytest.raises(ValueError, match="Missing required keys: openclaw_project_id"):
+                    await item_manager.create(
+                        {
+                            "name": "Sub OC Item",
+                            "category_name": "sub_oc",
+                            "attributes": {"name": "Sub OC Item"},
+                        }
+                    )
+
+    @pytest.mark.asyncio
     async def test_create_with_attributes(self, item_manager, mock_db_manager):
         item_data = {"name": "New Item", "attributes": {"test_key": "test_value"}}
         mock_inserted_id = ObjectId("507f1f77bcf86cd799439011")

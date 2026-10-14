@@ -49,6 +49,7 @@ export interface SearchParams {
   q?: string;
   key?: string;
   keyValue?: string;
+  categoryName?: string;
   sort?: ItemSort;
   page?: number;
   pageSize?: number;
