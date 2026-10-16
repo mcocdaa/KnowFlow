@@ -9,6 +9,10 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](compose.yaml)
 
+<p align="center">
+  <img src="docs/assets/demo_knowflow.gif" alt="KnowFlow Knowledge Library & AI Search Demo" width="820">
+</p>
+
 KnowFlow 是一个知识管理系统：文件导入、动态 Key-Value 属性、分类层级、插件扩展与 AI 语义检索。
 
 ## 功能特性
