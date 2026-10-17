@@ -6,6 +6,7 @@ import KeyFormModal from '../components/keys/KeyFormModal';
 import StatePlaceholder from '../components/common/StatePlaceholder';
 import { useKeys } from '../hooks/useKeys';
 import type { KeyPayload } from '../hooks/useKeys';
+import { useI18n } from '../i18n';
 import type { KeyDefinition } from '../types';
 
 const typeColors: Record<string, string> = {
@@ -18,6 +19,7 @@ const typeColors: Record<string, string> = {
 
 const KeysPage = () => {
   const { keys, categories, loading, error, submitting, reload, createKey, updateKey, deleteKey } = useKeys();
+  const { t } = useI18n();
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [editing, setEditing] = useState<KeyDefinition | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
@@ -46,67 +48,67 @@ const KeysPage = () => {
 
   const columns: TableColumnsType<KeyDefinition> = [
     {
-      title: '名称',
+      title: t('名称', 'Name'),
       dataIndex: 'title',
       render: (value: string) => (
         <Space>
           <KeyOutlined style={{ color: '#2563EB' }} />
-          <Typography.Text strong>{value}</Typography.Text>
+          <Typography.Text strong>{t(value)}</Typography.Text>
         </Space>
       ),
     },
-    { title: '标识', dataIndex: 'name', render: (value: string) => <Typography.Text code>{value}</Typography.Text> },
+    { title: t('标识', 'Key'), dataIndex: 'name', render: (value: string) => <Typography.Text code>{value}</Typography.Text> },
     {
-      title: '类型',
+      title: t('类型', 'Type'),
       dataIndex: 'value_type',
       width: 110,
       render: (value: string) => <Tag color={typeColors[value] ?? 'default'}>{value}</Tag>,
     },
     {
-      title: '分类',
+      title: t('分类', 'Category'),
       dataIndex: 'category_name',
-      render: (value: string) => categoryTitles.get(value) ?? value,
+      render: (value: string) => t(categoryTitles.get(value) ?? value),
     },
     {
-      title: '必填',
+      title: t('必填', 'Required'),
       dataIndex: 'is_required',
-      width: 80,
-      render: (value: boolean) => (value ? '是' : '否'),
+      width: 90,
+      render: (value: boolean) => (value ? t('是', 'Yes') : t('否', 'No')),
     },
     {
-      title: '可见',
+      title: t('可见', 'Visible'),
       dataIndex: 'is_visible',
-      width: 80,
-      render: (value: boolean) => (value ? '是' : '否'),
+      width: 90,
+      render: (value: boolean) => (value ? t('是', 'Yes') : t('否', 'No')),
     },
     {
-      title: '来源插件',
+      title: t('来源插件', 'Plugin'),
       dataIndex: 'plugin_name',
-      width: 120,
+      width: 130,
       render: (value: string) => (value ? <Tag>{value}</Tag> : '—'),
     },
     {
-      title: '操作',
+      title: t('操作', 'Actions'),
       width: 140,
       render: (_value, record) => (
         <Space size={0}>
           <Button
             type="text"
             icon={<EditOutlined />}
-            aria-label="编辑"
+            aria-label={t('编辑', 'Edit')}
             onClick={() => {
               setEditing(record);
               setModalMode('edit');
             }}
           />
           <Popconfirm
-            title={`删除 Key "${record.title}"？`}
-            description="存量记录中的该字段不会被删除。"
-            okText="确定"
-            cancelText="取消"
+            title={t(`删除 Key "${record.title}"？`, `Delete Key "${t(record.title)}"?`)}
+            description={t('存量记录中的该字段不会被删除。', 'Existing item fields will not be removed.')}
+            okText={t('确定', 'OK')}
+            cancelText={t('取消', 'Cancel')}
             onConfirm={() => deleteKey(record.name)}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} aria-label="删除" />
+            <Button type="text" danger icon={<DeleteOutlined />} aria-label={t('删除', 'Delete')} />
           </Popconfirm>
         </Space>
       ),
@@ -117,17 +119,17 @@ const KeysPage = () => {
     <Flex vertical gap={16}>
       <Flex justify="space-between" align="center" wrap gap={12}>
         <Typography.Title level={3} style={{ margin: 0 }}>
-          Key 管理
+          {t('Key 管理', 'Schema Keys')}
         </Typography.Title>
         <Space>
           <span data-testid="key-category-filter">
             <Select
               allowClear
-              placeholder="按分类筛选"
+              placeholder={t('按分类筛选', 'Filter by category')}
               style={{ width: 180 }}
               value={categoryFilter}
               onChange={setCategoryFilter}
-              options={categories.map((category) => ({ value: category.name, label: category.title }))}
+              options={categories.map((category) => ({ value: category.name, label: t(category.title) }))}
             />
           </span>
           <Button
@@ -138,7 +140,7 @@ const KeysPage = () => {
               setModalMode('create');
             }}
           >
-            新建 Key
+            {t('新建 Key', 'New Key')}
           </Button>
         </Space>
       </Flex>
@@ -148,7 +150,7 @@ const KeysPage = () => {
       ) : loading && keys.length === 0 ? (
         <StatePlaceholder variant="loading" />
       ) : filteredKeys.length === 0 ? (
-        <StatePlaceholder variant="empty" description="没有符合条件的 Key" />
+        <StatePlaceholder variant="empty" description={t('没有符合条件的 Key', 'No matching schema keys')} />
       ) : (
         <Table<KeyDefinition>
           rowKey="name"

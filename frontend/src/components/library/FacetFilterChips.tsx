@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Flex, Space, Tag, theme } from 'antd';
 import { CloseCircleOutlined, FilterOutlined, StarFilled } from '@ant-design/icons';
 import type { CategoryDefinition, KeyDefinition, SearchParams } from '../../types';
+import { useI18n } from '../../i18n';
 
 interface FacetFilterChipsProps {
   params: SearchParams;
@@ -25,6 +26,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
   onResetAll,
 }) => {
   const { token } = theme.useToken();
+  const { t } = useI18n();
 
   const categoryMap = new Map(categories.map((c) => [c.name, c.title]));
   const keyMap = new Map(keys.map((k) => [k.name, k.title]));
@@ -60,12 +62,12 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
       <Flex vertical gap={hasActiveTags ? 6 : 0}>
         <Flex wrap="wrap" align="center" gap={3}>
           <span style={{ fontSize: 12, color: token.colorTextSecondary, display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-            <FilterOutlined style={{ fontSize: 11 }} /> 快捷过滤:
+            <FilterOutlined style={{ fontSize: 11 }} /> {t('快捷过滤', 'Quick Filter')}:
           </span>
 
           {/* Rating Facet Chips */}
           <Space orientation="horizontal" size={2} style={{ flexShrink: 0 }}>
-            <span style={{ fontSize: 12, color: token.colorTextTertiary }}>评分:</span>
+            <span style={{ fontSize: 12, color: token.colorTextTertiary }}>{t('评分', 'Rating')}:</span>
             <Tag.CheckableTag
               style={{ marginInlineEnd: 0, paddingInline: 4, fontSize: 12 }}
               checked={ratingValue === null}
@@ -75,7 +77,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                 }
               }}
             >
-              全部
+              {t('全部', 'All')}
             </Tag.CheckableTag>
             <Tag.CheckableTag
               style={{ marginInlineEnd: 0, paddingInline: 4, fontSize: 12 }}
@@ -84,7 +86,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                 onKeyFilterChange('rating', checked ? '>=4' : '');
               }}
             >
-              <StarFilled style={{ color: '#faad14', marginRight: 2 }} /> 4星及以上
+              <StarFilled style={{ color: '#faad14', marginRight: 2 }} /> {t('4星及以上', '4+ Stars')}
             </Tag.CheckableTag>
             <Tag.CheckableTag
               style={{ marginInlineEnd: 0, paddingInline: 4, fontSize: 12 }}
@@ -93,7 +95,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                 onKeyFilterChange('rating', checked ? '5' : '');
               }}
             >
-              <StarFilled style={{ color: '#faad14', marginRight: 2 }} /> 5星
+              <StarFilled style={{ color: '#faad14', marginRight: 2 }} /> {t('5星', '5 Stars')}
             </Tag.CheckableTag>
           </Space>
 
@@ -101,7 +103,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
 
           {/* File Type Facet Chips */}
           <Space orientation="horizontal" size={2} style={{ flexShrink: 0 }}>
-            <span style={{ fontSize: 12, color: token.colorTextTertiary }}>类型:</span>
+            <span style={{ fontSize: 12, color: token.colorTextTertiary }}>{t('类型', 'Type')}:</span>
             <Tag.CheckableTag
               style={{ marginInlineEnd: 0, paddingInline: 4, fontSize: 12 }}
               checked={fileTypeValue === null}
@@ -111,7 +113,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                 }
               }}
             >
-              全部
+              {t('全部', 'All')}
             </Tag.CheckableTag>
             <Tag.CheckableTag
               style={{ marginInlineEnd: 0, paddingInline: 4, fontSize: 12 }}
@@ -132,7 +134,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
               checked={fileTypeValue === 'image'}
               onChange={(checked) => onKeyFilterChange('file_type', checked ? 'image' : '')}
             >
-              图片
+              {t('图片', 'Image')}
             </Tag.CheckableTag>
           </Space>
 
@@ -145,7 +147,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
               onClick={onResetAll}
               style={{ padding: '0 4px', fontSize: 12, marginLeft: 'auto', flexShrink: 0 }}
             >
-              重置全部
+              {t('重置全部', 'Reset All')}
             </Button>
           )}
         </Flex>
@@ -161,7 +163,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                   onClose={() => onSelectCategory(null)}
                   style={{ display: 'inline-flex', alignItems: 'center', marginInlineEnd: 0, fontSize: 12 }}
                 >
-                  分类: {currentCategoryTitle}
+                  {t('分类', 'Category')}: {t(currentCategoryTitle)}
                 </Tag>
               )}
               {params.key && params.keyValue && params.key !== 'rating' && params.key !== 'file_type' && (
@@ -171,7 +173,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                   onClose={() => onKeyFilterChange('', '')}
                   style={{ display: 'inline-flex', alignItems: 'center', marginInlineEnd: 0, fontSize: 12 }}
                 >
-                  {currentKeyTitle}: {params.keyValue}
+                  {currentKeyTitle ? t(currentKeyTitle) : ''}: {params.keyValue}
                 </Tag>
               )}
               {params.q && (
@@ -181,7 +183,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                   onClose={onClearSearch}
                   style={{ display: 'inline-flex', alignItems: 'center', marginInlineEnd: 0, fontSize: 12 }}
                 >
-                  搜索: &ldquo;{params.q}&rdquo;
+                  {t('搜索', 'Search')}: &ldquo;{params.q}&rdquo;
                 </Tag>
               )}
             </Space>
@@ -195,7 +197,7 @@ export const FacetFilterChips: React.FC<FacetFilterChipsProps> = ({
                 onClick={onResetAll}
                 style={{ padding: '0 4px', fontSize: 12, marginLeft: 'auto', flexShrink: 0 }}
               >
-                重置全部
+                {t('重置全部', 'Reset All')}
               </Button>
             )}
           </Flex>

@@ -3,6 +3,7 @@ import { Button, Flex, Input, Popover, Segmented, Select, Space, Typography } fr
 import { AppstoreOutlined, BarsOutlined, FilterOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ItemSort, KeyDefinition } from '../../types';
 import type { LibraryQueryParams } from '../../hooks/useLibrary';
+import { useI18n } from '../../i18n';
 
 interface SearchToolbarProps {
   params: LibraryQueryParams;
@@ -17,14 +18,6 @@ interface SearchToolbarProps {
   onViewModeChange?: (mode: 'table' | 'card') => void;
 }
 
-const sortOptions = [
-  { value: 'recent', label: '最近添加' },
-  { value: 'rating', label: '评分' },
-  { value: 'name', label: '名称' },
-];
-
-const pageSizeOptions = [10, 20, 50, 100].map((size) => ({ value: size, label: `${size} 条/页` }));
-
 const SearchToolbar = ({
   params,
   keys,
@@ -37,6 +30,7 @@ const SearchToolbar = ({
   viewMode = 'table',
   onViewModeChange,
 }: SearchToolbarProps) => {
+  const { t } = useI18n();
   const [value, setValue] = useState(params.q);
   const [lastQ, setLastQ] = useState(params.q);
   const [filterKey, setFilterKey] = useState(params.key);
@@ -44,6 +38,17 @@ const SearchToolbar = ({
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [lastFilter, setLastFilter] = useState({ key: params.key, keyValue: params.keyValue });
   const debounceRef = useRef<number | undefined>(undefined);
+
+  const sortOptions = [
+    { value: 'recent', label: t('最近添加', 'Newest') },
+    { value: 'rating', label: t('评分', 'Rating') },
+    { value: 'name', label: t('名称', 'Name') },
+  ];
+
+  const pageSizeOptions = [10, 20, 50, 100].map((size) => ({
+    value: size,
+    label: t(`${size} 条/页`, `${size} / page`),
+  }));
 
   // URL 变化时同步本地输入（React 官方推荐的“渲染期校正”模式，避免 effect 级联渲染）
   if (lastQ !== params.q) {
@@ -70,12 +75,12 @@ const SearchToolbar = ({
 
   return (
     <Flex vertical gap={8}>
-      <Flex gap={8} align="center" justify="space-between" style={{ width: '100%' }}>
+      <Flex gap={6} align="center" justify="space-between" wrap="wrap">
         <Input.Search
           allowClear
-          placeholder="搜索名称或任意属性值"
+          placeholder={t('搜索名称或任意属性值', 'Search title or attributes...')}
           value={value}
-          style={{ flex: 1, minWidth: 160 }}
+          style={{ flex: 1, minWidth: 105 }}
           onChange={(event) => {
             setValue(event.target.value);
             scheduleSearch(event.target.value);
@@ -86,21 +91,21 @@ const SearchToolbar = ({
         <Space size={6} style={{ flexShrink: 0 }}>
           {onUpload ? (
             <Button icon={<UploadOutlined />} onClick={onUpload}>
-              上传文件
+              {t('上传文件', 'Upload')}
             </Button>
           ) : null}
           {onCreate ? (
             <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
-              新建记录
+              {t('新建记录', 'New Item')}
             </Button>
           ) : null}
         </Space>
       </Flex>
 
-      <Flex gap={6} align="center" justify="space-between" wrap="nowrap">
-        <Space size={6}>
+      <Flex gap={6} align="center" justify="space-between" wrap="wrap">
+        <Space size={6} wrap>
           <span data-testid="sort-select">
-            <Select value={params.sort} options={sortOptions} onChange={onSortChange} style={{ width: 108 }} />
+            <Select value={params.sort} options={sortOptions} onChange={onSortChange} style={{ width: 98 }} />
           </span>
 
           <Popover
@@ -113,14 +118,14 @@ const SearchToolbar = ({
                   allowClear
                   showSearch
                   optionFilterProp="label"
-                  placeholder="选择 Key"
+                  placeholder={t('选择 Key', 'Select Key')}
                   value={filterKey || undefined}
-                  options={keys.map((key) => ({ value: key.name, label: `${key.title} (${key.name})` }))}
+                  options={keys.map((key) => ({ value: key.name, label: `${t(key.title)} (${key.name})` }))}
                   onChange={(next) => setFilterKey(next ?? '')}
                   style={{ width: '100%' }}
                 />
                 <Input
-                  placeholder="属性值包含"
+                  placeholder={t('属性值包含', 'Attribute value contains...')}
                   value={filterValue}
                   onChange={(event) => setFilterValue(event.target.value)}
                 />
@@ -133,7 +138,7 @@ const SearchToolbar = ({
                       setAdvancedOpen(false);
                     }}
                   >
-                    应用
+                    {t('应用', 'Apply')}
                   </Button>
                   <Button
                     onClick={() => {
@@ -143,20 +148,20 @@ const SearchToolbar = ({
                       setAdvancedOpen(false);
                     }}
                   >
-                    清除
+                    {t('清除', 'Clear')}
                   </Button>
                 </Space>
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  请同时选择属性字段并输入匹配值以应用筛选
+                  {t('请同时选择属性字段并输入匹配值以应用筛选', 'Select both a key and value to apply the filter')}
                 </Typography.Text>
               </Space>
             }
           >
-            <Button icon={<FilterOutlined />}>高级筛选</Button>
+            <Button icon={<FilterOutlined />}>{t('高级筛选', 'Filters')}</Button>
           </Popover>
 
           <span data-testid="page-size-select">
-            <Select value={params.pageSize} options={pageSizeOptions} onChange={onPageSizeChange} style={{ width: 106 }} />
+            <Select value={params.pageSize} options={pageSizeOptions} onChange={onPageSizeChange} style={{ width: 112 }} />
           </span>
         </Space>
 
@@ -166,8 +171,8 @@ const SearchToolbar = ({
               value={viewMode}
               onChange={(val) => onViewModeChange(val as 'table' | 'card')}
               options={[
-                { value: 'table', icon: <BarsOutlined />, label: '表格' },
-                { value: 'card', icon: <AppstoreOutlined />, label: '卡片' },
+                { value: 'table', icon: <BarsOutlined />, label: t('表格', 'Table') },
+                { value: 'card', icon: <AppstoreOutlined />, label: t('卡片', 'Cards') },
               ]}
             />
           </span>

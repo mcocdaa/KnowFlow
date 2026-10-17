@@ -11,6 +11,7 @@ import {
 import type { CategoryDefinition } from '../../types';
 import CategoryFormModal from '../categories/CategoryFormModal';
 import { collectDescendants } from '../../utils/categoryTree';
+import { useI18n } from '../../i18n';
 
 interface CategorySidebarTreeProps {
   categories: CategoryDefinition[];
@@ -34,6 +35,7 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
   onCreateCategory,
 }) => {
   const { token } = theme.useToken();
+  const { t } = useI18n();
   const [modalOpen, setModalOpen] = useState(false);
   const [dragOverCategory, setDragOverCategory] = useState<string | null>(null);
 
@@ -45,6 +47,7 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
         .map((cat) => {
           const count = itemCounts[cat.name] || 0;
           const isDragTarget = dragOverCategory === cat.name;
+          const displayTitle = t(cat.title);
 
           return {
             key: cat.name,
@@ -86,7 +89,7 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, minWidth: 0, overflow: 'hidden' }}>
                   <FolderFilled style={{ color: token.colorPrimary, fontSize: 13, flexShrink: 0 }} />
                   <span
-                    title={cat.title}
+                    title={displayTitle}
                     style={{
                       fontSize: 12.5,
                       overflow: 'hidden',
@@ -94,7 +97,7 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {cat.title}
+                    {displayTitle}
                   </span>
                 </span>
                 <span
@@ -118,7 +121,7 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
     };
 
     return childrenOf(null);
-  }, [categories, itemCounts, dragOverCategory, token, onArchiveItem]);
+  }, [categories, itemCounts, dragOverCategory, token, onArchiveItem, t]);
 
   const handleTreeDrop: TreeProps['onDrop'] = (info) => {
     const dropKey = info.node.key as string;
@@ -162,15 +165,15 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
     >
       <Flex justify="space-between" align="center" style={{ marginBottom: 10 }}>
         <Typography.Text strong style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <FolderOpenOutlined style={{ color: token.colorPrimary }} /> 分类目录
+          <FolderOpenOutlined style={{ color: token.colorPrimary }} /> {t('分类目录', 'Categories')}
         </Typography.Text>
-        <Tooltip title="新建分类">
+        <Tooltip title={t('新建分类', 'New Category')}>
           <Button
             type="text"
             size="small"
             icon={<PlusOutlined />}
             onClick={() => setModalOpen(true)}
-            aria-label="新建分类"
+            aria-label={t('新建分类', 'New Category')}
           />
         </Tooltip>
       </Flex>
@@ -213,14 +216,14 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
           <AppstoreOutlined />
-          <span>全部知识</span>
+          <span>{t('全部知识', 'All Items')}</span>
         </span>
         <Badge count={totalCount} overflowCount={999} style={{ backgroundColor: token.colorFillSecondary, color: token.colorTextSecondary }} />
       </div>
 
       <div className="knowflow-category-tree" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
         {categories.length === 0 ? (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无分类" style={{ marginTop: 24 }} />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('暂无分类', 'No categories')} style={{ marginTop: 24 }} />
         ) : (
           <Tree
             draggable
@@ -248,9 +251,11 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
           color: token.colorTextTertiary,
           textAlign: 'center',
           whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}
       >
-        <InfoCircleOutlined style={{ marginRight: 4 }} /> 提示：拖拽文件可直接归档至分类
+        <InfoCircleOutlined style={{ marginRight: 4 }} /> {t('提示：拖拽文件可直接归档至分类', 'Tip: Drag items here to file')}
       </div>
 
       <CategoryFormModal

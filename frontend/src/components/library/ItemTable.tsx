@@ -4,6 +4,7 @@ import { DeleteOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import FileIcon from '../common/FileIcon';
 import { formatDateTime } from '../../utils/format';
 import type { KnowledgeItem } from '../../types';
+import { useI18n } from '../../i18n';
 
 interface ItemTableProps {
   items: KnowledgeItem[];
@@ -28,25 +29,27 @@ const ItemTable = ({
   onOpen,
   onEdit,
 }: ItemTableProps) => {
+  const { t } = useI18n();
+
   const columns: TableColumnsType<KnowledgeItem> = [
     {
-      title: '名称',
+      title: t('名称', 'Name'),
       dataIndex: 'name',
       render: (_value, item) => (
         <Space size={6}>
           <FileIcon fileType={String(item.keyValues.file_type ?? '')} style={{ color: '#2563EB' }} />
           {onOpen ? (
             <Button type="link" style={{ paddingInline: 0 }} onClick={() => onOpen(item)}>
-              {item.name || '未命名'}
+              {item.name || t('未命名', 'Untitled')}
             </Button>
           ) : (
-            <Typography.Text strong>{item.name || '未命名'}</Typography.Text>
+            <Typography.Text strong>{item.name || t('未命名', 'Untitled')}</Typography.Text>
           )}
         </Space>
       ),
     },
     {
-      title: '评分',
+      title: t('评分', 'Rating'),
       width: 108,
       render: (_value, item) => {
         const rating = Math.min(5, Math.max(0, Number(item.keyValues.rating) || 0));
@@ -54,34 +57,34 @@ const ItemTable = ({
       },
     },
     {
-      title: '更新时间',
+      title: t('更新时间', 'Updated'),
       dataIndex: 'updatedAt',
       width: 136,
       render: (value?: string) => <span style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{formatDateTime(value)}</span>,
     },
     {
-      title: '操作',
+      title: t('操作', 'Actions'),
       width: 96,
       render: (_value, item) => (
         <Space size={0}>
           {onOpen ? (
-            <Tooltip title="查看">
-              <Button type="text" size="small" icon={<EyeOutlined />} aria-label="查看" onClick={() => onOpen(item)} />
+            <Tooltip title={t('查看', 'View')}>
+              <Button type="text" size="small" icon={<EyeOutlined />} aria-label={t('查看', 'View')} onClick={() => onOpen(item)} />
             </Tooltip>
           ) : null}
           {onEdit ? (
-            <Tooltip title="编辑">
-              <Button type="text" size="small" icon={<EditOutlined />} aria-label="编辑" onClick={() => onEdit(item)} />
+            <Tooltip title={t('编辑', 'Edit')}>
+              <Button type="text" size="small" icon={<EditOutlined />} aria-label={t('编辑', 'Edit')} onClick={() => onEdit(item)} />
             </Tooltip>
           ) : null}
           <Popconfirm
-            title="删除这条记录？"
-            description="仅删除记录，不会删除已上传的文件。"
-            okText="确定"
-            cancelText="取消"
+            title={t('删除这条记录？', 'Delete this item?')}
+            description={t('仅删除记录，不会删除已上传的文件。', 'Only deletes the record, not the uploaded file.')}
+            okText={t('确定', 'OK')}
+            cancelText={t('取消', 'Cancel')}
             onConfirm={() => onDelete(item.id)}
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} aria-label="删除" />
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} aria-label={t('删除', 'Delete')} />
           </Popconfirm>
         </Space>
       ),
