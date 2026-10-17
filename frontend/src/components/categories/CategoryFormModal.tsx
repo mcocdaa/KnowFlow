@@ -23,7 +23,7 @@ const CategoryFormModal = ({
   onCancel,
   onSubmit,
 }: CategoryFormModalProps) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [form] = Form.useForm<CategoryInput>();
 
   const treeData = useMemo(() => {
@@ -56,7 +56,7 @@ const CategoryFormModal = ({
         layout="vertical"
         initialValues={{
           name: initial?.name,
-          title: initial?.title,
+          title: locale === 'en' && initial?.title ? t(initial.title) : initial?.title,
           parent_name: initial?.parent_name ?? undefined,
         }}
         onFinish={handleFinish}

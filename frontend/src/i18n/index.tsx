@@ -131,7 +131,235 @@ const DICTIONARY: Record<string, { zh: string; en: string }> = {
   'BSON重构': { zh: 'BSON重构', en: 'BSON Refactoring' },
   '范围查询': { zh: '范围查询', en: 'Range Query' },
   '倒排索引': { zh: '倒排索引', en: 'Inverted Index' },
+  '架构': { zh: '架构', en: 'Architecture' },
+  '架构设计': { zh: '架构设计', en: 'Architecture Design' },
+  '设计': { zh: '设计', en: 'Design' },
+  '开发': { zh: '开发', en: 'Development' },
+  '测试': { zh: '测试', en: 'Testing' },
+  '部署': { zh: '部署', en: 'Deployment' },
+  '运维': { zh: '运维', en: 'Operations' },
+  '前端': { zh: '前端', en: 'Frontend' },
+  '后端': { zh: '后端', en: 'Backend' },
+  '数据库': { zh: '数据库', en: 'Database' },
+  '人工智能': { zh: '人工智能', en: 'AI' },
+  '语义检索': { zh: '语义检索', en: 'Semantic Search' },
+  '向量检索': { zh: '向量检索', en: 'Vector Search' },
+  '性能优化': { zh: '性能优化', en: 'Performance Optimization' },
+  '优化': { zh: '优化', en: 'Optimization' },
+  '安全': { zh: '安全', en: 'Security' },
+  '文档': { zh: '文档', en: 'Documentation' },
+  '规范': { zh: '规范', en: 'Specification' },
+  '规约': { zh: '规约', en: 'Specification' },
+  '指南': { zh: '指南', en: 'Guide' },
+  '白皮书': { zh: '白皮书', en: 'Whitepaper' },
+  '配置': { zh: '配置', en: 'Configuration' },
+  '报告': { zh: '报告', en: 'Report' },
+  '桌面端': { zh: '桌面端', en: 'Desktop' },
+  '检索': { zh: '检索', en: 'Search' },
+  '工程化': { zh: '工程化', en: 'Engineering' },
+
+  // OpenClaw category & plugin UI labels
+  'OpenClaw集成': { zh: 'OpenClaw集成', en: 'OpenClaw Integration' },
+  'OpenClaw 归档管理': { zh: 'OpenClaw 归档管理', en: 'OpenClaw Archive Management' },
+  'OpenClaw 桥接属性': { zh: 'OpenClaw 桥接属性', en: 'OpenClaw Bridge Attributes' },
+  '按项目ID筛选': { zh: '按项目ID筛选', en: 'Filter by Project ID' },
+  '保存配置': { zh: '保存配置', en: 'Save Configuration' },
+  '重置筛选': { zh: '重置筛选', en: 'Reset Filters' },
+  '保存OpenClaw属性': { zh: '保存OpenClaw属性', en: 'Save OpenClaw Attributes' },
+  '保存中...': { zh: '保存中...', en: 'Saving...' },
+  '项目ID不能为空': { zh: '项目ID不能为空', en: 'Project ID is required' },
+  'OpenClaw属性保存成功': { zh: 'OpenClaw属性保存成功', en: 'OpenClaw attributes saved successfully' },
+  '保存失败，请检查网络连接': { zh: '保存失败，请检查网络连接', en: 'Failed to save, please check network connection' },
+  '请输入项目唯一ID（必填）': { zh: '请输入项目唯一ID（必填）', en: 'Enter unique project ID (required)' },
+  '需求文档 (requirement)': { zh: '需求文档 (requirement)', en: 'Requirement (requirement)' },
+  '代码实现 (code)': { zh: '代码实现 (code)', en: 'Code Implementation (code)' },
+  '测试报告 (test)': { zh: '测试报告 (test)', en: 'Test Report (test)' },
+  '通用文档 (document)': { zh: '通用文档 (document)', en: 'General Document (document)' },
+  '流程记录 (flow_record)': { zh: '流程记录 (flow_record)', en: 'Flow Record (flow_record)' },
+  '1 - 顶层摘要（仅AI只读摘要）': { zh: '1 - 顶层摘要（仅AI只读摘要）', en: '1 - Top Summary (AI summary only)' },
+  '2 - 中层详情（模块级内容）': { zh: '2 - 中层详情（模块级内容）', en: '2 - Mid-level Details (Module level)' },
+  '3 - 完整内容（全文展示）': { zh: '3 - 完整内容（全文展示）', en: '3 - Full Content (Full text)' },
+  '例如：编码Agent / 调试Agent / AutoFlow': { zh: '例如：编码Agent / 调试Agent / AutoFlow', en: 'e.g., Coding Agent / Debug Agent / AutoFlow' },
+  '流程ID（可选）': { zh: '流程ID（可选）', en: 'Flow ID (Optional)' },
+  '关联的AutoFlow流程ID': { zh: '关联的AutoFlow流程ID', en: 'Associated AutoFlow ID' },
+  '顶层折叠展示的一句话摘要，省Token核心字段': { zh: '顶层折叠展示的一句话摘要，省Token核心字段', en: 'Top-level summary for token-efficient indexing' },
+
+  // Seeded knowledge item titles (from seed_data.py)
+  'KnowFlow 统一架构设计说明书.md': {
+    zh: 'KnowFlow 统一架构设计说明书.md',
+    en: 'KnowFlow Unified Architecture Design Spec.md',
+  },
+  'fastembed 离线语义推理实现.py': {
+    zh: 'fastembed 离线语义推理实现.py',
+    en: 'fastembed Offline Semantic Inference Implementation.py',
+  },
+  'KnowFlow 生产配置规约.json': {
+    zh: 'KnowFlow 生产配置规约.json',
+    en: 'KnowFlow Production Configuration Specification.json',
+  },
+  'KnowFlow 产品使用指南与规划白皮书.pdf': {
+    zh: 'KnowFlow 产品使用指南与规划白皮书.pdf',
+    en: 'KnowFlow Product Guide & Roadmap Whitepaper.pdf',
+  },
+  '动态属性 KV 查询优化报告': {
+    zh: '动态属性 KV 查询优化报告',
+    en: 'Dynamic Attribute KV Query Optimization Report',
+  },
+
+  // Backend CRUD & AI / plugin error messages
+  'cannot delete category with existing children': {
+    zh: '无法删除包含子分类的分类',
+    en: 'Cannot delete a category that has subcategories',
+  },
+  'category cannot be its own parent': {
+    zh: '分类不能将自身设为父分类',
+    en: 'A category cannot be its own parent',
+  },
+  'builtin categories cannot be modified': {
+    zh: '内置分类不可修改',
+    en: 'Built-in categories cannot be modified',
+  },
+  'builtin categories cannot be deleted': {
+    zh: '内置分类不可删除',
+    en: 'Built-in categories cannot be deleted',
+  },
+  'builtin keys cannot be modified': {
+    zh: '内置属性 Key 不可修改',
+    en: 'Built-in keys cannot be modified',
+  },
+  'builtin keys cannot be deleted': {
+    zh: '内置属性 Key 不可删除',
+    en: 'Built-in keys cannot be deleted',
+  },
+  'no valid fields to update': {
+    zh: '没有有效的更新字段',
+    en: 'No valid fields to update',
+  },
+  '没有有效的更新字段': {
+    zh: '没有有效的更新字段',
+    en: 'No valid fields to update',
+  },
+  'invalid value_type, must be one of: string, number, boolean, array, object': {
+    zh: '无效的值类型，必须为 string、number、boolean、array 或 object',
+    en: 'Invalid value_type, must be one of: string, number, boolean, array, object',
+  },
+  'Invalid JSON in data field': {
+    zh: '数据字段 JSON 格式无效',
+    en: 'Invalid JSON in data field',
+  },
+  'AI 功能未启用，请配置 DOUBAO_API_KEY': {
+    zh: 'AI 功能未启用，请配置 DOUBAO_API_KEY',
+    en: 'AI feature is disabled. Please configure DOUBAO_API_KEY.',
+  },
+  'AI 服务调用超时': {
+    zh: 'AI 服务调用超时',
+    en: 'AI service request timed out',
+  },
+  'AI 服务调用失败': {
+    zh: 'AI 服务调用失败',
+    en: 'AI service request failed',
+  },
+  'AI 服务响应格式错误': {
+    zh: 'AI 服务响应格式错误',
+    en: 'Invalid AI service response format',
+  },
+  'query 不能为空': {
+    zh: '搜索内容不能为空',
+    en: 'Query cannot be empty',
+  },
+  '文件大小超过上限 10MB': {
+    zh: '文件大小超过上限 10MB',
+    en: 'File size exceeds the 10MB limit',
+  },
+  '星级必须在1-5之间': {
+    zh: '星级必须在1-5之间',
+    en: 'Rating must be between 1 and 5',
+  },
+  'openclaw_project_id不能为空': {
+    zh: 'openclaw_project_id不能为空',
+    en: 'openclaw_project_id cannot be empty',
+  },
+  '归档类型必须是requirement / code / test / document / flow_record之一': {
+    zh: '归档类型必须是requirement / code / test / document / flow_record之一',
+    en: 'Archive type must be one of: requirement / code / test / document / flow_record',
+  },
+  '折叠层级必须是1-3之间的整数': {
+    zh: '折叠层级必须是1-3之间的整数',
+    en: 'Fold level must be an integer between 1 and 3',
+  },
+  'category name must be non-empty string': {
+    zh: '分类标识不能为空',
+    en: 'Category identifier cannot be empty',
+  },
+  'key name must be non-empty string': {
+    zh: 'Key 标识不能为空',
+    en: 'Key identifier cannot be empty',
+  },
 };
+
+function translateBackendErrorPattern(key: string, locale: Locale): string | null {
+  let match = key.match(/^Missing required keys:\s*(.+)$/i);
+  if (match) {
+    return locale === 'zh' ? `缺少必填字段：${match[1]}` : `Missing required keys: ${match[1]}`;
+  }
+
+  match = key.match(/^(category|key|parent category) with name (.+) already exists$/i);
+  if (match) {
+    const entity = match[1].toLowerCase() === 'key' ? 'Key' : '分类';
+    return locale === 'zh' ? `${entity} "${match[2]}" 已存在` : `${match[1]} with name "${match[2]}" already exists`;
+  }
+
+  match = key.match(/^(category|key|parent category) with name (.+) does not exist$/i);
+  if (match) {
+    const kind = match[1].toLowerCase();
+    const entity = kind === 'key' ? 'Key' : kind === 'parent category' ? '父分类' : '分类';
+    return locale === 'zh' ? `${entity} "${match[2]}" 不存在` : `${match[1]} with name "${match[2]}" does not exist`;
+  }
+
+  match = key.match(/^(item|category) with id (.+) does not exist$/i);
+  if (match) {
+    const entity = match[1].toLowerCase() === 'item' ? '记录' : '分类';
+    return locale === 'zh' ? `${entity} (ID: ${match[2]}) 不存在` : `${match[1]} with id "${match[2]}" does not exist`;
+  }
+
+  match = key.match(/^would create a cycle:\s*(.+)$/i);
+  if (match) {
+    return locale === 'zh' ? `会导致循环依赖：${match[1]}` : `Would create a cycle: ${match[1]}`;
+  }
+
+  match = key.match(/^unknown key:\s*(.+)$/i);
+  if (match) {
+    return locale === 'zh' ? `未知的属性 Key：${match[1]}` : `Unknown key: ${match[1]}`;
+  }
+
+  match = key.match(/^invalid sort option:\s*(.+)$/i);
+  if (match) {
+    return locale === 'zh' ? `无效的排序方式：${match[1]}` : `Invalid sort option: ${match[1]}`;
+  }
+
+  match = key.match(/^field\(s\) not allowed in update:\s*(.+)$/i);
+  if (match) {
+    return locale === 'zh' ? `不允许更新的字段：${match[1]}` : `Field(s) not allowed in update: ${match[1]}`;
+  }
+
+  match = key.match(/^(category|key definition) must contain (.+)$/i);
+  if (match) {
+    const entity = match[1].toLowerCase() === 'category' ? '分类' : 'Key 定义';
+    return locale === 'zh' ? `${entity}必须包含字段 ${match[2]}` : `${match[1]} must contain ${match[2]}`;
+  }
+
+  match = key.match(/^文件大小超过上限\s*(.+)$/);
+  if (match) {
+    return locale === 'zh' ? key : `File size exceeds the ${match[1]} limit`;
+  }
+
+  match = key.match(/^query 长度不能超过 (\d+) 字符$/);
+  if (match) {
+    return locale === 'zh' ? key : `Query length cannot exceed ${match[1]} characters`;
+  }
+
+  return null;
+}
 
 export function getInitialLocale(): Locale {
   try {
@@ -154,6 +382,10 @@ export function translateText(locale: Locale, keyOrZh: string, enFallback?: stri
   const entry = DICTIONARY[keyOrZh];
   if (entry) {
     return entry[locale];
+  }
+  const patternTranslated = translateBackendErrorPattern(keyOrZh, locale);
+  if (patternTranslated !== null) {
+    return patternTranslated;
   }
   return keyOrZh;
 }

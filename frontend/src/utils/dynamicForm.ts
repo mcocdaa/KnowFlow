@@ -46,6 +46,8 @@ export const serializeInitialValues = (
         ? raw.map((item) => (typeof item === 'string' ? tr(item) : item))
         : raw;
       result[definition.name] = JSON.stringify(localized, null, 2);
+    } else if (typeof raw === 'string') {
+      result[definition.name] = tr(raw);
     } else {
       result[definition.name] = raw;
     }
