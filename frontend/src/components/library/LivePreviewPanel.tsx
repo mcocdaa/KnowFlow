@@ -32,6 +32,7 @@ import type { CategoryDefinition, KeyDefinition, KnowledgeItem } from '../../typ
 import { detectPreviewType, getFileExtension, getFileUrl } from '../../utils/fileUrl';
 import { formatDateTime } from '../../utils';
 import StarRating from '../../plugins/components/StarRating';
+import { useI18n } from '../../i18n';
 
 interface LivePreviewPanelProps {
   item: KnowledgeItem | null;
@@ -53,6 +54,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
   onPluginUpdate,
 }) => {
   const { token } = theme.useToken();
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'preview' | 'meta'>('preview');
   const [loadedData, setLoadedData] = useState<{ url: string; content: string } | null>(null);
   const [contentError, setContentError] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
     if (isTextPreview && loadedData?.url !== fileUrl) {
       fetch(fileUrl)
         .then((res) => {
-          if (!res.ok) throw new Error(`加载失败: ${res.statusText}`);
+          if (!res.ok) throw new Error(`${t('加载失败', 'Failed to load')}: ${res.statusText}`);
           return res.text();
         })
         .then((text) => {
@@ -89,7 +91,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         })
         .catch((err) => {
           if (!cancelled) {
-            setContentError(String(err.message || '文件内容加载失败'));
+            setContentError(String(err.message || t('文件内容加载失败', 'Failed to load file content')));
           }
         });
     }
@@ -97,7 +99,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [item, fileUrl, isTextPreview, loadedData?.url]);
+  }, [item, fileUrl, isTextPreview, loadedData?.url, t]);
 
   // Render markdown to HTML safely
   const renderedMarkdown = useMemo(() => {
@@ -127,14 +129,15 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
       >
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="选择左侧知识项以快速预览与检查属性"
+          description={t('选择左侧知识项以快速预览与检查属性', 'Select an item to preview content and inspect attributes')}
         />
       </Card>
     );
   }
 
   const categoryName = (item.keyValues.category_name as string) || '';
-  const categoryTitle = categoryMap.get(categoryName) || categoryName;
+  const rawCategoryTitle = categoryMap.get(categoryName) || categoryName;
+  const categoryTitle = rawCategoryTitle ? t(rawCategoryTitle) : '';
 
   // Determine monaco language from extension
   const codeLanguage = (() => {
@@ -210,11 +213,11 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         </div>
         <Space size={2} style={{ flexShrink: 0 }}>
           {onEdit && (
-            <Tooltip title="编辑知识项">
+            <Tooltip title={t('编辑知识项', 'Edit Item')}>
               <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(item)} />
             </Tooltip>
           )}
-          <Tooltip title="关闭预览">
+          <Tooltip title={t('关闭预览', 'Close Preview')}>
             <Button type="text" size="small" icon={<CloseOutlined />} onClick={onClose} />
           </Tooltip>
         </Space>
@@ -226,8 +229,8 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         value={activeTab}
         onChange={(val) => setActiveTab(val as 'preview' | 'meta')}
         options={[
-          { label: '实时极速预览', value: 'preview', icon: <EyeOutlined /> },
-          { label: '属性与插件', value: 'meta', icon: <InfoCircleOutlined /> },
+          { label: t('实时极速预览', 'Live Preview'), value: 'preview', icon: <EyeOutlined /> },
+          { label: t('属性与插件', 'Attributes'), value: 'meta', icon: <InfoCircleOutlined /> },
         ]}
         style={{ marginBottom: 10 }}
       />
@@ -247,7 +250,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
           >
             {!filePath ? (
               <Flex vertical justify="center" align="center" style={{ flex: 1, padding: 24 }}>
-                <Empty description="该知识记录未挂载文件附件" />
+                <Empty description={t('该知识记录未挂载文件附件', 'No file attachment linked to this item')} />
               </Flex>
             ) : previewType === 'pdf' ? (
               <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -264,10 +267,10 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
-                    <FilePdfOutlined style={{ color: '#ff4d4f', flexShrink: 0 }} /> PDF.js 原生极速预览
+                    <FilePdfOutlined style={{ color: '#ff4d4f', flexShrink: 0 }} /> {t('PDF.js 原生极速预览', 'PDF Native Preview')}
                   </span>
                   <a href={fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    新标签页打开
+                    {t('新标签页打开', 'Open in New Tab')}
                   </a>
                 </div>
                 <iframe
@@ -291,21 +294,21 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                   }}
                 >
                   <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
-                    Markdown 语法排版渲染
+                    {t('Markdown 语法排版渲染', 'Markdown Rendered')}
                   </span>
                   {fileContent && (
                     <Typography.Text
                       copyable={{ text: fileContent }}
                       style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}
                     >
-                      复制 Markdown
+                      {t('复制 Markdown', 'Copy MD')}
                     </Typography.Text>
                   )}
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', background: token.colorBgContainer }}>
                   {loadingContent ? (
                     <Flex justify="center" align="center" style={{ height: 200 }}>
-                      <Spin tip="加载渲染中..." />
+                      <Spin tip={t('加载渲染中...', 'Rendering...')} />
                     </Flex>
                   ) : contentError ? (
                     <Empty description={contentError} />
@@ -333,21 +336,21 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                   }}
                 >
                   <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
-                    Monaco 代码高亮预览 ({codeLanguage})
+                    {t(`Monaco 代码高亮预览 (${codeLanguage})`, `Monaco Code Preview (${codeLanguage})`)}
                   </span>
                   {fileContent && (
                     <Typography.Text
                       copyable={{ text: fileContent }}
                       style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}
                     >
-                      复制代码
+                      {t('复制代码', 'Copy Code')}
                     </Typography.Text>
                   )}
                 </div>
                 <div style={{ flex: 1, minHeight: 300 }}>
                   {loadingContent ? (
                     <Flex justify="center" align="center" style={{ height: 200 }}>
-                      <Spin tip="加载代码中..." />
+                      <Spin tip={t('加载代码中...', 'Loading code...')} />
                     </Flex>
                   ) : contentError ? (
                     <Empty description={contentError} />
@@ -409,9 +412,14 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
               </Flex>
             ) : (
               <Flex vertical justify="center" align="center" style={{ flex: 1, padding: 24 }}>
-                <Empty description={`此格式 (${ext || fileType || '未知'}) 暂无内置即时渲染器`} />
+                <Empty
+                  description={t(
+                    `此格式 (${ext || fileType || '未知'}) 暂无内置即时渲染器`,
+                    `No built-in previewer for (${ext || fileType || 'unknown'})`,
+                  )}
+                />
                 <Button type="primary" icon={<DownloadOutlined />} href={fileUrl} target="_blank" style={{ marginTop: 12 }}>
-                  下载并在本地查看
+                  {t('下载并在本地查看', 'Download & Open Locally')}
                 </Button>
               </Flex>
             )}
@@ -419,16 +427,16 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         ) : (
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
             <Descriptions size="small" column={1} bordered>
-              <Descriptions.Item label="名称">{item.name}</Descriptions.Item>
-              <Descriptions.Item label="分类">{categoryTitle || '-'}</Descriptions.Item>
-              <Descriptions.Item label="创建时间">
+              <Descriptions.Item label={t('名称', 'Name')}>{item.name}</Descriptions.Item>
+              <Descriptions.Item label={t('分类', 'Category')}>{categoryTitle || '-'}</Descriptions.Item>
+              <Descriptions.Item label={t('创建时间', 'Created')}>
                 {item.createdAt ? formatDateTime(item.createdAt) : '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="更新时间">
+              <Descriptions.Item label={t('更新时间', 'Updated')}>
                 {item.updatedAt ? formatDateTime(item.updatedAt) : '-'}
               </Descriptions.Item>
               {filePath && (
-                <Descriptions.Item label="关联附件">
+                <Descriptions.Item label={t('关联附件', 'Attachment')}>
                   <Typography.Text ellipsis copyable={{ text: filePath }} style={{ maxWidth: 160 }}>
                     {filePath.split('/').pop() || filePath}
                   </Typography.Text>
@@ -439,7 +447,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                       icon={<FolderOpenOutlined />}
                       onClick={() => onOpenLocation(filePath)}
                     >
-                      定位
+                      {t('定位', 'Locate')}
                     </Button>
                   )}
                 </Descriptions.Item>
@@ -448,7 +456,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
 
             {/* Dynamic Attributes & Plugins */}
             <Typography.Title level={5} style={{ marginTop: 16, marginBottom: 8, fontSize: 13 }}>
-              动态属性与插件
+              {t('动态属性与插件', 'Dynamic Attributes & Plugins')}
             </Typography.Title>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {/* Star Rating Plugin */}
@@ -461,7 +469,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                 }}
               >
                 <div style={{ fontSize: 12, color: token.colorTextSecondary, marginBottom: 4 }}>
-                  星级评分 (Rating 插件)
+                  {t('星级评分 (Rating 插件)', 'Star Rating (Rating Plugin)')}
                 </div>
                 <StarRating
                   itemId={item.id}
@@ -475,7 +483,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                 .filter(([k]) => !['name', 'category_name', 'rating', 'file_path', 'file_type', 'created_at', 'updated_at'].includes(k))
                 .map(([key, val]) => {
                   const keyDef = keyMap.get(key);
-                  const displayTitle = keyDef?.title || key;
+                  const displayTitle = keyDef?.title ? t(keyDef.title) : key;
                   const displayVal =
                     Array.isArray(val) ? (
                       <Space size={4} wrap>

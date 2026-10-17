@@ -55,6 +55,17 @@ body {
   white-space: nowrap !important;
 }
 
+.ant-layout-sider .ant-menu-inline .ant-menu-item {
+  padding-inline: 12px !important;
+  margin-inline: 4px !important;
+  width: calc(100% - 8px) !important;
+}
+
+.ant-segmented .ant-segmented-item-label {
+  padding-inline: 6px !important;
+  font-size: 12.5px;
+}
+
 .ant-rate-star {
   margin-inline-end: 4px !important;
 }

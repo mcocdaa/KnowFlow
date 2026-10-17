@@ -16,11 +16,13 @@ import { useLibrary } from '../hooks/useLibrary';
 import { upsertItem } from '../store/librarySlice';
 import api from '../services/api';
 import { getErrorMessage, openFileLocation } from '../utils';
+import { useI18n } from '../i18n';
 import type { CategoryInput, KnowledgeItem } from '../types';
 
 const LibraryPage = () => {
   const dispatch = useDispatch();
   const { message } = App.useApp();
+  const { t } = useI18n();
   const { items, total, page, pageSize, params, loading, error, updateParams, refresh, removeItem } = useLibrary();
   const { keys, categories, refreshCatalog } = useCatalog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -245,8 +247,8 @@ const LibraryPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 78px)', minHeight: 600 }}>
       {/* Three-Column Workspace Layout */}
       <div style={{ display: 'flex', gap: 10, flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
-        {/* Column 1: Left Infinite Category Tree (228px) */}
-        <div style={{ width: 228, flexShrink: 0, height: '100%' }}>
+        {/* Column 1: Left Infinite Category Tree (224px at 1280px, 168px at 960px) */}
+        <div style={{ width: 'clamp(160px, 17.5vw, 224px)', flexShrink: 0, height: '100%' }}>
           <CategorySidebarTree
             categories={categories}
             selectedCategory={selectedCategory}
@@ -275,7 +277,7 @@ const LibraryPage = () => {
         >
           <Flex justify="space-between" align="center">
             <Typography.Title level={4} style={{ margin: 0, fontSize: 18, lineHeight: '26px' }}>
-              知识库
+              {t('知识库', 'Library')}
             </Typography.Title>
           </Flex>
 
@@ -312,7 +314,10 @@ const LibraryPage = () => {
             ) : loading && !hasItems ? (
               <StatePlaceholder variant="loading" />
             ) : !hasItems ? (
-              <StatePlaceholder variant="empty" description="暂无知识记录，点击上传或新建第一条记录" />
+              <StatePlaceholder
+                variant="empty"
+                description={t('暂无知识记录，点击上传或新建第一条记录', 'No items yet. Click Upload or New Item to add your first record.')}
+              />
             ) : viewMode === 'table' ? (
               <ItemTable
                 items={items}
@@ -355,9 +360,9 @@ const LibraryPage = () => {
           </div>
         </div>
 
-        {/* Column 3: Right Live Preview & Inspector Panel (356px) */}
+        {/* Column 3: Right Live Preview & Inspector Panel (356px at 1280px, 264px at 960px) */}
         {previewOpen && (
-          <div style={{ width: 356, flexShrink: 0, height: '100%' }}>
+          <div style={{ width: 'clamp(256px, 27.5vw, 356px)', flexShrink: 0, height: '100%' }}>
             <LivePreviewPanel
               item={selectedItem}
               categories={categories}

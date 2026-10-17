@@ -11,6 +11,7 @@ import {
 import FileIcon from '../common/FileIcon';
 import type { CategoryDefinition, KnowledgeItem } from '../../types';
 import { formatDateTime } from '../../utils';
+import { useI18n } from '../../i18n';
 
 interface ItemCardGridProps {
   items: KnowledgeItem[];
@@ -40,10 +41,11 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
   onDelete,
 }) => {
   const { token } = theme.useToken();
+  const { t } = useI18n();
   const categoryMap = new Map(categories.map((c) => [c.name, c.title]));
 
   if (!loading && items.length === 0) {
-    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无匹配知识记录" />;
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('暂无匹配知识记录', 'No matching knowledge items')} />;
   }
 
   return (
@@ -51,7 +53,7 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: 10,
         }}
       >
@@ -59,7 +61,8 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
           const isSelected = selectedId === item.id;
           const fileType = typeof item.keyValues.file_type === 'string' ? item.keyValues.file_type : '';
           const categoryName = (item.keyValues.category_name as string) || '';
-          const categoryTitle = categoryMap.get(categoryName) || categoryName;
+          const rawCategoryTitle = categoryMap.get(categoryName) || categoryName;
+          const categoryTitle = rawCategoryTitle ? t(rawCategoryTitle) : '';
           const ratingVal = Number(item.keyValues.rating || 0);
           const tags = Array.isArray(item.keyValues.tags)
             ? (item.keyValues.tags as string[])
@@ -119,7 +122,7 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
                   >
                     {item.name}
                   </div>
-                  <Tooltip title="按住拖拽至分类归档">
+                  <Tooltip title={t('按住拖拽至分类归档', 'Drag to file into a category')}>
                     <HolderOutlined style={{ color: token.colorTextQuaternary, cursor: 'grab', flexShrink: 0 }} />
                   </Tooltip>
                 </Flex>
@@ -156,26 +159,26 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
                     {item.createdAt ? formatDateTime(item.createdAt) : '-'}
                   </span>
                   <Space size={4} onClick={(e) => e.stopPropagation()}>
-                    <Tooltip title="查看详情与预览">
-                      <Typography.Link onClick={() => onOpen(item)} style={{ padding: '2px 4px' }} aria-label="查看">
+                    <Tooltip title={t('查看详情与预览', 'View details & preview')}>
+                      <Typography.Link onClick={() => onOpen(item)} style={{ padding: '2px 4px' }} aria-label={t('查看', 'View')}>
                         <EyeOutlined />
                       </Typography.Link>
                     </Tooltip>
-                    <Tooltip title="编辑">
-                      <Typography.Link onClick={() => onEdit(item)} style={{ padding: '2px 4px' }} aria-label="编辑">
+                    <Tooltip title={t('编辑', 'Edit')}>
+                      <Typography.Link onClick={() => onEdit(item)} style={{ padding: '2px 4px' }} aria-label={t('编辑', 'Edit')}>
                         <EditOutlined />
                       </Typography.Link>
                     </Tooltip>
                     <Popconfirm
-                      title="确定删除此记录吗？"
-                      description="仅删除记录，不会删除已上传的文件。"
-                      okText="删除"
-                      cancelText="取消"
+                      title={t('确定删除此记录吗？', 'Delete this item?')}
+                      description={t('仅删除记录，不会删除已上传的文件。', 'Only deletes the record, not the uploaded file.')}
+                      okText={t('删除', 'Delete')}
+                      cancelText={t('取消', 'Cancel')}
                       okButtonProps={{ danger: true }}
                       onConfirm={() => onDelete(item.id)}
                     >
                       <Typography.Link
-                        aria-label="删除"
+                        aria-label={t('删除', 'Delete')}
                         type="danger"
                         style={{ padding: '2px 4px' }}
                       >

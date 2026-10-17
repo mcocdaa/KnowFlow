@@ -1,12 +1,15 @@
-import { Layout, theme } from 'antd';
+import { Button, Layout, theme } from 'antd';
+import { GlobalOutlined } from '@ant-design/icons';
 import { Outlet } from 'react-router';
 import BrandLogo from '../components/common/BrandLogo';
 import SideNav from '../components/layout/SideNav';
+import { useI18n } from '../i18n';
 
 const { Header, Sider, Content } = Layout;
 
 const AppLayout = () => {
   const { token } = theme.useToken();
+  const { locale, toggleLocale } = useI18n();
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -14,6 +17,7 @@ const AppLayout = () => {
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           gap: 12,
           height: 54,
           lineHeight: '54px',
@@ -22,11 +26,27 @@ const AppLayout = () => {
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
-        <BrandLogo />
-        <span style={{ fontSize: 18, fontWeight: 600, color: token.colorTextHeading }}>KnowFlow</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <BrandLogo />
+          <span style={{ fontSize: 18, fontWeight: 600, color: token.colorTextHeading }}>KnowFlow</span>
+        </div>
+        <Button
+          size="small"
+          icon={<GlobalOutlined />}
+          data-testid="lang-toggle-btn"
+          onClick={toggleLocale}
+          style={{
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            fontWeight: 500,
+            borderRadius: 6,
+          }}
+        >
+          {locale === 'zh' ? 'EN' : '中文'}
+        </Button>
       </Header>
       <Layout>
-        <Sider theme="light" width={156} breakpoint="lg" collapsedWidth={0}>
+        <Sider theme="light" width={156} breakpoint="md" collapsedWidth={0}>
           <SideNav />
         </Sider>
         <Content style={{ padding: '12px 14px', minWidth: 0, overflowX: 'hidden' }}>

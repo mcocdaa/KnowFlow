@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Button, Empty, Result, Skeleton } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
+import { useI18n } from '../../i18n';
 
 interface StatePlaceholderProps {
   variant: 'loading' | 'empty' | 'error';
@@ -11,6 +12,8 @@ interface StatePlaceholderProps {
 }
 
 const StatePlaceholder = ({ variant, title, description, onRetry, children }: StatePlaceholderProps) => {
+  const { t } = useI18n();
+
   if (variant === 'loading') {
     return <Skeleton active paragraph={{ rows: 6 }} />;
   }
@@ -19,12 +22,12 @@ const StatePlaceholder = ({ variant, title, description, onRetry, children }: St
     return (
       <Result
         status="warning"
-        title={title ?? '加载失败'}
+        title={title ?? t('加载失败', 'Failed to load')}
         subTitle={description}
         extra={
           onRetry ? (
             <Button type="primary" icon={<ReloadOutlined />} onClick={onRetry}>
-              重试
+              {t('重试', 'Retry')}
             </Button>
           ) : undefined
         }
@@ -35,7 +38,7 @@ const StatePlaceholder = ({ variant, title, description, onRetry, children }: St
   return (
     <Empty
       image={Empty.PRESENTED_IMAGE_SIMPLE}
-      description={description ?? title ?? '暂无数据'}
+      description={description ?? title ?? t('暂无数据', 'No data')}
     >
       {children}
     </Empty>
