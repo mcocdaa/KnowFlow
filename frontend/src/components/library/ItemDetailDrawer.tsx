@@ -11,6 +11,7 @@ import MediaPreviewModal from './MediaPreviewModal';
 import JsonBlock from '../common/JsonBlock';
 import { formatDateTime } from '../../utils/format';
 import { API_BASE_URL } from '../../services/api';
+import { useI18n } from '../../i18n';
 import type { CategoryDefinition, KeyDefinition, KnowledgeItem } from '../../types';
 
 interface ItemDetailDrawerProps {
@@ -47,6 +48,7 @@ const ItemDetailDrawer = ({
   onPluginUpdate,
 }: ItemDetailDrawerProps) => {
   const { token } = theme.useToken();
+  const { t } = useI18n();
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const groups = useMemo<FieldGroup[]>(() => {
@@ -66,7 +68,7 @@ const ItemDetailDrawer = ({
       if (!grouped.has(categoryName)) {
         grouped.set(categoryName, {
           name: categoryName,
-          title: categoryTitles.get(categoryName) ?? (categoryName || '其他'),
+          title: t(categoryTitles.get(categoryName) ?? (categoryName || t('其他', 'Other'))),
           fields: [],
         });
       }
@@ -76,7 +78,7 @@ const ItemDetailDrawer = ({
     return [...grouped.values()].sort(
       (a, b) => (categoryOrder.get(a.name) ?? 99) - (categoryOrder.get(b.name) ?? 99),
     );
-  }, [item, keys, categories]);
+  }, [item, keys, categories, t]);
 
   const fileType = String(item?.keyValues.file_type ?? '');
   const filePath = String(item?.keyValues.file_path ?? '');
@@ -91,7 +93,7 @@ const ItemDetailDrawer = ({
   const renderValue = (field: Field) => {
     const { key, definition, value } = field;
 
-    if (definition?.plugin_name && item) {
+    if (definition?.plugin_name && definition.plugin_name !== 'builtin' && item) {
       return (
         <PluginRenderer
           pluginName={definition.plugin_name}
@@ -99,7 +101,7 @@ const ItemDetailDrawer = ({
           itemId={item.id}
           keyDefinition={{
             name: definition.name,
-            title: definition.title,
+            title: t(definition.title),
             value_type: definition.value_type,
           }}
           onUpdate={(next) => onPluginUpdate?.(key, next)}
@@ -109,7 +111,7 @@ const ItemDetailDrawer = ({
 
     const valueType = definition?.value_type;
     if (valueType === 'boolean' || typeof value === 'boolean') {
-      return <Tag color={value ? 'success' : 'default'}>{value ? '是' : '否'}</Tag>;
+      return <Tag color={value ? 'success' : 'default'}>{value ? t('是', 'Yes') : t('否', 'No')}</Tag>;
     }
     if (valueType === 'number' || typeof value === 'number') {
       return <Typography.Text>{String(value)}</Typography.Text>;
@@ -129,25 +131,25 @@ const ItemDetailDrawer = ({
       open={Boolean(item)}
       onClose={onClose}
       width={560}
-      title={item?.name || '未命名'}
+      title={item?.name || t('未命名', 'Untitled')}
       destroyOnHidden
       footer={
         item ? (
           <Flex justify="flex-end" gap={8}>
             {onEdit ? (
               <Button icon={<EditOutlined />} onClick={() => onEdit(item)}>
-                编辑
+                {t('编辑', 'Edit')}
               </Button>
             ) : null}
             <Popconfirm
-              title="删除这条记录？"
-              description="仅删除记录，不会删除已上传的文件。"
-              okText="确定"
-              cancelText="取消"
+              title={t('删除这条记录？', 'Delete this item?')}
+              description={t('仅删除记录，不会删除已上传的文件。', 'Only deletes the record, not the uploaded file.')}
+              okText={t('确定', 'OK')}
+              cancelText={t('取消', 'Cancel')}
               onConfirm={() => onDelete(item.id)}
             >
               <Button danger icon={<DeleteOutlined />}>
-                删除
+                {t('删除', 'Delete')}
               </Button>
             </Popconfirm>
           </Flex>
@@ -159,12 +161,12 @@ const ItemDetailDrawer = ({
           <Space wrap>
             {mediaType ? (
               <Button icon={<PlayCircleOutlined />} onClick={() => setPreviewOpen(true)}>
-                预览
+                {t('预览', 'Preview')}
               </Button>
             ) : null}
             {onOpenLocation && filePath ? (
               <Button icon={<FolderOpenOutlined />} onClick={() => onOpenLocation(filePath)}>
-                打开所在文件夹
+                {t('打开所在文件夹', 'Open Folder')}
               </Button>
             ) : null}
           </Space>
@@ -180,7 +182,7 @@ const ItemDetailDrawer = ({
                 bordered
                 items={group.fields.map((field) => ({
                   key: field.key,
-                  label: field.definition?.title ?? field.key,
+                  label: t(field.definition?.title ?? field.key),
                   children: renderValue(field),
                 }))}
               />
@@ -188,7 +190,7 @@ const ItemDetailDrawer = ({
           ))}
 
           <Typography.Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
-            创建于 {formatDateTime(item.createdAt)} · 更新于 {formatDateTime(item.updatedAt)}
+            {t('创建于', 'Created')} {formatDateTime(item.createdAt)} · {t('更新于', 'Updated')} {formatDateTime(item.updatedAt)}
           </Typography.Text>
 
           <MediaPreviewModal

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Form, Modal, Progress, Space, Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import DynamicKeyForm from '../common/DynamicKeyForm';
+import { useI18n } from '../../i18n';
 import type { KeyDefinition } from '../../types';
 
 interface UploadModalProps {
@@ -14,6 +15,7 @@ interface UploadModalProps {
 }
 
 const UploadModal = ({ open, definitions, uploading, progress, onCancel, onUpload }: UploadModalProps) => {
+  const { t } = useI18n();
   const [form] = Form.useForm();
   const [file, setFile] = useState<File | null>(null);
 
@@ -25,9 +27,9 @@ const UploadModal = ({ open, definitions, uploading, progress, onCancel, onUploa
   return (
     <Modal
       open={open}
-      title="上传文件"
-      okText="开始上传"
-      cancelText="取消"
+      title={t('上传文件', 'Upload File')}
+      okText={t('开始上传', 'Start Upload')}
+      cancelText={t('取消', 'Cancel')}
       okButtonProps={{ disabled: !file }}
       confirmLoading={uploading}
       onOk={() => form.submit()}
@@ -49,8 +51,8 @@ const UploadModal = ({ open, definitions, uploading, progress, onCancel, onUploa
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
           </p>
-          <p className="ant-upload-text">点击或拖拽文件到此区域</p>
-          <p className="ant-upload-hint">单文件上传，最大 10MB</p>
+          <p className="ant-upload-text">{t('点击或拖拽文件到此区域', 'Click or drag a file to this area to upload')}</p>
+          <p className="ant-upload-hint">{t('单文件上传，最大 10MB', 'Single file upload, up to 10MB')}</p>
         </Upload.Dragger>
 
         {typeof progress === 'number' && progress > 0 ? <Progress percent={progress} /> : null}

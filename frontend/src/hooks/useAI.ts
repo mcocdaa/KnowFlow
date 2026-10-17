@@ -1,11 +1,13 @@
 import { useCallback, useState } from 'react';
 import api from '../services/api';
 import { getErrorMessage } from '../utils';
+import { useI18n } from '../i18n';
 import type { KnowledgeItem, PagedItems } from '../types';
 
 export const AI_CORPUS_SIZE = 50;
 
 export const useAI = () => {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [corpus, setCorpus] = useState<PagedItems | null>(null);
@@ -28,12 +30,12 @@ export const useAI = () => {
         const results = await api.aiSearch(query, current.items);
         setSearchResults(results);
       } catch (searchError) {
-        setError(getErrorMessage(searchError, '语义检索失败'));
+        setError(getErrorMessage(searchError, t('语义检索失败', 'Semantic search failed')));
       } finally {
         setLoading(false);
       }
     },
-    [loadCorpus],
+    [loadCorpus, t],
   );
 
   const autoTag = useCallback(async () => {
@@ -44,11 +46,11 @@ export const useAI = () => {
       const results = await api.autoTag(current.items);
       setTagResults(results);
     } catch (tagError) {
-      setError(getErrorMessage(tagError, '自动打标签失败'));
+      setError(getErrorMessage(tagError, t('自动打标签失败', 'Auto-tagging failed')));
     } finally {
       setLoading(false);
     }
-  }, [loadCorpus]);
+  }, [loadCorpus, t]);
 
   return { loading, error, corpus, searchResults, tagResults, semanticSearch, autoTag };
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { App, Rate } from 'antd';
 import api from '../../services/api';
+import { useI18n } from '../../i18n';
 
 interface StarRatingProps {
   value?: number;
@@ -18,6 +19,7 @@ const StarRating: React.FC<StarRatingProps> = ({
   readOnly = false,
 }) => {
   const { message } = App.useApp();
+  const { t } = useI18n();
   const [rating, setRating] = useState<number>(value || 0);
   const [prevValue, setPrevValue] = useState<number>(value || 0);
 
@@ -42,11 +44,11 @@ const StarRating: React.FC<StarRatingProps> = ({
       // 失败回滚到原值，保持 UI/表单与后端一致
       setRating(previous);
       onChange?.(previous);
-      message.error('评分更新失败');
+      message.error(t('评分更新失败', 'Failed to update rating'));
     }
   };
 
-  return <Rate value={rating} disabled={readOnly} onChange={handleChange} aria-label="评分" />;
+  return <Rate value={rating} disabled={readOnly} onChange={handleChange} aria-label={t('评分', 'Rating')} />;
 };
 
 export default StarRating;

@@ -1,6 +1,7 @@
 import { Form, Input, InputNumber, Modal, Select, Switch, Descriptions } from 'antd';
 import { jsonValidator } from '../../utils/dynamicForm';
 import { formatDateTime } from '../../utils/format';
+import { useI18n } from '../../i18n';
 import type { KeyDefinition, ValueType } from '../../types';
 import type { KeyPayload } from '../../hooks/useKeys';
 
@@ -40,6 +41,7 @@ const KeyFormModal = ({
   onCancel,
   onSubmit,
 }: KeyFormModalProps) => {
+  const { t } = useI18n();
   const [form] = Form.useForm();
   const watchedType = (Form.useWatch('value_type', form) as ValueType | undefined) ?? initial?.value_type ?? 'string';
   const isJsonType = watchedType === 'array' || watchedType === 'object';
@@ -64,9 +66,9 @@ const KeyFormModal = ({
   return (
     <Modal
       open={open}
-      title={mode === 'create' ? '新建 Key' : '编辑 Key'}
-      okText="保存"
-      cancelText="取消"
+      title={mode === 'create' ? t('新建 Key', 'New Key') : t('编辑 Key', 'Edit Key')}
+      okText={t('保存', 'Save')}
+      cancelText={t('取消', 'Cancel')}
       confirmLoading={submitting}
       onOk={() => form.submit()}
       onCancel={onCancel}
@@ -79,10 +81,14 @@ const KeyFormModal = ({
           column={2}
           style={{ marginBottom: 16 }}
           items={[
-            { key: 'plugin', label: '来源插件', children: initial.plugin_name || '—' },
-            { key: 'delete', label: '随插件删除', children: initial.delete_with_plugin ? '是' : '否' },
-            { key: 'created', label: '创建时间', children: formatDateTime(initial.created_at) },
-            { key: 'updated', label: '更新时间', children: formatDateTime(initial.updated_at) },
+            { key: 'plugin', label: t('来源插件', 'Plugin'), children: initial.plugin_name || '—' },
+            {
+              key: 'delete',
+              label: t('随插件删除', 'Delete with Plugin'),
+              children: initial.delete_with_plugin ? t('是', 'Yes') : t('否', 'No'),
+            },
+            { key: 'created', label: t('创建时间', 'Created At'), children: formatDateTime(initial.created_at) },
+            { key: 'updated', label: t('更新时间', 'Updated At'), children: formatDateTime(initial.updated_at) },
           ]}
         />
       ) : null}
@@ -106,18 +112,29 @@ const KeyFormModal = ({
       >
         <Form.Item
           name="name"
-          label="标识"
-          rules={[{ required: true, message: '请输入标识' }]}
-          extra={mode === 'edit' ? '修改标识不会自动迁移存量记录中的历史字段' : '唯一标识，使用英文与下划线'}
+          label={t('标识', 'Key')}
+          rules={[{ required: true, message: t('请输入标识', 'Please enter a key identifier') }]}
+          extra={
+            mode === 'edit'
+              ? t(
+                  '修改标识不会自动迁移存量记录中的历史字段',
+                  'Renaming does not automatically migrate existing item attributes',
+                )
+              : t('唯一标识，使用英文与下划线', 'Unique identifier using lowercase letters and underscores')
+          }
         >
-          <Input placeholder="例如 project_owner" />
+          <Input placeholder={t('例如 project_owner', 'e.g. project_owner')} />
         </Form.Item>
 
-        <Form.Item name="title" label="名称" rules={[{ required: true, message: '请输入名称' }]}>
-          <Input placeholder="界面展示名称，例如 项目负责人" />
+        <Form.Item
+          name="title"
+          label={t('名称', 'Name')}
+          rules={[{ required: true, message: t('请输入名称', 'Please enter a display name') }]}
+        >
+          <Input placeholder={t('界面展示名称，例如 项目负责人', 'Display name, e.g. Project Owner')} />
         </Form.Item>
 
-        <Form.Item name="value_type" label="类型" rules={[{ required: true }]}>
+        <Form.Item name="value_type" label={t('类型', 'Type')} rules={[{ required: true }]}>
           <Select
             options={[
               { value: 'string', label: 'string' },
@@ -131,7 +148,7 @@ const KeyFormModal = ({
 
         <Form.Item
           name="default_value"
-          label="默认值"
+          label={t('默认值', 'Default Value')}
           valuePropName={watchedType === 'boolean' ? 'checked' : 'value'}
           rules={isJsonType ? [{ validator: jsonValidator }] : []}
         >
@@ -140,33 +157,50 @@ const KeyFormModal = ({
           ) : watchedType === 'number' ? (
             <InputNumber style={{ width: '100%' }} />
           ) : isJsonType ? (
-            <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} placeholder='例如 ["a","b"] 或 {"k":"v"}' />
+            <Input.TextArea
+              autoSize={{ minRows: 2, maxRows: 6 }}
+              placeholder={t('例如 ["a","b"] 或 {"k":"v"}', 'e.g. ["a","b"] or {"k":"v"}')}
+            />
           ) : (
             <Input />
           )}
         </Form.Item>
 
-        <Form.Item name="description" label="描述">
+        <Form.Item name="description" label={t('描述', 'Description')}>
           <Input.TextArea autoSize={{ minRows: 1, maxRows: 4 }} />
         </Form.Item>
 
-        <Form.Item name="category_name" label="分类" rules={[{ required: true, message: '请选择分类' }]}>
+        <Form.Item
+          name="category_name"
+          label={t('分类', 'Category')}
+          rules={[{ required: true, message: t('请选择分类', 'Please select a category') }]}
+        >
           <Select
-            placeholder="选择所属分类"
-            options={categories.map((category) => ({ value: category.name, label: category.title }))}
+            placeholder={t('选择所属分类', 'Select category')}
+            options={categories.map((category) => ({ value: category.name, label: t(category.title) }))}
           />
         </Form.Item>
 
-        <Form.Item name="is_required" label="必填" valuePropName="checked" extra="开启后新建记录必须提供该字段">
+        <Form.Item
+          name="is_required"
+          label={t('必填', 'Required')}
+          valuePropName="checked"
+          extra={t('开启后新建记录必须提供该字段', 'Require this field when creating new items')}
+        >
           <Switch />
         </Form.Item>
-        <Form.Item name="is_visible" label="可见" valuePropName="checked" extra="隐藏后不出现在记录详情与表单中">
+        <Form.Item
+          name="is_visible"
+          label={t('可见', 'Visible')}
+          valuePropName="checked"
+          extra={t('隐藏后不出现在记录详情与表单中', 'Hidden fields do not appear in item details or forms')}
+        >
           <Switch />
         </Form.Item>
-        <Form.Item name="is_public" label="公开" valuePropName="checked">
+        <Form.Item name="is_public" label={t('公开', 'Public')} valuePropName="checked">
           <Switch />
         </Form.Item>
-        <Form.Item name="is_private" label="私有" valuePropName="checked">
+        <Form.Item name="is_private" label={t('私有', 'Private')} valuePropName="checked">
           <Switch />
         </Form.Item>
       </Form>

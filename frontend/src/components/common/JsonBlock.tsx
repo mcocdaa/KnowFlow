@@ -1,4 +1,5 @@
 import { theme, Typography } from 'antd';
+import { useI18n } from '../../i18n';
 
 interface JsonBlockProps {
   value: unknown;
@@ -6,6 +7,10 @@ interface JsonBlockProps {
 
 const JsonBlock = ({ value }: JsonBlockProps) => {
   const { token } = theme.useToken();
+  const { t } = useI18n();
+  const displayValue = Array.isArray(value)
+    ? value.map((item) => (typeof item === 'string' ? t(item) : item))
+    : value;
 
   return (
     <Typography.Paragraph style={{ marginBottom: 0 }}>
@@ -21,7 +26,7 @@ const JsonBlock = ({ value }: JsonBlockProps) => {
           overflow: 'auto',
         }}
       >
-        {JSON.stringify(value, null, 2)}
+        {JSON.stringify(displayValue, null, 2)}
       </pre>
     </Typography.Paragraph>
   );

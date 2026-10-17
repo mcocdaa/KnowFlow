@@ -1,3 +1,4 @@
+import { tr } from '../i18n';
 import type {
   CategoryDefinition,
   CategoryInput,
@@ -56,10 +57,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const body = (await response.json().catch(() => null)) as Envelope<T> | null;
 
   if (!response.ok) {
-    throw new Error(body?.message || `请求失败 (${response.status})`);
+    throw new Error(body?.message || tr(`请求失败 (${response.status})`, `Request failed (${response.status})`));
   }
   if (body && body.code !== 0) {
-    throw new Error(body.message || '请求失败');
+    throw new Error(body.message || tr('请求失败', 'Request failed'));
   }
 
   return (body as Envelope<T>).data;
@@ -164,7 +165,7 @@ export const api = {
       };
 
       xhr.onerror = () => {
-        reject(new Error('网络错误，文件上传失败'));
+        reject(new Error(tr('网络错误，文件上传失败', 'Network error, file upload failed')));
       };
 
       xhr.onload = () => {
@@ -178,7 +179,7 @@ export const api = {
         if (xhr.status >= 200 && xhr.status < 300 && body && body.code === 0) {
           resolve(transformItemData(body.data));
         } else {
-          reject(new Error(body?.message || `请求失败 (${xhr.status})`));
+          reject(new Error(body?.message || tr(`请求失败 (${xhr.status})`, `Request failed (${xhr.status})`)));
         }
       };
 

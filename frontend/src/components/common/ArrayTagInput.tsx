@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Tag, Input, Space, Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { useI18n } from '../../i18n';
 
 interface ArrayTagInputProps {
   id?: string;
@@ -13,8 +14,12 @@ export const ArrayTagInput: React.FC<ArrayTagInputProps> = ({
   id,
   value,
   onChange,
-  placeholder = '例如 ["标签1", "标签2"]，或使用上方可视化标签',
+  placeholder,
 }) => {
+  const { t } = useI18n();
+  const resolvedPlaceholder =
+    placeholder ?? t('例如 ["标签1", "标签2"]，或使用上方可视化标签', 'e.g. ["tag1", "tag2"], or use the visual tag toolbar above');
+
   const formatInitial = (val: unknown): string => {
     if (val === undefined || val === null) return '';
     if (typeof val === 'string') return val;
@@ -52,7 +57,7 @@ export const ArrayTagInput: React.FC<ArrayTagInputProps> = ({
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    const nextTags = parsedTags.filter((t) => t !== tagToRemove);
+    const nextTags = parsedTags.filter((tag) => tag !== tagToRemove);
     const nextJson = JSON.stringify(nextTags, null, 2);
     onChange?.(nextJson);
   };
@@ -83,7 +88,7 @@ export const ArrayTagInput: React.FC<ArrayTagInputProps> = ({
             }}
             style={{ fontSize: 13, padding: '2px 8px', borderRadius: 4 }}
           >
-            {tag}
+            {t(tag)}
           </Tag>
         ))}
 
@@ -96,7 +101,7 @@ export const ArrayTagInput: React.FC<ArrayTagInputProps> = ({
             onBlur={handleAddTagConfirm}
             onPressEnter={handleAddTagConfirm}
             autoFocus
-            placeholder="输入标签"
+            placeholder={t('输入标签', 'Enter tag')}
           />
         ) : (
           <Button
@@ -106,7 +111,7 @@ export const ArrayTagInput: React.FC<ArrayTagInputProps> = ({
             onClick={() => setShowInput(true)}
             style={{ fontSize: 12, height: 26 }}
           >
-            添加标签
+            {t('添加标签', 'Add Tag')}
           </Button>
         )}
       </Space>
@@ -117,7 +122,7 @@ export const ArrayTagInput: React.FC<ArrayTagInputProps> = ({
         value={textValue}
         onChange={handleTextChange}
         autoSize={{ minRows: 2, maxRows: 6 }}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
       />
     </div>
   );

@@ -4,9 +4,11 @@ import type { AppDispatch, RootState } from '../store';
 import { setCategories, setError, setKeys } from '../store/catalogSlice';
 import api from '../services/api';
 import { getErrorMessage } from '../utils';
+import { useI18n } from '../i18n';
 
 export const useCatalog = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const { t } = useI18n();
   const { keys, categories } = useSelector((state: RootState) => state.catalog);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -26,7 +28,7 @@ export const useCatalog = () => {
         }
       } catch (error) {
         if (!cancelled) {
-          dispatch(setError(getErrorMessage(error, '加载 Key/分类配置失败')));
+          dispatch(setError(getErrorMessage(error, t('加载 Key/分类配置失败', 'Failed to load schema/category configuration'))));
         }
       }
     };
@@ -36,7 +38,7 @@ export const useCatalog = () => {
     return () => {
       cancelled = true;
     };
-  }, [dispatch, reloadKey]);
+  }, [dispatch, reloadKey, t]);
 
   return { keys, categories, refreshCatalog };
 };

@@ -5,11 +5,13 @@ import type { AppDispatch, RootState } from '../store';
 import { setCategories, setError, setLoading } from '../store/catalogSlice';
 import api from '../services/api';
 import { getErrorMessage } from '../utils';
+import { useI18n } from '../i18n';
 import type { CategoryInput } from '../types';
 
 export const useCategories = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { message } = App.useApp();
+  const { t } = useI18n();
   const { categories, loading, error } = useSelector((state: RootState) => state.catalog);
   const [submitting, setSubmitting] = useState(false);
 
@@ -19,9 +21,9 @@ export const useCategories = () => {
       const list = await api.fetchCategories();
       dispatch(setCategories(list));
     } catch (loadError) {
-      dispatch(setError(getErrorMessage(loadError, '分类加载失败')));
+      dispatch(setError(getErrorMessage(loadError, t('分类加载失败', 'Failed to load categories'))));
     }
-  }, [dispatch]);
+  }, [dispatch, t]);
 
   useEffect(() => {
     void reload();
@@ -32,17 +34,17 @@ export const useCategories = () => {
       setSubmitting(true);
       try {
         await api.createCategory(input);
-        message.success('分类已创建');
+        message.success(t('分类已创建', 'Category created'));
         await reload();
         return true;
       } catch (createError) {
-        message.error(getErrorMessage(createError, '创建失败'));
+        message.error(getErrorMessage(createError, t('创建失败', 'Failed to create')));
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [message, reload],
+    [message, reload, t],
   );
 
   const updateCategory = useCallback(
@@ -50,32 +52,32 @@ export const useCategories = () => {
       setSubmitting(true);
       try {
         await api.updateCategory(name, updates);
-        message.success('分类已更新');
+        message.success(t('分类已更新', 'Category updated'));
         await reload();
         return true;
       } catch (updateError) {
-        message.error(getErrorMessage(updateError, '保存失败'));
+        message.error(getErrorMessage(updateError, t('保存失败', 'Failed to save')));
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [message, reload],
+    [message, reload, t],
   );
 
   const deleteCategory = useCallback(
     async (name: string): Promise<boolean> => {
       try {
         await api.deleteCategory(name);
-        message.success('分类已删除');
+        message.success(t('分类已删除', 'Category deleted'));
         await reload();
         return true;
       } catch (deleteError) {
-        message.error(getErrorMessage(deleteError, '删除失败'));
+        message.error(getErrorMessage(deleteError, t('删除失败', 'Failed to delete')));
         return false;
       }
     },
-    [message, reload],
+    [message, reload, t],
   );
 
   return { categories, loading, error, submitting, reload, createCategory, updateCategory, deleteCategory };
