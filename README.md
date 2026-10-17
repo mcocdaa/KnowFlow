@@ -1,161 +1,127 @@
+<div align="center">
+
 # KnowFlow
 
-> 具备动态 Key-Value 属性、分类层级与插件化 AI 检索的个人/团队知识管理系统。
+Schema-flexible knowledge base with dynamic Key-Value facets, hierarchical categories, and hybrid AI semantic search.
 
-[![Family: *Flow](https://img.shields.io/badge/family-*Flow-8A2BE2.svg)](https://github.com/mcocdaa)
+[![Family: *Flow](https://img.shields.io/badge/Family-*Flow-8A2BE2.svg)](https://github.com/mcocdaa)
 [![CI](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/mcocdaa/KnowFlow/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/mcocdaa/KnowFlow?display_name=tag&sort=semver)](https://github.com/mcocdaa/KnowFlow/releases)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
+[![Docker Ready](https://img.shields.io/badge/Docker-Ready-blue.svg)](compose.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](compose.yaml)
 
-<p align="center">
-  <img src="docs/assets/demo_knowflow.gif" alt="KnowFlow Knowledge Library & AI Search Demo" width="820">
-</p>
+[English](README.md) · [简体中文](README_CN.md)
 
-KnowFlow 是一个知识管理系统：文件导入、动态 Key-Value 属性、分类层级、插件扩展与 AI 语义检索。
+<img src="docs/assets/demo_knowflow.gif" alt="KnowFlow Demo" width="840">
 
-## 功能特性
+</div>
 
-- **知识项管理**：拖拽上传、自动提取文件元数据、完整 CRUD
-- **Key-Value 系统**：动态属性、多种数据类型、分类层级
-- **搜索**：关键词搜索、多维度排序、AI 语义检索（可选）
-- **插件系统**：动态加载/卸载插件（星级评分、OpenClaw 导入等）
-- **跨平台**：Web 应用 + Electron 桌面端
+## ✨ Highlights
 
-技术栈：React 19 + TypeScript + Vite + Ant Design；FastAPI + MongoDB（Python 3.11）。
+- **3-Column Knowledge Workspace** — Unified workspace combining a hierarchical category tree, dynamic facet filter chips, and sanitized live Markdown/code/media preview.
+- **Dynamic Key-Value Attribute Schema** — Define typed attributes (`string`, `number`, `date`, `boolean`, `array`) such as `rating`, `tags`, and custom facets scoped globally or per category.
+- **Hybrid Keyword + Vector AI Search** — Fast keyword/facet filtering paired with `/api/v1/ai/search` semantic retrieval (local CPU `fastembed` `bge-small-zh-v1.5` embeddings with optional Doubao LLM reranking and auto-tagging).
+- **Hot-Pluggable Extensions** — Runtime plugin architecture (`plugins/rating`, `plugins/knowflow_openclaw`) supporting dynamic load/unload and custom API routes.
+- **Web & Electron Desktop Support** — Runs as a containerized Web application (React 19 + FastAPI + MongoDB 7) or packaged cross-platform Electron desktop client.
 
-## 快速开始（Docker，推荐）
+## 🚀 Quick Start
 
-环境要求：Docker 20+、Docker Compose 2.20+。
+### Option 1: Docker Compose (Recommended — 1 Command)
 
 ```bash
 git clone --recurse-submodules https://github.com/mcocdaa/KnowFlow.git
 cd KnowFlow
-
-cp .env.example .env
-vim .env                      # 可选：修改端口、填写 DOUBAO_API_KEY
-
-docker compose up -d --build
+cp .env.example .env && docker compose up -d --build
 ```
 
-启动后：
+| Service | URL |
+| :--- | :--- |
+| **WebUI** | `http://localhost:8002` |
+| **Backend Health** | `http://localhost:3002/api/v1/health` |
 
-| 服务 | 地址 |
-|------|------|
-| 前端 | http://localhost:8002 |
-| 后端 | http://localhost:3002/api/v1/health |
+### Option 2: Local Dev
 
-端口由 `.env` 中的 `FRONTEND_PORT` / `BACKEND_PORT` 控制。AI Key 可写入 `.env` 的 `DOUBAO_API_KEY`，或放到 `secrets/doubao_api_key.txt`（优先级更高，不会提交到 Git）；留空时 AI 功能自动降级，不影响其他功能。
-
-常用命令：
-
-```bash
-docker compose ps            # 查看状态
-docker compose logs -f       # 查看日志
-docker compose down          # 停止服务
-docker compose up -d --build # 更新代码后重建
-```
-
-### 使用 docker run（不用 Compose）
-
-镜像由 CI 发布到 GHCR（`:main` 跟随主分支，`:latest` 指向最新 Release，也可用 `:X.Y.Z` / `:X.Y` 固定版本）：
-
-```bash
-docker network create knowflow
-
-docker run -d --name knowflow-mongo --network knowflow \
-  -v knowflow-mongo:/data/db mongo:7
-
-docker run -d --name knowflow-backend --network knowflow -p 3000:3000 \
-  -e MONGODB_URL=mongodb://knowflow-mongo:27017 \
-  -v "$PWD/plugins:/app/plugins:ro" \
-  -v knowflow-data:/app/data \
-  ghcr.io/mcocdaa/knowflow-backend:main
-
-docker run -d --name knowflow-frontend --network knowflow -p 8000:8000 \
-  ghcr.io/mcocdaa/knowflow-frontend:main
-```
-
-前端 http://localhost:8000 ，后端 http://localhost:3000/api/v1/health 。
-
-## 本地开发（不用 Docker）
-
-环境要求：Python 3.11+、Node.js 22.12+、MongoDB 7（或 Docker 启动）。
+Requires Python 3.11+, Node.js 22.12+, and MongoDB 7 (`docker run -d --name knowflow-mongo -p 27017:27017 mongo:7`):
 
 ```bash
 cp .env.example .env
-
-# 启动 MongoDB（已有本地 MongoDB 可跳过）
-docker run -d --name knowflow-mongo -p 27017:27017 -v knowflow-mongo:/data/db mongo:7
-
 ./scripts/start.sh local full
 ```
 
-- 前端 http://localhost:5177 （Vite 代理 `/api` 到后端）
-- 后端 http://localhost:3000
+- **Frontend Dev Server**: `http://localhost:5177` (proxies `/api` to backend)
+- **Backend API**: `http://localhost:3000`
 
-也可只启动单个服务：`./scripts/start.sh local backend` 或 `./scripts/start.sh local frontend`；停止脚本见 `scripts/stop.sh`。
+## 🤖 AI & Headless API
 
-## 配置说明
-
-| 变量 | 说明 | 默认值 |
-|------|------|--------|
-| `BACKEND_PORT` | Docker 后端主机端口 | 3002 |
-| `FRONTEND_PORT` | Docker 前端主机端口 | 8002 |
-| `DOUBAO_API_KEY` | 豆包 AI Key（可选） | 空（AI 降级） |
-| `MONGODB_URL` | MongoDB 连接串 | Docker `mongodb://mongodb:27017`，本地 `localhost:27017` |
-| `MONGODB_DB_NAME` | 数据库名 | knowflow |
-
-完整配置见 [.env.example](.env.example)。
-
-## 项目结构
-
-```
-KnowFlow/
-├── backend/          # FastAPI 后端（api/、managers/、插件加载、测试）
-├── frontend/         # React + Vite 前端（Web 与 Electron）
-├── docker/           # 分层 docker compose 文件
-├── compose.yaml      # 一键启动入口（include docker/）
-├── plugins/          # 插件目录（rating、knowflow_openclaw）
-├── scripts/          # start.sh / stop.sh
-├── docs/             # 项目文档
-└── secrets/          # 敏感配置（不提交）
-```
-
-## 测试
+KnowFlow exposes a RESTful JSON API for headless automation, ingestion pipelines, and AI agents:
 
 ```bash
-# 后端单元测试
-cd backend && pytest -q
+# 1. Create a knowledge item with dynamic Key-Value facets
+curl -s -X POST http://localhost:3002/api/v1/items \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "RAG Architecture Notes",
+    "category": "AI Engineering",
+    "attributes": {
+      "name": "RAG Architecture Notes",
+      "rating": 5,
+      "tags": ["RAG", "VectorSearch"]
+    }
+  }'
 
-# 真实 API 回归检查（需后端已启动，见 --help）
-cd backend && python test/e2e_api_check.py
+# 2. List / query knowledge items
+curl -s "http://localhost:3002/api/v1/items"
 
-# 前端检查与构建
+# 3. Hybrid AI semantic search across candidate items
+curl -s -X POST http://localhost:3002/api/v1/ai/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "retrieval augmented generation and vector embeddings",
+    "items": [
+      {
+        "id": "507f1f77bcf86cd799439011",
+        "name": "RAG Architecture Notes",
+        "attributes": {"tags": ["RAG", "VectorSearch"], "rating": 5}
+      }
+    ]
+  }'
+```
+
+> Note: Single-resource CRUD endpoints are also mounted at `/api/v1/item` and `/api/v1/item/search`.
+
+## ⚙️ Configuration & Structure
+
+### Environment Variables (`.env`)
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `FRONTEND_PORT` | Host port for Frontend WebUI (Docker) | `8002` |
+| `BACKEND_PORT` | Host port for Backend API (Docker) | `3002` |
+| `MONGODB_URL` | MongoDB connection URI | `mongodb://mongodb:27017` |
+| `MONGODB_DB_NAME` | MongoDB database name | `knowflow` |
+| `DOUBAO_API_KEY` | Optional Doubao LLM API key (falls back to local `fastembed` when empty) | *(empty)* |
+
+### Project Structure
+
+```text
+KnowFlow/
+├── backend/          # FastAPI backend (api/v1, managers, plugin loader, pytest suite)
+├── frontend/         # React 19 + TypeScript + Vite + Ant Design (Web & Electron)
+├── plugins/          # Hot-pluggable extensions (rating, knowflow_openclaw)
+├── docker/           # Layered Docker Compose definitions
+├── compose.yaml      # One-command Docker Compose entry point
+├── scripts/          # Local lifecycle scripts (start.sh / stop.sh)
+└── docs/             # Architecture guides, API reference, and demo assets
+```
+
+### Verification
+
+```bash
+cd backend && uv run --frozen pytest -q
 cd frontend && npm run lint && npx vitest run && npm run build
 ```
 
-## 版本发布
+## 📄 License
 
-推送 `vX.Y.Z` 形式的 tag 即触发发布：CI 全绿后自动构建并推送 GHCR 镜像（`:X.Y.Z` / `:X.Y` / `:latest`），并创建 [GitHub Release](https://github.com/mcocdaa/KnowFlow/releases)（自动生成变更日志）。
-
-```bash
-git tag -a v1.1.0 -m "v1.1.0"
-git push origin v1.1.0
-```
-
-## 文档
-
-| 文档 | 说明 |
-|------|------|
-| [快速开始](docs/quick-start.md) | 5 分钟上手 |
-| [项目概述](docs/summary.md) | 功能与技术架构 |
-| [架构设计](docs/architecture.md) | 模块划分与数据流 |
-| [后端文档](docs/backend/README.md) | API、数据库、部署 |
-| [前端文档](docs/frontend/index.md) | 架构、组件与部署 |
-| [插件开发](docs/plugin-system-design.md) | 插件系统设计 |
-
-## 许可证
-
-[MIT](LICENSE)
+Released under the [MIT License](LICENSE).
