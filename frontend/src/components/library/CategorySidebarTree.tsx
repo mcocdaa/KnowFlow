@@ -54,8 +54,10 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  gap: 4,
                   width: '100%',
-                  padding: '3px 6px',
+                  minWidth: 0,
+                  padding: '2px 2px',
                   borderRadius: 4,
                   background: isDragTarget ? token.colorPrimaryBg : 'transparent',
                   border: isDragTarget ? `1px dashed ${token.colorPrimary}` : '1px solid transparent',
@@ -81,20 +83,29 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
                   }
                 }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                  <FolderFilled style={{ color: token.colorPrimary, fontSize: 14 }} />
-                  <Typography.Text ellipsis style={{ maxWidth: 120 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                  <FolderFilled style={{ color: token.colorPrimary, fontSize: 13, flexShrink: 0 }} />
+                  <span
+                    title={cat.title}
+                    style={{
+                      fontSize: 12.5,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {cat.title}
-                  </Typography.Text>
+                  </span>
                 </span>
                 <span
                   style={{
                     fontSize: 11,
+                    lineHeight: '16px',
                     color: token.colorTextSecondary,
                     background: token.colorFillAlter,
-                    padding: '1px 6px',
+                    padding: '0 5px',
                     borderRadius: 10,
-                    marginLeft: 4,
+                    flexShrink: 0,
                   }}
                 >
                   {count}
@@ -147,9 +158,9 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
         borderRadius: 8,
         border: `1px solid ${token.colorBorderSecondary}`,
       }}
-      bodyStyle={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      styles={{ body: { padding: 10, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' } }}
     >
-      <Flex justify="space-between" align="center" style={{ marginBottom: 12 }}>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 10 }}>
         <Typography.Text strong style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
           <FolderOpenOutlined style={{ color: token.colorPrimary }} /> 分类目录
         </Typography.Text>
@@ -184,10 +195,10 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '6px 8px',
+          padding: '5px 8px',
           borderRadius: 6,
           cursor: 'pointer',
-          marginBottom: 8,
+          marginBottom: 6,
           background: selectedCategory === null ? token.colorPrimaryBg : 'transparent',
           color: selectedCategory === null ? token.colorPrimaryText : token.colorText,
           border:
@@ -200,14 +211,14 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
           transition: 'all 0.2s',
         }}
       >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
           <AppstoreOutlined />
           <span>全部知识</span>
         </span>
         <Badge count={totalCount} overflowCount={999} style={{ backgroundColor: token.colorFillSecondary, color: token.colorTextSecondary }} />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+      <div className="knowflow-category-tree" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
         {categories.length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无分类" style={{ marginTop: 24 }} />
         ) : (
@@ -215,7 +226,6 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
             draggable
             blockNode
             defaultExpandAll
-            showLine={{ showLeafIcon: false }}
             selectedKeys={selectedCategory ? [selectedCategory] : []}
             onSelect={(keys) => {
               const selected = keys[0] as string | undefined;
@@ -230,13 +240,14 @@ export const CategorySidebarTree: React.FC<CategorySidebarTreeProps> = ({
 
       <div
         style={{
-          marginTop: 10,
-          padding: '6px 8px',
+          marginTop: 8,
+          padding: '5px 6px',
           background: token.colorFillQuaternary,
           borderRadius: 6,
-          fontSize: 12,
+          fontSize: 11,
           color: token.colorTextTertiary,
           textAlign: 'center',
+          whiteSpace: 'nowrap',
         }}
       >
         <InfoCircleOutlined style={{ marginRight: 4 }} /> 提示：拖拽文件可直接归档至分类

@@ -63,6 +63,7 @@ const LibraryPage = () => {
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
+    const parentMap = new Map(categories.map((c) => [c.name, c.parent_name || null]));
     const sourceItems =
       allItems.length > 0
         ? allItems
@@ -72,14 +73,19 @@ const LibraryPage = () => {
             ? cachedUnfilteredItems
             : items;
     sourceItems.forEach((item) => {
-      const cat = (item.keyValues.category_name as string) || '';
-      if (cat) counts[cat] = (counts[cat] || 0) + 1;
+      let cat: string | null = ((item.keyValues.category_name as string) || '').trim() || null;
+      const visited = new Set<string>();
+      while (cat && !visited.has(cat)) {
+        visited.add(cat);
+        counts[cat] = (counts[cat] || 0) + 1;
+        cat = parentMap.get(cat) ?? null;
+      }
     });
     if (selectedCategory && allItems.length === 0) {
       counts[selectedCategory] = items.length;
     }
     return counts;
-  }, [allItems, cachedUnfilteredItems, items, selectedCategory]);
+  }, [allItems, cachedUnfilteredItems, categories, items, selectedCategory]);
 
   const sidebarTotalCount =
     allItems.length > 0 ? allItems.length : !selectedCategory ? total : Math.max(total, cachedUnfilteredItems.length);
@@ -236,11 +242,11 @@ const LibraryPage = () => {
   }, [updateParams]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 110px)', minHeight: 650 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 78px)', minHeight: 600 }}>
       {/* Three-Column Workspace Layout */}
-      <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0 }}>
-        {/* Column 1: Left Infinite Category Tree (260px) */}
-        <div style={{ width: 260, flexShrink: 0, height: '100%' }}>
+      <div style={{ display: 'flex', gap: 10, flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
+        {/* Column 1: Left Infinite Category Tree (228px) */}
+        <div style={{ width: 228, flexShrink: 0, height: '100%' }}>
           <CategorySidebarTree
             categories={categories}
             selectedCategory={selectedCategory}
@@ -257,18 +263,18 @@ const LibraryPage = () => {
         <div
           style={{
             flex: 1,
-            minWidth: 420,
+            minWidth: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: 12,
+            gap: 10,
             height: '100%',
             overflowY: 'auto',
             overflowX: 'hidden',
-            padding: '0 8px 0 6px',
+            padding: '0 4px',
           }}
         >
           <Flex justify="space-between" align="center">
-            <Typography.Title level={3} style={{ margin: 0 }}>
+            <Typography.Title level={4} style={{ margin: 0, fontSize: 18, lineHeight: '26px' }}>
               知识库
             </Typography.Title>
           </Flex>
@@ -349,9 +355,9 @@ const LibraryPage = () => {
           </div>
         </div>
 
-        {/* Column 3: Right Live Preview & Inspector Panel (380px) */}
+        {/* Column 3: Right Live Preview & Inspector Panel (356px) */}
         {previewOpen && (
-          <div style={{ width: 380, flexShrink: 0, height: '100%' }}>
+          <div style={{ width: 356, flexShrink: 0, height: '100%' }}>
             <LivePreviewPanel
               item={selectedItem}
               categories={categories}

@@ -69,13 +69,13 @@ const SearchToolbar = ({
   const filterIncomplete = Boolean(filterKey) !== Boolean(filterValue);
 
   return (
-    <Flex wrap gap={12} align="center" justify="space-between">
-      <Flex wrap gap={12} align="center">
+    <Flex vertical gap={8}>
+      <Flex gap={8} align="center" justify="space-between" style={{ width: '100%' }}>
         <Input.Search
           allowClear
           placeholder="搜索名称或任意属性值"
           value={value}
-          style={{ width: 280 }}
+          style={{ flex: 1, minWidth: 160 }}
           onChange={(event) => {
             setValue(event.target.value);
             scheduleSearch(event.target.value);
@@ -83,68 +83,85 @@ const SearchToolbar = ({
           onSearch={commitSearch}
         />
 
-        <span data-testid="sort-select">
-          <Select value={params.sort} options={sortOptions} onChange={onSortChange} style={{ width: 110 }} />
-        </span>
+        <Space size={6} style={{ flexShrink: 0 }}>
+          {onUpload ? (
+            <Button icon={<UploadOutlined />} onClick={onUpload}>
+              上传文件
+            </Button>
+          ) : null}
+          {onCreate ? (
+            <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
+              新建记录
+            </Button>
+          ) : null}
+        </Space>
+      </Flex>
 
-        <Popover
-          trigger="click"
-          open={advancedOpen}
-          onOpenChange={setAdvancedOpen}
-          content={
-            <Space direction="vertical" size={12} style={{ width: 280 }}>
-              <Select
-                allowClear
-                showSearch
-                optionFilterProp="label"
-                placeholder="选择 Key"
-                value={filterKey || undefined}
-                options={keys.map((key) => ({ value: key.name, label: `${key.title} (${key.name})` }))}
-                onChange={(next) => setFilterKey(next ?? '')}
-                style={{ width: '100%' }}
-              />
-              <Input
-                placeholder="属性值包含"
-                value={filterValue}
-                onChange={(event) => setFilterValue(event.target.value)}
-              />
-              <Space>
-                <Button
-                  type="primary"
-                  disabled={filterIncomplete}
-                  onClick={() => {
-                    onKeyFilterChange(filterKey, filterValue);
-                    setAdvancedOpen(false);
-                  }}
-                >
-                  应用
-                </Button>
-                <Button
-                  onClick={() => {
-                    setFilterKey('');
-                    setFilterValue('');
-                    onKeyFilterChange('', '');
-                    setAdvancedOpen(false);
-                  }}
-                >
-                  清除
-                </Button>
+      <Flex gap={6} align="center" justify="space-between" wrap="nowrap">
+        <Space size={6}>
+          <span data-testid="sort-select">
+            <Select value={params.sort} options={sortOptions} onChange={onSortChange} style={{ width: 108 }} />
+          </span>
+
+          <Popover
+            trigger="click"
+            open={advancedOpen}
+            onOpenChange={setAdvancedOpen}
+            content={
+              <Space direction="vertical" size={12} style={{ width: 280 }}>
+                <Select
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  placeholder="选择 Key"
+                  value={filterKey || undefined}
+                  options={keys.map((key) => ({ value: key.name, label: `${key.title} (${key.name})` }))}
+                  onChange={(next) => setFilterKey(next ?? '')}
+                  style={{ width: '100%' }}
+                />
+                <Input
+                  placeholder="属性值包含"
+                  value={filterValue}
+                  onChange={(event) => setFilterValue(event.target.value)}
+                />
+                <Space>
+                  <Button
+                    type="primary"
+                    disabled={filterIncomplete}
+                    onClick={() => {
+                      onKeyFilterChange(filterKey, filterValue);
+                      setAdvancedOpen(false);
+                    }}
+                  >
+                    应用
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setFilterKey('');
+                      setFilterValue('');
+                      onKeyFilterChange('', '');
+                      setAdvancedOpen(false);
+                    }}
+                  >
+                    清除
+                  </Button>
+                </Space>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  请同时选择属性字段并输入匹配值以应用筛选
+                </Typography.Text>
               </Space>
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                后端要求 Key 与值同时提供才会过滤
-              </Typography.Text>
-            </Space>
-          }
-        >
-          <Button icon={<FilterOutlined />}>高级筛选</Button>
-        </Popover>
+            }
+          >
+            <Button icon={<FilterOutlined />}>高级筛选</Button>
+          </Popover>
 
-        <span data-testid="page-size-select">
-          <Select value={params.pageSize} options={pageSizeOptions} onChange={onPageSizeChange} style={{ width: 110 }} />
-        </span>
+          <span data-testid="page-size-select">
+            <Select value={params.pageSize} options={pageSizeOptions} onChange={onPageSizeChange} style={{ width: 106 }} />
+          </span>
+        </Space>
 
         {onViewModeChange && (
-          <span data-testid="view-mode-toggle">
+          <span data-testid="view-mode-toggle" style={{ flexShrink: 0 }}>
             <Segmented
               value={viewMode}
               onChange={(val) => onViewModeChange(val as 'table' | 'card')}
@@ -156,19 +173,6 @@ const SearchToolbar = ({
           </span>
         )}
       </Flex>
-
-      <Space>
-        {onUpload ? (
-          <Button icon={<UploadOutlined />} onClick={onUpload}>
-            上传文件
-          </Button>
-        ) : null}
-        {onCreate ? (
-          <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
-            新建记录
-          </Button>
-        ) : null}
-      </Space>
     </Flex>
   );
 };

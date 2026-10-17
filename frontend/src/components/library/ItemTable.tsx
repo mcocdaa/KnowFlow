@@ -33,7 +33,7 @@ const ItemTable = ({
       title: '名称',
       dataIndex: 'name',
       render: (_value, item) => (
-        <Space>
+        <Space size={6}>
           <FileIcon fileType={String(item.keyValues.file_type ?? '')} style={{ color: '#2563EB' }} />
           {onOpen ? (
             <Button type="link" style={{ paddingInline: 0 }} onClick={() => onOpen(item)}>
@@ -47,31 +47,31 @@ const ItemTable = ({
     },
     {
       title: '评分',
-      width: 140,
+      width: 108,
       render: (_value, item) => {
         const rating = Math.min(5, Math.max(0, Number(item.keyValues.rating) || 0));
-        return rating > 0 ? <Rate disabled value={rating} style={{ fontSize: 14 }} /> : '—';
+        return rating > 0 ? <Rate disabled value={rating} style={{ fontSize: 12 }} /> : '—';
       },
     },
     {
       title: '更新时间',
       dataIndex: 'updatedAt',
-      width: 180,
-      render: (value?: string) => formatDateTime(value),
+      width: 136,
+      render: (value?: string) => <span style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{formatDateTime(value)}</span>,
     },
     {
       title: '操作',
-      width: 150,
+      width: 96,
       render: (_value, item) => (
         <Space size={0}>
           {onOpen ? (
             <Tooltip title="查看">
-              <Button type="text" icon={<EyeOutlined />} aria-label="查看" onClick={() => onOpen(item)} />
+              <Button type="text" size="small" icon={<EyeOutlined />} aria-label="查看" onClick={() => onOpen(item)} />
             </Tooltip>
           ) : null}
           {onEdit ? (
             <Tooltip title="编辑">
-              <Button type="text" icon={<EditOutlined />} aria-label="编辑" onClick={() => onEdit(item)} />
+              <Button type="text" size="small" icon={<EditOutlined />} aria-label="编辑" onClick={() => onEdit(item)} />
             </Tooltip>
           ) : null}
           <Popconfirm
@@ -81,7 +81,7 @@ const ItemTable = ({
             cancelText="取消"
             onConfirm={() => onDelete(item.id)}
           >
-            <Button type="text" danger icon={<DeleteOutlined />} aria-label="删除" />
+            <Button type="text" size="small" danger icon={<DeleteOutlined />} aria-label="删除" />
           </Popconfirm>
         </Space>
       ),

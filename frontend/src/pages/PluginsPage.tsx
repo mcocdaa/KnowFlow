@@ -27,8 +27,8 @@ const PluginsPage = () => {
     {
       title: '前端入口',
       dataIndex: 'frontend_entry',
-      width: 140,
-      render: (value: string) => <Typography.Text code>{value}</Typography.Text>,
+      width: 180,
+      render: (value: string) => <Typography.Text code style={{ whiteSpace: 'nowrap' }}>{value}</Typography.Text>,
     },
     {
       title: 'UI 组件',
@@ -48,8 +48,7 @@ const PluginsPage = () => {
         插件
       </Typography.Title>
       <Typography.Text type="secondary">
-        <ApiOutlined /> 列表来自后端 <Typography.Text code>/plugins/manifests</Typography.Text>
-        ，通过 plugins.yaml 启停插件。
+        <ApiOutlined /> 已加载的扩展插件列表，支持动态扩展知识项属性与交互组件。
       </Typography.Text>
 
       {error ? (
