@@ -1,4 +1,5 @@
 import React, { type ComponentType, Suspense } from 'react';
+import { useI18n } from '../i18n';
 
 export interface PluginComponentProps {
   value?: unknown;
@@ -31,9 +32,10 @@ export function hasPluginComponent(pluginName: string): boolean {
   return pluginName in loadedPlugins;
 }
 
-const PluginLoadingFallback: React.FC = () => (
-  <div style={{ padding: '8px', color: '#999' }}>加载插件组件中...</div>
-);
+const PluginLoadingFallback: React.FC = () => {
+  const { t } = useI18n();
+  return <div style={{ padding: '8px', color: '#999' }}>{t('加载插件组件中...', 'Loading plugin component...')}</div>;
+};
 
 export const PluginRenderer: React.FC<{
   pluginName: string;

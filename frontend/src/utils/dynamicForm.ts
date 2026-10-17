@@ -1,4 +1,5 @@
 import type { Rule } from 'antd/es/form';
+import { tr } from '../i18n';
 import type { KeyDefinition } from '../types';
 
 export const isJsonValueType = (valueType: string): boolean =>
@@ -10,7 +11,7 @@ export const jsonValidator = async (_rule: unknown, value: unknown): Promise<voi
   try {
     JSON.parse(value);
   } catch {
-    throw new Error('JSON 格式不正确');
+    throw new Error(tr('JSON 格式不正确', 'Invalid JSON format'));
   }
 };
 
@@ -18,7 +19,10 @@ export const buildFieldRules = (definition: KeyDefinition): Rule[] => {
   const rules: Rule[] = [];
 
   if (definition.is_required && definition.value_type !== 'boolean') {
-    rules.push({ required: true, message: `请输入${definition.title}` });
+    rules.push({
+      required: true,
+      message: tr(`请输入${definition.title}`, `Please enter ${tr(definition.title)}`),
+    });
   }
   if (isJsonValueType(definition.value_type)) {
     rules.push({ validator: jsonValidator });
@@ -38,7 +42,10 @@ export const serializeInitialValues = (
     if (raw === undefined || raw === null) return;
 
     if (isJsonValueType(definition.value_type) && typeof raw !== 'string') {
-      result[definition.name] = JSON.stringify(raw, null, 2);
+      const localized = Array.isArray(raw)
+        ? raw.map((item) => (typeof item === 'string' ? tr(item) : item))
+        : raw;
+      result[definition.name] = JSON.stringify(localized, null, 2);
     } else {
       result[definition.name] = raw;
     }

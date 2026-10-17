@@ -488,7 +488,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                     Array.isArray(val) ? (
                       <Space size={4} wrap>
                         {val.map((tag, i) => (
-                          <Tag key={i} color="blue">{String(tag)}</Tag>
+                          <Tag key={i} color="blue">{t(String(tag))}</Tag>
                         ))}
                       </Space>
                     ) : typeof val === 'object' && val !== null ? (

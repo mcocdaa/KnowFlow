@@ -1,5 +1,6 @@
 import { Form, Modal } from 'antd';
 import DynamicKeyForm from '../common/DynamicKeyForm';
+import { useI18n } from '../../i18n';
 import type { KeyDefinition } from '../../types';
 
 interface ItemFormModalProps {
@@ -21,14 +22,15 @@ const ItemFormModal = ({
   onCancel,
   onSubmit,
 }: ItemFormModalProps) => {
+  const { t } = useI18n();
   const [form] = Form.useForm();
 
   return (
     <Modal
       open={open}
-      title={mode === 'create' ? '新建记录' : '编辑记录'}
-      okText="保存"
-      cancelText="取消"
+      title={mode === 'create' ? t('新建记录', 'New Item') : t('编辑记录', 'Edit Item')}
+      okText={t('保存', 'Save')}
+      cancelText={t('取消', 'Cancel')}
       confirmLoading={submitting}
       onOk={() => form.submit()}
       onCancel={onCancel}

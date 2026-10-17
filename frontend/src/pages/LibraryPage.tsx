@@ -119,46 +119,51 @@ const LibraryPage = () => {
           },
         });
         dispatch(upsertItem(updated));
-        message.success(`已成功归档至分类：${categoryName || '全部'}`);
+        message.success(
+          t(
+            `已成功归档至分类：${categoryName || '全部'}`,
+            `Moved to category: ${categoryName ? t(categoryName) : t('全部', 'All')}`,
+          ),
+        );
         refresh();
       } catch (err) {
-        message.error(getErrorMessage(err, '归档失败'));
+        message.error(getErrorMessage(err, t('归档失败', 'Failed to move item')));
       }
     },
-    [dispatch, items, message, refresh],
+    [dispatch, items, message, refresh, t],
   );
 
   const handleUpdateCategoryParent = useCallback(
     async (name: string, newParentName: string | null) => {
       try {
         await api.updateCategory(name, { parent_name: newParentName });
-        message.success('分类层级已更新');
+        message.success(t('分类层级已更新', 'Category hierarchy updated'));
         refreshCatalog();
       } catch (err) {
-        message.error(getErrorMessage(err, '更新分类层级失败'));
+        message.error(getErrorMessage(err, t('更新分类层级失败', 'Failed to update category hierarchy')));
       }
     },
-    [message, refreshCatalog],
+    [message, refreshCatalog, t],
   );
 
   const handleCreateCategory = useCallback(
     async (input: CategoryInput) => {
       try {
         await api.createCategory(input);
-        message.success('分类创建成功');
+        message.success(t('分类创建成功', 'Category created'));
         refreshCatalog();
       } catch (err) {
-        message.error(getErrorMessage(err, '分类创建失败'));
+        message.error(getErrorMessage(err, t('分类创建失败', 'Failed to create category')));
       }
     },
-    [message, refreshCatalog],
+    [message, refreshCatalog, t],
   );
 
   const handleOpenLocation = useCallback(
     (filePath: string) => {
-      void openFileLocation(filePath, (path) => message.info(`已复制路径：${path}`));
+      void openFileLocation(filePath, (path) => message.info(t(`已复制路径：${path}`, `Copied path: ${path}`)));
     },
-    [message],
+    [message, t],
   );
 
   const handlePluginUpdate = useCallback(
@@ -183,16 +188,16 @@ const LibraryPage = () => {
       try {
         const created = await api.createItem(String(values.name ?? ''), values);
         dispatch(upsertItem(created));
-        message.success('知识记录添加成功');
+        message.success(t('知识记录添加成功', 'Item created'));
         setFormMode(null);
         refresh();
       } catch (createError) {
-        message.error(getErrorMessage(createError, '添加失败'));
+        message.error(getErrorMessage(createError, t('添加失败', 'Failed to create item')));
       } finally {
         setFormSubmitting(false);
       }
     },
-    [dispatch, message, refresh],
+    [dispatch, message, refresh, t],
   );
 
   const handleEditSubmit = useCallback(
@@ -206,18 +211,18 @@ const LibraryPage = () => {
           keyValues: values,
         });
         dispatch(upsertItem(updated));
-        message.success('记录已更新');
+        message.success(t('记录已更新', 'Item updated'));
         setFormMode(null);
         setEditingItem(null);
         setSelectedId(null);
         refresh();
       } catch (updateError) {
-        message.error(getErrorMessage(updateError, '保存失败'));
+        message.error(getErrorMessage(updateError, t('保存失败', 'Failed to save item')));
       } finally {
         setFormSubmitting(false);
       }
     },
-    [dispatch, editingItem, message, refresh],
+    [dispatch, editingItem, message, refresh, t],
   );
 
   const handleUpload = useCallback(
@@ -227,16 +232,16 @@ const LibraryPage = () => {
       try {
         const created = await api.uploadFile(file, values, setUploadProgress);
         dispatch(upsertItem(created));
-        message.success('文件上传成功');
+        message.success(t('文件上传成功', 'File uploaded'));
         setUploadOpen(false);
         refresh();
       } catch (uploadError) {
-        message.error(getErrorMessage(uploadError, '文件上传失败'));
+        message.error(getErrorMessage(uploadError, t('文件上传失败', 'Failed to upload file')));
       } finally {
         setUploadSubmitting(false);
       }
     },
-    [dispatch, message, refresh],
+    [dispatch, message, refresh, t],
   );
 
   const handleResetFilters = useCallback(() => {
@@ -379,9 +384,9 @@ const LibraryPage = () => {
         )}
       </div>
 
-      {/* Hidden ItemDetailDrawer for test compatibility */}
+      {/* ItemDetailDrawer (opens when ?drawer=1 is set) */}
       <ItemDetailDrawer
-        item={null}
+        item={typeof window !== 'undefined' && window.location.search.includes('drawer=1') ? selectedItem : null}
         keys={keys}
         categories={categories}
         onClose={() => setSelectedId(null)}

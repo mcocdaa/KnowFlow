@@ -5,6 +5,7 @@ import type { AppDispatch, RootState } from '../store';
 import { setCategories, setError, setKeys, setLoading } from '../store/catalogSlice';
 import api from '../services/api';
 import { getErrorMessage } from '../utils';
+import { useI18n } from '../i18n';
 import type { KeyDefinition } from '../types';
 
 export type KeyPayload = Omit<
@@ -15,6 +16,7 @@ export type KeyPayload = Omit<
 export const useKeys = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { message } = App.useApp();
+  const { t } = useI18n();
   const { keys, categories, loading, error } = useSelector((state: RootState) => state.catalog);
   const [submitting, setSubmitting] = useState(false);
 
@@ -25,9 +27,9 @@ export const useKeys = () => {
       dispatch(setKeys(loadedKeys));
       dispatch(setCategories(loadedCategories));
     } catch (loadError) {
-      dispatch(setError(getErrorMessage(loadError, 'Key 加载失败')));
+      dispatch(setError(getErrorMessage(loadError, t('Key 加载失败', 'Failed to load keys'))));
     }
-  }, [dispatch]);
+  }, [dispatch, t]);
 
   useEffect(() => {
     void reload();
@@ -38,17 +40,17 @@ export const useKeys = () => {
       setSubmitting(true);
       try {
         await api.createKey(payload);
-        message.success('Key 已创建');
+        message.success(t('Key 已创建', 'Key created'));
         await reload();
         return true;
       } catch (createError) {
-        message.error(getErrorMessage(createError, '创建失败'));
+        message.error(getErrorMessage(createError, t('创建失败', 'Failed to create')));
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [message, reload],
+    [message, reload, t],
   );
 
   const updateKey = useCallback(
@@ -56,32 +58,32 @@ export const useKeys = () => {
       setSubmitting(true);
       try {
         await api.updateKey(name, updates);
-        message.success('Key 已更新');
+        message.success(t('Key 已更新', 'Key updated'));
         await reload();
         return true;
       } catch (updateError) {
-        message.error(getErrorMessage(updateError, '保存失败'));
+        message.error(getErrorMessage(updateError, t('保存失败', 'Failed to save')));
         return false;
       } finally {
         setSubmitting(false);
       }
     },
-    [message, reload],
+    [message, reload, t],
   );
 
   const deleteKey = useCallback(
     async (name: string): Promise<boolean> => {
       try {
         await api.deleteKey(name);
-        message.success('Key 已删除');
+        message.success(t('Key 已删除', 'Key deleted'));
         await reload();
         return true;
       } catch (deleteError) {
-        message.error(getErrorMessage(deleteError, '删除失败'));
+        message.error(getErrorMessage(deleteError, t('删除失败', 'Failed to delete')));
         return false;
       }
     },
-    [message, reload],
+    [message, reload, t],
   );
 
   return { keys, categories, loading, error, submitting, reload, createKey, updateKey, deleteKey };

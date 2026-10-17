@@ -12,6 +12,7 @@ import {
 } from '../store/librarySlice';
 import api from '../services/api';
 import { getErrorMessage } from '../utils';
+import { useI18n } from '../i18n';
 import type { ItemSort } from '../types';
 
 export const DEFAULT_PAGE_SIZE = 20;
@@ -29,6 +30,7 @@ export interface LibraryQueryParams {
 export const useLibrary = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { message } = App.useApp();
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const { items, total, page, pageSize, loading, error } = useSelector((state: RootState) => state.library);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -71,10 +73,10 @@ export const useLibrary = () => {
       })
       .catch((requestError) => {
         if (requestIdRef.current === requestId) {
-          dispatch(setError(getErrorMessage(requestError, '知识列表加载失败')));
+          dispatch(setError(getErrorMessage(requestError, t('知识列表加载失败', 'Failed to load items'))));
         }
       });
-  }, [params, refreshKey, dispatch]);
+  }, [params, refreshKey, dispatch, t]);
 
   const updateParams = useCallback(
     (patch: Partial<LibraryQueryParams>) => {
@@ -111,17 +113,17 @@ export const useLibrary = () => {
       try {
         await api.deleteItem(id);
         dispatch(removeItemAction(id));
-        message.success('记录已删除');
+        message.success(t('记录已删除', 'Item deleted'));
         if (items.length === 1 && page > 1) {
           updateParams({ page: page - 1 });
         } else {
           refresh();
         }
       } catch (removeError) {
-        message.error(getErrorMessage(removeError, '删除失败'));
+        message.error(getErrorMessage(removeError, t('删除失败', 'Failed to delete')));
       }
     },
-    [dispatch, items.length, page, message, refresh, updateParams],
+    [dispatch, items.length, page, message, refresh, updateParams, t],
   );
 
   return { items, total, page, pageSize, params, loading, error, updateParams, refresh, removeItem };

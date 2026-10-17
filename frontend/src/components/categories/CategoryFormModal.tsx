@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Form, Input, Modal, TreeSelect } from 'antd';
 import { buildCategoryTree, collectDescendants } from '../../utils/categoryTree';
+import { useI18n } from '../../i18n';
 import type { CategoryDefinition, CategoryInput } from '../../types';
 
 interface CategoryFormModalProps {
@@ -22,12 +23,14 @@ const CategoryFormModal = ({
   onCancel,
   onSubmit,
 }: CategoryFormModalProps) => {
+  const { t } = useI18n();
   const [form] = Form.useForm<CategoryInput>();
 
   const treeData = useMemo(() => {
     const excluded = mode === 'edit' && initial ? collectDescendants(categories, initial.name) : new Set<string>();
-    return buildCategoryTree(categories, excluded);
-  }, [categories, initial, mode]);
+    const localized = categories.map((category) => ({ ...category, title: t(category.title) }));
+    return buildCategoryTree(localized, excluded);
+  }, [categories, initial, mode, t]);
 
   const handleFinish = (values: CategoryInput) => {
     void onSubmit({
@@ -40,9 +43,9 @@ const CategoryFormModal = ({
   return (
     <Modal
       open={open}
-      title={mode === 'create' ? '新建分类' : '编辑分类'}
-      okText="保存"
-      cancelText="取消"
+      title={mode === 'create' ? t('新建分类', 'New Category') : t('编辑分类', 'Edit Category')}
+      okText={t('保存', 'Save')}
+      cancelText={t('取消', 'Cancel')}
       confirmLoading={submitting}
       onOk={() => form.submit()}
       onCancel={onCancel}
@@ -60,25 +63,29 @@ const CategoryFormModal = ({
       >
         <Form.Item
           name="name"
-          label="标识"
-          rules={[{ required: true, message: '请输入分类标识' }]}
+          label={t('标识', 'Key')}
+          rules={[{ required: true, message: t('请输入分类标识', 'Please enter a category key') }]}
           extra={
             mode === 'edit'
-              ? '重命名不会自动更新引用该分类的 Key'
-              : '唯一标识，建议使用英文与下划线'
+              ? t('重命名不会自动更新引用该分类的 Key', 'Renaming does not automatically update keys referencing this category')
+              : t('唯一标识，建议使用英文与下划线', 'Unique identifier using lowercase letters and underscores')
           }
         >
-          <Input placeholder="例如 product_category" />
+          <Input placeholder={t('例如 product_category', 'e.g. product_category')} />
         </Form.Item>
-        <Form.Item name="title" label="名称" rules={[{ required: true, message: '请输入分类名称' }]}>
-          <Input placeholder="用于界面展示，例如 产品分类" />
+        <Form.Item
+          name="title"
+          label={t('名称', 'Name')}
+          rules={[{ required: true, message: t('请输入分类名称', 'Please enter a category name') }]}
+        >
+          <Input placeholder={t('用于界面展示，例如 产品分类', 'Display name, e.g. Product Category')} />
         </Form.Item>
-        <Form.Item name="parent_name" label="父分类">
+        <Form.Item name="parent_name" label={t('父分类', 'Parent Category')}>
           <TreeSelect
             allowClear
             treeDefaultExpandAll
             treeData={treeData}
-            placeholder="不选择则为顶级分类"
+            placeholder={t('不选择则为顶级分类', 'None (Top-level category)')}
           />
         </Form.Item>
       </Form>

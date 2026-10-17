@@ -57,4 +57,21 @@ describe('UploadModal', () => {
 
     expect(screen.getByText('40%')).toBeInTheDocument();
   });
+
+  it('renders UploadModal in English when knowflow_lang is en', async () => {
+    window.localStorage.setItem('knowflow_lang', 'en');
+    try {
+      const { unmount } = renderWithProviders(
+        <UploadModal open definitions={definitions} onCancel={vi.fn()} onUpload={vi.fn()} />,
+      );
+      expect(await screen.findByText('Upload File')).toBeInTheDocument();
+      expect(screen.getByText('Click or drag a file to this area to upload')).toBeInTheDocument();
+      expect(screen.getByText('Single file upload, up to 10MB')).toBeInTheDocument();
+      expect(screen.getByLabelText('Name')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Start Upload/ })).toBeInTheDocument();
+      unmount();
+    } finally {
+      window.localStorage.removeItem('knowflow_lang');
+    }
+  });
 });

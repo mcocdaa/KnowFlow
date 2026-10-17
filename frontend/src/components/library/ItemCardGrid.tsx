@@ -140,7 +140,7 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
                   {tags.slice(0, 3).map((tag, idx) => (
                     <Tag key={idx} bordered={false} style={{ fontSize: 11, margin: 0, padding: '0 5px' }}>
                       <TagOutlined style={{ marginRight: 2 }} />
-                      {tag}
+                      {t(tag)}
                     </Tag>
                   ))}
                   {tags.length > 3 && (
