@@ -71,6 +71,16 @@ describe('App Component', () => {
     );
     expect(translateText('en', '架构设计')).toBe('Architecture Design');
 
+    // Reverse dictionary (en -> zh) when switching back to zh
+    expect(translateText('zh', 'OpenClaw Integration')).toBe('OpenClaw集成');
+    expect(translateText('zh', 'KnowFlow Unified Architecture Design Spec.md')).toBe(
+      'KnowFlow 统一架构设计说明书.md',
+    );
+    expect(translateText('zh', 'Failed to load library data')).toBe('知识列表加载失败');
+    expect(translateText('zh', 'AI feature is disabled. Please configure DOUBAO_API_KEY.')).toBe(
+      'AI 功能未启用，请配置 DOUBAO_API_KEY',
+    );
+
     window.localStorage.setItem(LANG_STORAGE_KEY, 'zh');
     expect(getErrorMessage(new Error('cannot delete category with existing children'), '失败')).toBe(
       '无法删除包含子分类的分类',
@@ -86,5 +96,30 @@ describe('App Component', () => {
     expect(getErrorMessage(new Error('文件大小超过上限 10MB'), 'Failed')).toBe(
       'File size exceeds the 10MB limit',
     );
+  });
+
+  it('dispatches knowflow:lang-change custom event when language is toggled', async () => {
+    const user = userEvent.setup();
+    const receivedLangs: string[] = [];
+    const onLangChange = (ev: Event) => {
+      const detail = (ev as CustomEvent<{ lang?: string }>).detail;
+      if (detail?.lang) {
+        receivedLangs.push(detail.lang);
+      }
+    };
+    window.addEventListener('knowflow:lang-change', onLangChange);
+
+    try {
+      renderWithProviders(<App />, { route: '/plugins' });
+      const toggleBtn = await screen.findByTestId('lang-toggle-btn');
+
+      await user.click(toggleBtn);
+      expect(receivedLangs).toEqual(['en']);
+
+      await user.click(toggleBtn);
+      expect(receivedLangs).toEqual(['en', 'zh']);
+    } finally {
+      window.removeEventListener('knowflow:lang-change', onLangChange);
+    }
   });
 });

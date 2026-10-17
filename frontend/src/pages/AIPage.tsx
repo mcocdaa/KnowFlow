@@ -76,7 +76,7 @@ const AIPage = () => {
         )}
       />
 
-      {error ? <Alert type="error" showIcon message={error} /> : null}
+      {error ? <Alert type="error" showIcon message={t(error)} /> : null}
 
       <Tabs
         items={[

@@ -94,6 +94,79 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         '# KnowFlow Offline Semantic Vector Inference Module',
       );
     }
+    if (fileUrl.endsWith('/paged_attention.md')) {
+      return [
+        '# PagedAttention KV-Cache Architecture',
+        '',
+        'Virtual memory paging for LLM **KV-Cache** management, eliminating external fragmentation and enabling zero-copy prefix sharing across concurrent sequences.',
+        '',
+        '## 1. KV-Cache Memory Efficiency',
+        '',
+        '| Mechanism | KV Waste | Max Batch | Tok/s |',
+        '| :--- | :---: | :---: | :---: |',
+        '| Contiguous KV | 62.4% | 32 | 1,420 |',
+        '| PagedAttention v1 | 3.8% | 128 | 4,890 |',
+        '| **Paged + FP8** | **1.9%** | **256** | **8,640** |',
+        '| **MLA + Paged KV** | **1.4%** | **320** | **10,120** |',
+        '',
+        '## 2. Block Table Dispatch',
+        '',
+        '```python',
+        'def allocate_kv_blocks(seq_len: int, block_size: int = 16):',
+        '    num_blocks = (seq_len + block_size - 1) // block_size',
+        '    return [free_pool.pop() for _ in range(num_blocks)]',
+        '```',
+      ].join('\n');
+    }
+    if (fileUrl.endsWith('/deepseek_mla.md')) {
+      return [
+        '# DeepSeek MLA & GQA Attention',
+        '',
+        'Low-rank joint compression of Keys and Values (**Multi-Head Latent Attention**) compared against Grouped-Query Attention on 671B MoE inference nodes.',
+        '',
+        '## 1. Per-Token KV Footprint',
+        '',
+        '| Architecture | Heads | KV / Tok | Limit | Tok/s |',
+        '| :--- | :---: | :---: | :---: | :---: |',
+        '| Standard MHA | 128 | 512 KB | 16K | 1,180 |',
+        '| GQA-8 (Llama-3) | 8 | 64 KB | 64K | 5,420 |',
+        '| **DeepSeek MLA** | **512d** | **14.3 KB** | **128K** | **9,850** |',
+        '| **MLA + Absorb** | **512d** | **11.2 KB** | **256K** | **11,940** |',
+        '',
+        '## 2. Matrix Absorption Projection',
+        '',
+        '```python',
+        'def mla_project(h_t, W_DKV, W_UK, W_UV):',
+        '    c_kv = rms_norm(h_t @ W_DKV)  # Compressed 512-d latent vector',
+        '    return c_kv @ W_UK, c_kv @ W_UV',
+        '```',
+      ].join('\n');
+    }
+    if (fileUrl.endsWith('/flash_attention3.md')) {
+      return [
+        '# FlashAttention-3 FP8 Kernel Spec',
+        '',
+        'Hopper H100 asynchronous **WGMMA** and **TMA** circular buffer pipelining, overlapping warp-group GEMM with softmax rescaling.',
+        '',
+        '## 1. H100 SXM5 Kernel Utilization',
+        '',
+        '| Seq Length | BF16 FA-2 | BF16 FA-3 | FP8 FA-3 |',
+        '| :--- | :---: | :---: | :---: |',
+        '| **4,096** | 412 TFLOPS | 645 TFLOPS | **1,120 TFLOPS** |',
+        '| **16,384** | 438 TFLOPS | 682 TFLOPS | **1,185 TFLOPS** |',
+        '| **65,536** | 445 TFLOPS | 704 TFLOPS | **1,240 TFLOPS** |',
+        '',
+        '## 2. Producer-Consumer Warp Schedule',
+        '',
+        '```python',
+        'for step in range(num_kv_tiles):',
+        '    kv_stage = k_ring.acquire_ready_tile(step)',
+        '    scores = wgmma_fp8_gemm(q_tile, kv_stage.k)',
+        '    probs = online_softmax_rescale(scores, running_max)',
+        '    out = wgmma_fp8_accum(probs, kv_stage.v, out)',
+        '```',
+      ].join('\n');
+    }
     return rawFileContent;
   }, [fileUrl, locale, rawFileContent]);
   const isTextPreview = previewType === 'markdown' || previewType === 'code' || previewType === 'text';

@@ -85,7 +85,7 @@ const KeysPage = () => {
       title: t('来源插件', 'Plugin'),
       dataIndex: 'plugin_name',
       width: 130,
-      render: (value: string) => (value ? <Tag>{value}</Tag> : '—'),
+      render: (value: string) => (value ? <Tag>{value === 'builtin' ? t('内置', 'Built-in') : value}</Tag> : '—'),
     },
     {
       title: t('操作', 'Actions'),
@@ -146,7 +146,7 @@ const KeysPage = () => {
       </Flex>
 
       {error ? (
-        <StatePlaceholder variant="error" description={error} onRetry={reload} />
+        <StatePlaceholder variant="error" description={t(error)} onRetry={reload} />
       ) : loading && keys.length === 0 ? (
         <StatePlaceholder variant="loading" />
       ) : filteredKeys.length === 0 ? (
