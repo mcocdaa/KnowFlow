@@ -121,7 +121,7 @@ const ItemDetailDrawer = ({
     }
     return (
       <Typography.Paragraph style={{ marginBottom: 0, whiteSpace: 'pre-wrap' }}>
-        {value === '' || value === null ? '—' : String(value)}
+        {value === '' || value === null ? '—' : typeof value === 'string' ? t(value) : String(value)}
       </Typography.Paragraph>
     );
   };
@@ -131,7 +131,7 @@ const ItemDetailDrawer = ({
       open={Boolean(item)}
       onClose={onClose}
       width={560}
-      title={item?.name || t('未命名', 'Untitled')}
+      title={item?.name ? t(item.name) : t('未命名', 'Untitled')}
       destroyOnHidden
       footer={
         item ? (

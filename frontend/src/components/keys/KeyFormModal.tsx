@@ -41,7 +41,7 @@ const KeyFormModal = ({
   onCancel,
   onSubmit,
 }: KeyFormModalProps) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [form] = Form.useForm();
   const watchedType = (Form.useWatch('value_type', form) as ValueType | undefined) ?? initial?.value_type ?? 'string';
   const isJsonType = watchedType === 'array' || watchedType === 'object';
@@ -98,10 +98,10 @@ const KeyFormModal = ({
         layout="vertical"
         initialValues={{
           name: initial?.name,
-          title: initial?.title,
+          title: locale === 'en' && initial?.title ? t(initial.title) : initial?.title,
           value_type: initial?.value_type ?? 'string',
           default_value: stringifyDefault(initial?.default_value ?? '', initial?.value_type ?? 'string'),
-          description: initial?.description ?? '',
+          description: locale === 'en' && initial?.description ? t(initial.description) : (initial?.description ?? ''),
           category_name: initial?.category_name,
           is_required: initial?.is_required ?? false,
           is_visible: initial?.is_visible ?? true,

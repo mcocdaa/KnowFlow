@@ -40,10 +40,10 @@ const ItemTable = ({
           <FileIcon fileType={String(item.keyValues.file_type ?? '')} style={{ color: '#2563EB' }} />
           {onOpen ? (
             <Button type="link" style={{ paddingInline: 0 }} onClick={() => onOpen(item)}>
-              {item.name || t('未命名', 'Untitled')}
+              {item.name ? t(item.name) : t('未命名', 'Untitled')}
             </Button>
           ) : (
-            <Typography.Text strong>{item.name || t('未命名', 'Untitled')}</Typography.Text>
+            <Typography.Text strong>{item.name ? t(item.name) : t('未命名', 'Untitled')}</Typography.Text>
           )}
         </Space>
       ),

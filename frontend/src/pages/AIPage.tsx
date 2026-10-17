@@ -24,7 +24,7 @@ const AIPage = () => {
       title: t('匹配记录', 'Matched Item'),
       dataIndex: 'name',
       render: (value: string) => (
-        <Link to={`/library?q=${encodeURIComponent(value)}`}>{value || t('未命名', 'Untitled')}</Link>
+        <Link to={`/library?q=${encodeURIComponent(value)}`}>{value ? t(value) : t('未命名', 'Untitled')}</Link>
       ),
     },
   ];
@@ -32,7 +32,12 @@ const AIPage = () => {
   const nameById = new Map((corpus?.items ?? []).map((item) => [item.id, item.name]));
 
   const tagColumns: TableColumnsType<TagRow> = [
-    { title: t('记录', 'Item'), dataIndex: 'name', width: 360 },
+    {
+      title: t('记录', 'Item'),
+      dataIndex: 'name',
+      width: 360,
+      render: (value: string) => t(value),
+    },
     {
       title: t('生成的标签', 'Generated Tags'),
       dataIndex: 'tags',

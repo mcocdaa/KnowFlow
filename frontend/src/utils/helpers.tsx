@@ -1,8 +1,12 @@
 import { openFileInExplorer, isElectron } from './electron';
+import { tr } from '../i18n';
 
 export const getErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof Error && error.message) {
-    return error.message;
+    return tr(error.message);
+  }
+  if (typeof error === 'string' && error) {
+    return tr(error);
   }
   return fallback;
 };

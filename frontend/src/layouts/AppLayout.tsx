@@ -34,6 +34,9 @@ const AppLayout = () => {
           size="small"
           icon={<GlobalOutlined />}
           data-testid="lang-toggle-btn"
+          data-action="toggle-locale"
+          aria-label={locale === 'zh' ? '切换到英文 (Switch to English)' : 'Switch to Chinese (切换到中文)'}
+          title={locale === 'zh' ? '切换到英文 (English)' : 'Switch to Chinese (中文)'}
           onClick={toggleLocale}
           style={{
             whiteSpace: 'nowrap',
@@ -42,7 +45,7 @@ const AppLayout = () => {
             borderRadius: 6,
           }}
         >
-          {locale === 'zh' ? 'EN' : '中文'}
+          {locale === 'zh' ? '中文 / EN' : '中文'}
         </Button>
       </Header>
       <Layout>

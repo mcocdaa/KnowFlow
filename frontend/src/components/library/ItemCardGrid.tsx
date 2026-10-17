@@ -108,7 +108,7 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
                     <FileIcon fileType={fileType} />
                   </span>
                   <div
-                    title={item.name}
+                    title={item.name ? t(item.name) : ''}
                     style={{
                       flex: 1,
                       minWidth: 0,
@@ -120,7 +120,7 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
                       color: isSelected ? token.colorPrimary : token.colorTextHeading,
                     }}
                   >
-                    {item.name}
+                    {item.name ? t(item.name) : t('未命名', 'Untitled')}
                   </div>
                   <Tooltip title={t('按住拖拽至分类归档', 'Drag to file into a category')}>
                     <HolderOutlined style={{ color: token.colorTextQuaternary, cursor: 'grab', flexShrink: 0 }} />

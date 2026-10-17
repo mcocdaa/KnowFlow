@@ -60,4 +60,31 @@ describe('App Component', () => {
     expect(window.localStorage.getItem(LANG_STORAGE_KEY)).toBe('zh');
     expect(screen.getByRole('heading', { name: '知识库' })).toBeInTheDocument();
   });
+
+  it('translates seeded item titles, OpenClaw category, and backend errors in both zh and en modes', async () => {
+    const { translateText } = await import('../src/i18n');
+    const { getErrorMessage } = await import('../src/utils/helpers');
+
+    expect(translateText('en', 'OpenClaw集成')).toBe('OpenClaw Integration');
+    expect(translateText('en', 'KnowFlow 统一架构设计说明书.md')).toBe(
+      'KnowFlow Unified Architecture Design Spec.md',
+    );
+    expect(translateText('en', '架构设计')).toBe('Architecture Design');
+
+    window.localStorage.setItem(LANG_STORAGE_KEY, 'zh');
+    expect(getErrorMessage(new Error('cannot delete category with existing children'), '失败')).toBe(
+      '无法删除包含子分类的分类',
+    );
+    expect(getErrorMessage(new Error('Missing required keys: file_path'), '失败')).toBe(
+      '缺少必填字段：file_path',
+    );
+
+    window.localStorage.setItem(LANG_STORAGE_KEY, 'en');
+    expect(getErrorMessage(new Error('AI 功能未启用，请配置 DOUBAO_API_KEY'), 'Failed')).toBe(
+      'AI feature is disabled. Please configure DOUBAO_API_KEY.',
+    );
+    expect(getErrorMessage(new Error('文件大小超过上限 10MB'), 'Failed')).toBe(
+      'File size exceeds the 10MB limit',
+    );
+  });
 });

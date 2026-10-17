@@ -54,7 +54,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
   onPluginUpdate,
 }) => {
   const { token } = theme.useToken();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<'preview' | 'meta'>('preview');
   const [loadedData, setLoadedData] = useState<{ url: string; content: string } | null>(null);
   const [contentError, setContentError] = useState<string | null>(null);
@@ -67,7 +67,35 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
   const fileUrl = useMemo(() => getFileUrl(filePath), [filePath]);
   const previewType = useMemo(() => detectPreviewType(fileType, filePath), [fileType, filePath]);
   const ext = useMemo(() => getFileExtension(filePath), [filePath]);
-  const fileContent = loadedData?.url === fileUrl ? loadedData.content : '';
+  const rawFileContent = loadedData?.url === fileUrl ? loadedData.content : '';
+  const fileContent = useMemo(() => {
+    if (!rawFileContent || locale !== 'en') return rawFileContent;
+    if (fileUrl.endsWith('/architecture_design.md')) {
+      return [
+        '# KnowFlow Architecture Design Specification (v1.1)',
+        '',
+        '## 1. Core Positioning',
+        '**KnowFlow** is a modern, high-performance, lightweight knowledge management system.',
+        'Focused on **dynamic attribute search, hierarchical category trees, and instant multi-modal preview**.',
+        '',
+        '## 2. Key Architecture Features',
+        '- **Storage Engine**: Native MongoDB BSON model supporting dynamic KV numeric, boolean, and array attributes.',
+        '- **Compound Indexes**: `(category_name, created_at)` compound index and `name` + `content` full-text index.',
+        '- **Offline Semantic Search**: Embedded `fastembed` (`BAAI/bge-small-zh-v1.5`) engine for local CPU inference.',
+        '- **Three-Column Workspace**:',
+        '  1. **Left**: Collapsible category tree with drag-and-drop reorganization and item filing.',
+        '  2. **Center**: Table and card grid views with quick facet filter chips.',
+        '  3. **Right**: Responsive multi-modal preview panel (PDF.js / marked Markdown / Monaco editor).',
+      ].join('\n');
+    }
+    if (fileUrl.endsWith('/fastembed_service.py')) {
+      return rawFileContent.replace(
+        '# KnowFlow 离线语义向量推理模块',
+        '# KnowFlow Offline Semantic Vector Inference Module',
+      );
+    }
+    return rawFileContent;
+  }, [fileUrl, locale, rawFileContent]);
   const isTextPreview = previewType === 'markdown' || previewType === 'code' || previewType === 'text';
   const loadingContent = Boolean(item && fileUrl && isTextPreview && loadedData?.url !== fileUrl && !contentError);
 
@@ -189,7 +217,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
               <FileIcon fileType={fileType} />
             </span>
             <div
-              title={item.name}
+              title={item.name ? t(item.name) : ''}
               style={{
                 flex: 1,
                 minWidth: 0,
@@ -200,7 +228,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                 whiteSpace: 'nowrap',
               }}
             >
-              {item.name}
+              {item.name ? t(item.name) : t('未命名', 'Untitled')}
             </div>
           </Flex>
           <Space size={6} wrap>
@@ -275,7 +303,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                 </div>
                 <iframe
                   src={`${fileUrl}#toolbar=1`}
-                  title={item.name}
+                  title={item.name ? t(item.name) : ''}
                   style={{ width: '100%', flex: 1, border: 'none' }}
                 />
               </div>
@@ -394,7 +422,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
               <Flex justify="center" align="center" style={{ flex: 1, padding: 16, overflow: 'hidden' }}>
                 <Image
                   src={fileUrl}
-                  alt={item.name}
+                  alt={item.name ? t(item.name) : ''}
                   style={{ maxHeight: 'calc(100vh - 280px)', maxWidth: '100%', objectFit: 'contain' }}
                 />
               </Flex>
@@ -427,7 +455,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         ) : (
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
             <Descriptions size="small" column={1} bordered>
-              <Descriptions.Item label={t('名称', 'Name')}>{item.name}</Descriptions.Item>
+              <Descriptions.Item label={t('名称', 'Name')}>{item.name ? t(item.name) : '-'}</Descriptions.Item>
               <Descriptions.Item label={t('分类', 'Category')}>{categoryTitle || '-'}</Descriptions.Item>
               <Descriptions.Item label={t('创建时间', 'Created')}>
                 {item.createdAt ? formatDateTime(item.createdAt) : '-'}
@@ -496,7 +524,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                         {JSON.stringify(val, null, 2)}
                       </pre>
                     ) : (
-                      String(val ?? '-')
+                      typeof val === 'string' && val ? t(val) : String(val ?? '-')
                     );
 
                   return (

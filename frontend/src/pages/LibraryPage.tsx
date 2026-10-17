@@ -119,10 +119,12 @@ const LibraryPage = () => {
           },
         });
         dispatch(upsertItem(updated));
+        const cat = categories.find((c) => c.name === categoryName);
+        const catTitle = categoryName ? t(cat?.title || categoryName) : t('全部', 'All');
         message.success(
           t(
-            `已成功归档至分类：${categoryName || '全部'}`,
-            `Moved to category: ${categoryName ? t(categoryName) : t('全部', 'All')}`,
+            `已成功归档至分类：${catTitle}`,
+            `Moved to category: ${catTitle}`,
           ),
         );
         refresh();
@@ -130,7 +132,7 @@ const LibraryPage = () => {
         message.error(getErrorMessage(err, t('归档失败', 'Failed to move item')));
       }
     },
-    [dispatch, items, message, refresh, t],
+    [categories, dispatch, items, message, refresh, t],
   );
 
   const handleUpdateCategoryParent = useCallback(

@@ -28,6 +28,9 @@ const OpenClawForm: React.FC<OpenClawFormProps> = ({
   onUpdate,
   readOnly = false
 }) => {
+  const isEn = typeof window !== 'undefined' && window.localStorage?.getItem('knowflow_lang') === 'en';
+  const t = (zh: string, en: string) => (isEn ? en : zh);
+
   const initialValues = (value as OpenClawAttributes) || {};
 
   const [formData, setFormData] = useState<OpenClawAttributes>({
@@ -57,7 +60,7 @@ const OpenClawForm: React.FC<OpenClawFormProps> = ({
         }
       }
     } catch (error) {
-      console.error('加载OpenClaw属性失败:', error);
+      console.error(t('加载OpenClaw属性失败:', 'Failed to load OpenClaw attributes:'), error);
     }
   };
 
@@ -84,14 +87,14 @@ const OpenClawForm: React.FC<OpenClawFormProps> = ({
       if (response.ok) {
         const result = await response.json();
         onUpdate(result.data);
-        alert('OpenClaw属性保存成功');
+        alert(t('OpenClaw属性保存成功', 'OpenClaw attributes saved successfully'));
       } else {
         const error = await response.json();
-        alert(`保存失败: ${error.detail}`);
+        alert(t(`保存失败: ${error.detail}`, `Failed to save: ${error.detail}`));
       }
     } catch (error) {
-      console.error('保存OpenClaw属性失败:', error);
-      alert('保存失败，请重试');
+      console.error(t('保存OpenClaw属性失败:', 'Failed to save OpenClaw attributes:'), error);
+      alert(t('保存失败，请重试', 'Failed to save, please try again'));
     } finally {
       setLoading(false);
     }
@@ -151,15 +154,17 @@ const OpenClawForm: React.FC<OpenClawFormProps> = ({
 
   return (
     <div style={containerStyle}>
-      <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600' }}>OpenClaw 桥接属性</h3>
+      <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '600' }}>
+        {t('OpenClaw 桥接属性', 'OpenClaw Bridge Attributes')}
+      </h3>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>项目ID <span style={{ color: 'red' }}>*</span></label>
+        <label style={labelStyle}>{t('项目ID', 'Project ID')} <span style={{ color: 'red' }}>*</span></label>
         <input
           type="text"
           value={formData.openclaw_project_id}
           onChange={(e) => handleChange('openclaw_project_id', e.target.value)}
-          placeholder="请输入项目唯一ID"
+          placeholder={t('请输入项目唯一ID', 'Enter unique project ID')}
           style={inputStyle}
           disabled={readOnly}
           required
@@ -167,65 +172,65 @@ const OpenClawForm: React.FC<OpenClawFormProps> = ({
       </div>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>归档类型</label>
+        <label style={labelStyle}>{t('归档类型', 'Archive Type')}</label>
         <select
           value={formData.openclaw_archive_type}
           onChange={(e) => handleChange('openclaw_archive_type', e.target.value)}
           style={selectStyle}
           disabled={readOnly}
         >
-          <option value="requirement">需求文档</option>
-          <option value="code">代码</option>
-          <option value="test">测试用例</option>
-          <option value="document">普通文档</option>
-          <option value="flow_record">流程记录</option>
+          <option value="requirement">{t('需求文档', 'Requirement')}</option>
+          <option value="code">{t('代码', 'Code')}</option>
+          <option value="test">{t('测试用例', 'Test Case')}</option>
+          <option value="document">{t('普通文档', 'Document')}</option>
+          <option value="flow_record">{t('流程记录', 'Flow Record')}</option>
         </select>
       </div>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>折叠层级</label>
+        <label style={labelStyle}>{t('折叠层级', 'Fold Level')}</label>
         <select
           value={formData.openclaw_fold_level}
           onChange={(e) => handleChange('openclaw_fold_level', parseInt(e.target.value))}
           style={selectStyle}
           disabled={readOnly}
         >
-          <option value={1}>1 - 顶层摘要</option>
-          <option value={2}>2 - 中层内容</option>
-          <option value={3}>3 - 完整内容</option>
+          <option value={1}>{t('1 - 顶层摘要', '1 - Top Summary')}</option>
+          <option value={2}>{t('2 - 中层内容', '2 - Mid-level Content')}</option>
+          <option value={3}>{t('3 - 完整内容', '3 - Full Content')}</option>
         </select>
       </div>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>生成者</label>
+        <label style={labelStyle}>{t('生成者', 'Agent Source')}</label>
         <input
           type="text"
           value={formData.openclaw_agent_source}
           onChange={(e) => handleChange('openclaw_agent_source', e.target.value)}
-          placeholder="编码Agent / 调试Agent / AutoFlow"
+          placeholder={t('编码Agent / 调试Agent / AutoFlow', 'Coding Agent / Debug Agent / AutoFlow')}
           style={inputStyle}
           disabled={readOnly}
         />
       </div>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>摘要</label>
+        <label style={labelStyle}>{t('摘要', 'Summary')}</label>
         <textarea
           value={formData.openclaw_summary}
           onChange={(e) => handleChange('openclaw_summary', e.target.value)}
-          placeholder="一句话摘要，AI只读摘要不读全文"
+          placeholder={t('一句话摘要，AI只读摘要不读全文', 'One-line summary for AI indexing')}
           style={textareaStyle}
           disabled={readOnly}
         />
       </div>
 
       <div style={fieldStyle}>
-        <label style={labelStyle}>流程ID</label>
+        <label style={labelStyle}>{t('流程ID', 'Flow ID')}</label>
         <input
           type="text"
           value={formData.openclaw_flow_id}
           onChange={(e) => handleChange('openclaw_flow_id', e.target.value)}
-          placeholder="AutoFlow流程ID（可选）"
+          placeholder={t('AutoFlow流程ID（可选）', 'AutoFlow ID (Optional)')}
           style={inputStyle}
           disabled={readOnly}
         />
@@ -237,7 +242,7 @@ const OpenClawForm: React.FC<OpenClawFormProps> = ({
           style={buttonStyle}
           disabled={loading || !formData.openclaw_project_id.trim()}
         >
-          {loading ? '保存中...' : '保存OpenClaw属性'}
+          {loading ? t('保存中...', 'Saving...') : t('保存OpenClaw属性', 'Save OpenClaw Attributes')}
         </button>
       )}
     </div>
