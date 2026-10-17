@@ -21,15 +21,88 @@ interface OpenClawFormProps {
   readOnly?: boolean;
 }
 
+const OPENCLAW_ERROR_MAP: Record<string, { zh: string; en: string }> = {
+  'openclaw_project_id不能为空': {
+    zh: 'openclaw_project_id不能为空',
+    en: 'openclaw_project_id cannot be empty',
+  },
+  'openclaw_project_id cannot be empty': {
+    zh: 'openclaw_project_id不能为空',
+    en: 'openclaw_project_id cannot be empty',
+  },
+  '归档类型必须是requirement / code / test / document / flow_record之一': {
+    zh: '归档类型必须是requirement / code / test / document / flow_record之一',
+    en: 'Archive type must be one of: requirement / code / test / document / flow_record',
+  },
+  '折叠层级必须是1-3之间的整数': {
+    zh: '折叠层级必须是1-3之间的整数',
+    en: 'Fold level must be an integer between 1 and 3',
+  },
+  '没有有效的更新字段': {
+    zh: '没有有效的更新字段',
+    en: 'No valid fields to update',
+  },
+  'no valid fields to update': {
+    zh: '没有有效的更新字段',
+    en: 'No valid fields to update',
+  },
+};
+
+function readCurrentLang(): 'zh' | 'en' {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage?.getItem('knowflow_lang') === 'en') {
+      return 'en';
+    }
+  } catch {
+    // Ignore storage access errors
+  }
+  return 'zh';
+}
+
 const OpenClawForm: React.FC<OpenClawFormProps> = ({
   value,
   itemId,
-  keyDefinition,
+  keyDefinition: _keyDefinition,
   onUpdate,
   readOnly = false
 }) => {
-  const isEn = typeof window !== 'undefined' && window.localStorage?.getItem('knowflow_lang') === 'en';
+  const [lang, setLang] = useState<'zh' | 'en'>(() => readCurrentLang());
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const syncLang = (ev?: Event) => {
+      const customDetail = (ev as CustomEvent<{ lang?: string }> | undefined)?.detail;
+      if (customDetail?.lang === 'en' || customDetail?.lang === 'zh') {
+        setLang(customDetail.lang);
+      } else {
+        setLang(readCurrentLang());
+      }
+    };
+    window.addEventListener('knowflow:lang-change', syncLang);
+    window.addEventListener('storage', syncLang);
+    return () => {
+      window.removeEventListener('knowflow:lang-change', syncLang);
+      window.removeEventListener('storage', syncLang);
+    };
+  }, []);
+
+  const isEn = lang === 'en';
   const t = (zh: string, en: string) => (isEn ? en : zh);
+  const translateDetail = (detail: unknown): string => {
+    const raw = typeof detail === 'string' ? detail.trim() : String(detail ?? '');
+    const mapped = OPENCLAW_ERROR_MAP[raw];
+    if (mapped) {
+      return isEn ? mapped.en : mapped.zh;
+    }
+    const notFoundMatch = raw.match(/^(item|category) with id (.+) does not exist$/i);
+    if (notFoundMatch) {
+      const entity = notFoundMatch[1].toLowerCase() === 'item' ? '记录' : '分类';
+      return isEn
+        ? `${notFoundMatch[1]} with id "${notFoundMatch[2]}" does not exist`
+        : `${entity} (ID: ${notFoundMatch[2]}) 不存在`;
+    }
+    return raw;
+  };
 
   const initialValues = (value as OpenClawAttributes) || {};
 
@@ -90,7 +163,8 @@ const OpenClawForm: React.FC<OpenClawFormProps> = ({
         alert(t('OpenClaw属性保存成功', 'OpenClaw attributes saved successfully'));
       } else {
         const error = await response.json();
-        alert(t(`保存失败: ${error.detail}`, `Failed to save: ${error.detail}`));
+        const detailText = translateDetail(error?.detail);
+        alert(t(`保存失败: ${detailText}`, `Failed to save: ${detailText}`));
       }
     } catch (error) {
       console.error(t('保存OpenClaw属性失败:', 'Failed to save OpenClaw attributes:'), error);

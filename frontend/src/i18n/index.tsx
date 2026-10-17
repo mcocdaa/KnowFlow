@@ -205,6 +205,53 @@ const DICTIONARY: Record<string, { zh: string; en: string }> = {
     zh: '动态属性 KV 查询优化报告',
     en: 'Dynamic Attribute KV Query Optimization Report',
   },
+  'PagedAttention KV缓存分页架构规范.md': {
+    zh: 'PagedAttention KV缓存分页架构规范.md',
+    en: 'PagedAttention KV-Cache Architecture.md',
+  },
+  'DeepSeek MLA 与 GQA 注意力评测基准.md': {
+    zh: 'DeepSeek MLA 与 GQA 注意力评测基准.md',
+    en: 'DeepSeek MLA & GQA Attention Benchmark.md',
+  },
+  'FlashAttention-3 FP8 算子流水线规约.md': {
+    zh: 'FlashAttention-3 FP8 算子流水线规约.md',
+    en: 'FlashAttention-3 FP8 Kernel Spec.md',
+  },
+  '混合 BSON + HNSW 向量检索引擎设计.md': {
+    zh: '混合 BSON + HNSW 向量检索引擎设计.md',
+    en: 'Hybrid BSON + HNSW Vector Engine.md',
+  },
+  '分布式 BSON 分片与复合索引规约.md': {
+    zh: '分布式 BSON 分片与复合索引规约.md',
+    en: 'Distributed BSON Sharding & Index Spec.md',
+  },
+  '零信任知识库细粒度访问审计规范.md': {
+    zh: '零信任知识库细粒度访问审计规范.md',
+    en: 'Zero-Trust Knowledge Access Audit.md',
+  },
+  '知识记录主标题': { zh: '知识记录主标题', en: 'Primary title of knowledge item' },
+  '核心知识重要度星级评价': { zh: '核心知识重要度星级评价', en: '1–5 star importance rating for core knowledge' },
+  '多维检索与智能归档标签': { zh: '多维检索与智能归档标签', en: 'Multi-dimensional search and smart archiving tags' },
+  '附件内容渲染格式': { zh: '附件内容渲染格式', en: 'Attachment content rendering format' },
+  '线上服务性能基线指标': { zh: '线上服务性能基线指标', en: 'Production service performance SLA baseline' },
+  '1.9% 碎片率': { zh: '1.9% 碎片率', en: '1.9% Waste' },
+  '100% 审计覆盖': { zh: '100% 审计覆盖', en: '100% Coverage' },
+  'PagedAttention KV缓存分页架构规范.md — [相关度: 0.968 | §1–§2: 非连续块表映射将 KV 显存碎片率降至 1.9%]': {
+    zh: 'PagedAttention KV缓存分页架构规范.md — [相关度: 0.968 | §1–§2: 非连续块表映射将 KV 显存碎片率降至 1.9%]',
+    en: 'PagedAttention KV-Cache Architecture.md — [Score: 0.968 | §1–§2: Non-Contiguous Block Table reduces KV waste to 1.9%]',
+  },
+  'DeepSeek MLA 与 GQA 注意力评测基准.md — [相关度: 0.942 | §1–§2: 512维低秩潜在向量压缩 (11.2 KB/tok)]': {
+    zh: 'DeepSeek MLA 与 GQA 注意力评测基准.md — [相关度: 0.942 | §1–§2: 512维低秩潜在向量压缩 (11.2 KB/tok)]',
+    en: 'DeepSeek MLA & GQA Attention Benchmark.md — [Score: 0.942 | §1–§2: 512-d Latent KV Compression (11.2 KB/tok)]',
+  },
+  'FlashAttention-3 FP8 算子流水线规约.md — [相关度: 0.915 | §2: Hopper 异步 WGMMA 与 TMA 环形缓冲流水线]': {
+    zh: 'FlashAttention-3 FP8 算子流水线规约.md — [相关度: 0.915 | §2: Hopper 异步 WGMMA 与 TMA 环形缓冲流水线]',
+    en: 'FlashAttention-3 FP8 Kernel Spec.md — [Score: 0.915 | §2: Hopper WGMMA & TMA Circular Buffer Pipelining]',
+  },
+  '混合 BSON + HNSW 向量检索引擎设计.md — [相关度: 0.889 | §2: 谓词感知 HNSW 位图过滤 (P99 4.9ms)]': {
+    zh: '混合 BSON + HNSW 向量检索引擎设计.md — [相关度: 0.889 | §2: 谓词感知 HNSW 位图过滤 (P99 4.9ms)]',
+    en: 'Hybrid BSON + HNSW Vector Engine.md — [Score: 0.889 | §2: Predicate-Aware HNSW Bitset Filtering (P99 4.9ms)]',
+  },
 
   // Backend CRUD & AI / plugin error messages
   'cannot delete category with existing children': {
@@ -375,6 +422,39 @@ export function getInitialLocale(): Locale {
   return 'zh';
 }
 
+const REVERSE_DICTIONARY: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.values(DICTIONARY).map((entry) => [entry.en, entry.zh]),
+  ),
+  'Technical Architecture': '技术架构',
+  'Tech Architecture': '技术架构',
+  'Product Specifications': '产品规划',
+  'Operations Manual': '企业安全与治理',
+  'KnowFlow Unified Architecture Spec.md': 'KnowFlow 统一架构设计说明书.md',
+  'KnowFlow Unified Architecture Design Spec.md': 'KnowFlow 统一架构设计说明书.md',
+  'Failed to load schema/category configuration': '加载 Key/分类配置失败',
+  'Failed to load plugins': '插件加载失败',
+  'Failed to load items': '知识列表加载失败',
+  'Failed to load library data': '知识列表加载失败',
+  'Failed to load keys': 'Key 加载失败',
+  'Failed to load categories': '分类加载失败',
+  'Semantic search failed': '语义检索失败',
+  'Auto-tagging failed': '自动打标签失败',
+  'Failed to create': '创建失败',
+  'Failed to save': '保存失败',
+  'Failed to delete': '删除失败',
+};
+
+function notifyLocaleChange(next: Locale): void {
+  try {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('knowflow:lang-change', { detail: { lang: next } }));
+    }
+  } catch {
+    // Ignore event dispatch errors
+  }
+}
+
 export function translateText(locale: Locale, keyOrZh: string, enFallback?: string): string {
   if (enFallback !== undefined) {
     return locale === 'zh' ? keyOrZh : enFallback;
@@ -382,6 +462,9 @@ export function translateText(locale: Locale, keyOrZh: string, enFallback?: stri
   const entry = DICTIONARY[keyOrZh];
   if (entry) {
     return entry[locale];
+  }
+  if (locale === 'zh' && REVERSE_DICTIONARY[keyOrZh]) {
+    return REVERSE_DICTIONARY[keyOrZh];
   }
   const patternTranslated = translateBackendErrorPattern(keyOrZh, locale);
   if (patternTranslated !== null) {
@@ -415,6 +498,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch {
       // Ignore storage write errors
     }
+    notifyLocaleChange(next);
   }, []);
 
   const toggleLocale = useCallback(() => {
@@ -427,6 +511,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       } catch {
         // Ignore storage write errors
       }
+      notifyLocaleChange(next);
       return next;
     });
   }, []);
@@ -452,6 +537,7 @@ const fallbackSetLocale = (next: Locale) => {
   } catch {
     // Ignore
   }
+  notifyLocaleChange(next);
 };
 
 const fallbackToggleLocale = () => {
