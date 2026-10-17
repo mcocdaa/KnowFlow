@@ -68,8 +68,12 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
   const previewType = useMemo(() => detectPreviewType(fileType, filePath), [fileType, filePath]);
   const ext = useMemo(() => getFileExtension(filePath), [filePath]);
   const rawFileContent = loadedData?.url === fileUrl ? loadedData.content : '';
+  const strippedFileContent = useMemo(
+    () => rawFileContent.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n*/, ''),
+    [rawFileContent],
+  );
   const fileContent = useMemo(() => {
-    if (!rawFileContent || locale !== 'en') return rawFileContent;
+    if (!strippedFileContent || locale !== 'en') return strippedFileContent;
     if (fileUrl.endsWith('/architecture_design.md')) {
       return [
         '# KnowFlow Architecture Design Specification (v1.1)',
@@ -89,7 +93,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
       ].join('\n');
     }
     if (fileUrl.endsWith('/fastembed_service.py')) {
-      return rawFileContent.replace(
+      return strippedFileContent.replace(
         '# KnowFlow 离线语义向量推理模块',
         '# KnowFlow Offline Semantic Vector Inference Module',
       );
@@ -167,8 +171,10 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         '```',
       ].join('\n');
     }
-    return rawFileContent;
-  }, [fileUrl, locale, rawFileContent]);
+    return strippedFileContent
+      .replace('KnowFlow 分层架构说明', 'KnowFlow Layered Architecture Specification')
+      .replace('E2E 分层架构说明', 'E2E Layered Architecture Specification');
+  }, [fileUrl, locale, strippedFileContent]);
   const isTextPreview = previewType === 'markdown' || previewType === 'code' || previewType === 'text';
   const loadingContent = Boolean(item && fileUrl && isTextPreview && loadedData?.url !== fileUrl && !contentError);
 

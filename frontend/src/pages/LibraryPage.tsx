@@ -323,7 +323,17 @@ const LibraryPage = () => {
             ) : !hasItems ? (
               <StatePlaceholder
                 variant="empty"
-                description={t('暂无知识记录，点击上传或新建第一条记录', 'No items yet. Click Upload or New Item to add your first record.')}
+                description={
+                  params.q || params.keyValue || selectedCategory
+                    ? t(
+                        '未找到匹配的知识记录，请尝试其他关键词或清除筛选条件',
+                        'No matching items found. Try another keyword or clear active filters.',
+                      )
+                    : t(
+                        '暂无知识记录，点击上传或新建第一条记录',
+                        'No items yet. Click Upload or New Item to add your first record.',
+                      )
+                }
               />
             ) : viewMode === 'table' ? (
               <ItemTable

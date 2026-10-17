@@ -48,7 +48,15 @@ const StarRating: React.FC<StarRatingProps> = ({
     }
   };
 
-  return <Rate value={rating} disabled={readOnly} onChange={handleChange} aria-label={t('评分', 'Rating')} />;
+  return (
+    <Rate
+      value={rating}
+      disabled={readOnly}
+      onChange={handleChange}
+      aria-label={t('评分', 'Rating')}
+      style={{ whiteSpace: 'nowrap', display: 'inline-flex', fontSize: 14 }}
+    />
+  );
 };
 
 export default StarRating;

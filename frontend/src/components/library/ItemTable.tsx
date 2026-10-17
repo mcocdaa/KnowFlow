@@ -36,37 +36,58 @@ const ItemTable = ({
       title: t('名称', 'Name'),
       dataIndex: 'name',
       render: (_value, item) => (
-        <Space size={6}>
-          <FileIcon fileType={String(item.keyValues.file_type ?? '')} style={{ color: '#2563EB' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, overflow: 'hidden' }}>
+          <span style={{ flexShrink: 0, display: 'inline-flex' }}>
+            <FileIcon fileType={String(item.keyValues.file_type ?? '')} style={{ color: '#2563EB' }} />
+          </span>
           {onOpen ? (
-            <Button type="link" style={{ paddingInline: 0 }} onClick={() => onOpen(item)}>
+            <Button
+              type="link"
+              style={{
+                paddingInline: 0,
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'inline-block',
+                textAlign: 'left',
+              }}
+              onClick={() => onOpen(item)}
+            >
               {item.name ? t(item.name) : t('未命名', 'Untitled')}
             </Button>
           ) : (
-            <Typography.Text strong>{item.name ? t(item.name) : t('未命名', 'Untitled')}</Typography.Text>
+            <Typography.Text strong ellipsis style={{ flex: 1, minWidth: 0 }}>
+              {item.name ? t(item.name) : t('未命名', 'Untitled')}
+            </Typography.Text>
           )}
-        </Space>
+        </div>
       ),
     },
     {
       title: t('评分', 'Rating'),
-      width: 108,
+      width: 116,
       render: (_value, item) => {
         const rating = Math.min(5, Math.max(0, Number(item.keyValues.rating) || 0));
-        return rating > 0 ? <Rate disabled value={rating} style={{ fontSize: 12 }} /> : '—';
+        return rating > 0 ? (
+          <Rate disabled value={rating} style={{ fontSize: 12, whiteSpace: 'nowrap', display: 'inline-flex' }} />
+        ) : (
+          '—'
+        );
       },
     },
     {
       title: t('更新时间', 'Updated'),
       dataIndex: 'updatedAt',
-      width: 136,
+      width: 132,
       render: (value?: string) => <span style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{formatDateTime(value)}</span>,
     },
     {
       title: t('操作', 'Actions'),
-      width: 96,
+      width: 92,
+      align: 'right',
       render: (_value, item) => (
-        <Space size={0}>
+        <Space size={0} style={{ whiteSpace: 'nowrap' }}>
           {onOpen ? (
             <Tooltip title={t('查看', 'View')}>
               <Button type="text" size="small" icon={<EyeOutlined />} aria-label={t('查看', 'View')} onClick={() => onOpen(item)} />
@@ -95,9 +116,11 @@ const ItemTable = ({
     <Table<KnowledgeItem>
       rowKey="id"
       size="middle"
+      tableLayout="fixed"
       columns={columns}
       dataSource={items}
       loading={loading}
+      locale={{ emptyText: t('未找到匹配的知识记录', 'No matching items found') }}
       onRow={(record) => ({
         draggable: true,
         onDragStart: (e) => {

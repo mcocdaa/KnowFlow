@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Form, Input, InputNumber, Modal, Select, Switch, Descriptions } from 'antd';
 import { jsonValidator } from '../../utils/dynamicForm';
 import { formatDateTime } from '../../utils/format';
@@ -45,6 +46,18 @@ const KeyFormModal = ({
   const [form] = Form.useForm();
   const watchedType = (Form.useWatch('value_type', form) as ValueType | undefined) ?? initial?.value_type ?? 'string';
   const isJsonType = watchedType === 'array' || watchedType === 'object';
+
+  useEffect(() => {
+    if (!open) return;
+    const currentTitle = form.getFieldValue('title');
+    if (typeof currentTitle === 'string' && currentTitle) {
+      form.setFieldValue('title', t(currentTitle));
+    }
+    const currentDesc = form.getFieldValue('description');
+    if (typeof currentDesc === 'string' && currentDesc) {
+      form.setFieldValue('description', t(currentDesc));
+    }
+  }, [form, locale, open, t]);
 
   const handleFinish = (values: Record<string, unknown>) => {
     const valueType = values.value_type as string;

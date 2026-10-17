@@ -157,6 +157,14 @@ const DICTIONARY: Record<string, { zh: string; en: string }> = {
   '桌面端': { zh: '桌面端', en: 'Desktop' },
   '检索': { zh: '检索', en: 'Search' },
   '工程化': { zh: '工程化', en: 'Engineering' },
+  '技能': { zh: '技能', en: 'Skills' },
+  '手册': { zh: '手册', en: 'Manual' },
+  '产品': { zh: '产品', en: 'Product' },
+  '需求': { zh: '需求', en: 'Requirement' },
+  '代码': { zh: '代码', en: 'Code' },
+  '流程记录': { zh: '流程记录', en: 'Flow Record' },
+  '自定义分类': { zh: '自定义分类', en: 'Custom Category' },
+  '内置分类': { zh: '内置分类', en: 'Built-in Category' },
 
   // OpenClaw category & plugin UI labels
   'OpenClaw集成': { zh: 'OpenClaw集成', en: 'OpenClaw Integration' },
@@ -171,6 +179,13 @@ const DICTIONARY: Record<string, { zh: string; en: string }> = {
   'OpenClaw属性保存成功': { zh: 'OpenClaw属性保存成功', en: 'OpenClaw attributes saved successfully' },
   '保存失败，请检查网络连接': { zh: '保存失败，请检查网络连接', en: 'Failed to save, please check network connection' },
   '请输入项目唯一ID（必填）': { zh: '请输入项目唯一ID（必填）', en: 'Enter unique project ID (required)' },
+  '项目唯一ID（必填）': { zh: '项目唯一ID（必填）', en: 'Unique Project ID (Required)' },
+  '一句话摘要（顶层折叠内容）': { zh: '一句话摘要（顶层折叠内容）', en: 'One-line summary (Top-level folded content)' },
+  '例如：编码Agent / 调试Agent': { zh: '例如：编码Agent / 调试Agent', en: 'e.g. Coding Agent / Debug Agent' },
+  '可选，关联自动化流程': { zh: '可选，关联自动化流程', en: 'Optional, linked automation flow ID' },
+  'L1 顶层摘要': { zh: 'L1 顶层摘要', en: 'L1 Top Summary' },
+  'L2 中层折叠': { zh: 'L2 中层折叠', en: 'L2 Mid Fold' },
+  'L3 完整内容': { zh: 'L3 完整内容', en: 'L3 Full Content' },
   '需求文档 (requirement)': { zh: '需求文档 (requirement)', en: 'Requirement (requirement)' },
   '代码实现 (code)': { zh: '代码实现 (code)', en: 'Code Implementation (code)' },
   '测试报告 (test)': { zh: '测试报告 (test)', en: 'Test Report (test)' },
@@ -188,6 +203,38 @@ const DICTIONARY: Record<string, { zh: string; en: string }> = {
   'KnowFlow 统一架构设计说明书.md': {
     zh: 'KnowFlow 统一架构设计说明书.md',
     en: 'KnowFlow Unified Architecture Design Spec.md',
+  },
+  '自定义研发规范与技能手册.md': {
+    zh: '自定义研发规范与技能手册.md',
+    en: 'Custom R&D Standards & Skills Handbook.md',
+  },
+  'KnowFlow 产品白皮书与使用指南.pdf': {
+    zh: 'KnowFlow 产品白皮书与使用指南.pdf',
+    en: 'KnowFlow Product Whitepaper & User Guide.pdf',
+  },
+  '沉淀团队前后端规范与可复用 Agent Skills。': {
+    zh: '沉淀团队前后端规范与可复用 Agent Skills。',
+    en: 'Team frontend/backend standards and reusable Agent Skills.',
+  },
+  '沉淀团队前后端规范与可复用 Agent Skills': {
+    zh: '沉淀团队前后端规范与可复用 Agent Skills',
+    en: 'Team frontend/backend standards and reusable Agent Skills',
+  },
+  '定义了三栏式工作台、动态KV属性以及MongoDB索引优化方案': {
+    zh: '定义了三栏式工作台、动态KV属性以及MongoDB索引优化方案',
+    en: 'Defines the 3-column workspace, dynamic KV attributes, and MongoDB index optimization.',
+  },
+  '基于 BAAI/bge-small-zh-v1.5 模型的本地 CPU 向量提取模块': {
+    zh: '基于 BAAI/bge-small-zh-v1.5 模型的本地 CPU 向量提取模块',
+    en: 'Local CPU vector embedding module powered by BAAI/bge-small-zh-v1.5.',
+  },
+  '生产环境服务端口、数据库连接池与插件开关配置清单': {
+    zh: '生产环境服务端口、数据库连接池与插件开关配置清单',
+    en: 'Production service ports, DB connection pool, and plugin toggle configuration.',
+  },
+  '面向企业知识管理团队的完整功能手册与最佳实践指南': {
+    zh: '面向企业知识管理团队的完整功能手册与最佳实践指南',
+    en: 'Comprehensive feature manual and best-practice guide for enterprise knowledge teams.',
   },
   'fastembed 离线语义推理实现.py': {
     zh: 'fastembed 离线语义推理实现.py',
