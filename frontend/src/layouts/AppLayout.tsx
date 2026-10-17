@@ -1,4 +1,4 @@
-import { Button, Layout, theme } from 'antd';
+import { App, Button, Layout, message as staticMessage, theme } from 'antd';
 import { GlobalOutlined } from '@ant-design/icons';
 import { Outlet } from 'react-router';
 import BrandLogo from '../components/common/BrandLogo';
@@ -9,7 +9,14 @@ const { Header, Sider, Content } = Layout;
 
 const AppLayout = () => {
   const { token } = theme.useToken();
+  const { message } = App.useApp();
   const { locale, toggleLocale } = useI18n();
+
+  const handleToggleLocale = () => {
+    message.destroy();
+    staticMessage.destroy();
+    toggleLocale();
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -37,7 +44,7 @@ const AppLayout = () => {
           data-action="toggle-locale"
           aria-label={locale === 'zh' ? '切换到英文 (Switch to English)' : 'Switch to Chinese (切换到中文)'}
           title={locale === 'zh' ? '切换到英文 (English)' : 'Switch to Chinese (中文)'}
-          onClick={toggleLocale}
+          onClick={handleToggleLocale}
           style={{
             whiteSpace: 'nowrap',
             flexShrink: 0,

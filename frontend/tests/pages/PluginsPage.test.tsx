@@ -30,6 +30,12 @@ describe('PluginsPage', () => {
         author: 'KnowFlow',
         frontend_entry: 'frontend.tsx',
       },
+      {
+        name: 'audit_logger',
+        version: '1.0.0',
+        description: '审计日志插件',
+        author: 'KnowFlow',
+      },
     ]);
   });
 
@@ -38,9 +44,10 @@ describe('PluginsPage', () => {
 
     expect(await screen.findByText('rating')).toBeInTheDocument();
     expect(screen.getByText('knowflow_openclaw')).toBeInTheDocument();
-    expect(screen.getAllByText('1.0.0')).toHaveLength(2);
+    expect(screen.getByText('audit_logger')).toBeInTheDocument();
+    expect(screen.getAllByText('1.0.0')).toHaveLength(3);
     expect(screen.getByText('为知识项添加星级评分功能')).toBeInTheDocument();
-    expect(screen.getByText('已注册 UI 组件')).toBeInTheDocument();
+    expect(screen.getAllByText('已注册 UI 组件')).toHaveLength(2);
     expect(screen.getByText('仅后端')).toBeInTheDocument();
     expect(api.fetchPluginManifests).toHaveBeenCalledTimes(1);
   });

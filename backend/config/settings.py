@@ -109,7 +109,18 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", os.path.join(DATA_DIR, "uploads"))
 DEFAULT_KEYS_PATH = os.getenv("DEFAULT_KEYS_PATH", os.path.join(DATA_DIR, "default", "keys.yaml"))
 DEFAULT_CATEGORIES_PATH = os.getenv("DEFAULT_CATEGORIES_PATH", os.path.join(DATA_DIR, "default", "categories.yaml"))
 
-PLUGINS_DIR = os.getenv("PLUGINS_DIR", os.path.join(PROJECT_ROOT, "plugins"))
+_raw_plugins_dir = os.getenv("PLUGINS_DIR", os.path.join(PROJECT_ROOT, "plugins"))
+if not os.path.isabs(_raw_plugins_dir):
+    _candidate_cwd = os.path.abspath(_raw_plugins_dir)
+    _candidate_root = os.path.abspath(os.path.join(PROJECT_ROOT, _raw_plugins_dir))
+    if not os.path.exists(os.path.join(_candidate_cwd, "plugins.yaml")) and os.path.exists(
+        os.path.join(_candidate_root, "plugins.yaml")
+    ):
+        PLUGINS_DIR = _candidate_root
+    else:
+        PLUGINS_DIR = _candidate_cwd
+else:
+    PLUGINS_DIR = _raw_plugins_dir
 
 MONGODB_URL = read_secret("MONGODB_URL", "mongodb://localhost:27017")
 MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "knowflow")

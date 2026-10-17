@@ -4,7 +4,7 @@ import { ApiOutlined } from '@ant-design/icons';
 import StatePlaceholder from '../components/common/StatePlaceholder';
 import { usePlugins } from '../hooks/usePlugins';
 import { useI18n } from '../i18n';
-import { hasPluginComponent } from '../plugins/loader';
+import { hasPluginComponent } from '../plugins';
 import type { PluginManifest } from '../types';
 
 const PluginsPage = () => {

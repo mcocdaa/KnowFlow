@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Form, Input, Modal, TreeSelect } from 'antd';
 import { buildCategoryTree, collectDescendants } from '../../utils/categoryTree';
 import { useI18n } from '../../i18n';
@@ -25,6 +25,14 @@ const CategoryFormModal = ({
 }: CategoryFormModalProps) => {
   const { t, locale } = useI18n();
   const [form] = Form.useForm<CategoryInput>();
+
+  useEffect(() => {
+    if (!open) return;
+    const currentTitle = form.getFieldValue('title');
+    if (typeof currentTitle === 'string' && currentTitle) {
+      form.setFieldValue('title', t(currentTitle));
+    }
+  }, [form, locale, open, t]);
 
   const treeData = useMemo(() => {
     const excluded = mode === 'edit' && initial ? collectDescendants(categories, initial.name) : new Set<string>();

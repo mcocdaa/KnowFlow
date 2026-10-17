@@ -30,6 +30,24 @@ from .key_manager import key_manager
 VALID_SORTS = ("recent", "rating", "name")
 GLOBAL_KEY_CATEGORIES = (None, "", "basic_category", "inner_category", "time_category")
 
+BILINGUAL_SEARCH_ALIASES: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (("architecture", "arch"), ("架构", "架构设计")),
+    (("design", "specification", "spec"), ("设计", "说明书", "规格")),
+    (("standard", "standards", "r&d"), ("规范", "研发规范")),
+    (("skill", "skills"), ("技能", "SKILL")),
+    (("handbook", "manual", "guide"), ("手册", "指南")),
+    (("whitepaper",), ("白皮书",)),
+    (("product",), ("产品",)),
+    (("inference", "semantic", "offline"), ("推理", "语义", "离线")),
+    (("vector", "embedding", "fastembed"), ("向量", "向量检索")),
+    (("backend", "core"), ("后端", "核心")),
+    (("config", "configuration", "production"), ("配置", "生产环境")),
+    (("operations", "devops", "ops"), ("运维",)),
+    (("custom",), ("自定义",)),
+    (("attention", "paged", "memory"), ("注意力", "分页", "显存")),
+    (("pipeline", "kernel", "async"), ("流水线", "算子", "异步")),
+)
+
 
 def extract_key_values(item_data: dict[str, Any]) -> dict[str, Any]:
     """提取键值（规范字段名为 attributes）"""
@@ -53,6 +71,33 @@ def validate_required(item_data: dict[str, Any], required_keys: list[dict[str, A
 class ItemManager:
     def __init__(self):
         self.items_collection = "items"
+
+    @staticmethod
+    def _expand_search_terms(q: str) -> list[str]:
+        """将中英文检索词双向扩展为同义词列表，使英文模式下搜索英文标题/标签也能命中中文存储记录"""
+        cleaned = q.strip()
+        if not cleaned:
+            return []
+        terms: list[str] = [cleaned]
+        lowered = cleaned.lower()
+        tokens = [tok for tok in re.split(r"[\s_\-./]+", lowered) if tok]
+        for en_group, zh_group in BILINGUAL_SEARCH_ALIASES:
+            en_matched = any(
+                lowered == en_kw
+                or (len(lowered) >= 3 and (lowered in en_kw or en_kw in lowered))
+                or any(tok == en_kw or (len(tok) >= 3 and tok in en_kw) for tok in tokens)
+                for en_kw in en_group
+            )
+            zh_matched = any(zh_kw in cleaned or cleaned in zh_kw for zh_kw in zh_group)
+            if en_matched:
+                for zh_kw in zh_group:
+                    if zh_kw not in terms:
+                        terms.append(zh_kw)
+            if zh_matched:
+                for en_kw in en_group:
+                    if en_kw not in terms:
+                        terms.append(en_kw)
+        return terms
 
     def _convert_value(self, value: Any, value_type: str) -> Any:
         """将存储值转换为 value_type 对应的 Python 类型"""
@@ -369,9 +414,15 @@ class ItemManager:
             query["category_name"] = category_name
 
         if q:
-            search_fields = ["name", *key_dict.keys()]
-            escaped_q = re.escape(q)
-            or_conditions = [{field: {"$regex": escaped_q, "$options": "i"}} for field in search_fields]
+            search_fields = list(
+                dict.fromkeys(["name", "summary", "content_text", "file_path", "tags", *key_dict.keys()])
+            )
+            search_terms = self._expand_search_terms(q)
+            or_conditions = [
+                {field: {"$regex": re.escape(term), "$options": "i"}}
+                for term in search_terms
+                for field in search_fields
+            ]
             query["$or"] = or_conditions
 
         if key and key_value:

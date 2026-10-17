@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import { DatePicker, Form, Input, InputNumber, Switch } from 'antd';
 import type { FormInstance } from 'antd';
 import type { KeyDefinition } from '../../types';
-import { buildFieldRules, serializeInitialValues, transformJsonValues } from '../../utils/dynamicForm';
+import { buildFieldRules, isJsonValueType, serializeInitialValues, transformJsonValues } from '../../utils/dynamicForm';
 import { useI18n } from '../../i18n';
 import ArrayTagInput from './ArrayTagInput';
 
@@ -13,8 +14,39 @@ interface DynamicKeyFormProps {
 }
 
 const DynamicKeyForm = ({ form, definitions, initialValues, onFinish }: DynamicKeyFormProps) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const visibleDefinitions = definitions.filter((definition) => definition.is_visible);
+
+  useEffect(() => {
+    const currentValues = form.getFieldsValue(true) as Record<string, unknown>;
+    const nextValues: Record<string, unknown> = {};
+    visibleDefinitions.forEach((definition) => {
+      const currentVal = currentValues[definition.name];
+      if (currentVal === undefined || currentVal === null) return;
+      if (definition.value_type === 'array' && typeof currentVal === 'string') {
+        try {
+          const parsed = JSON.parse(currentVal);
+          if (Array.isArray(parsed)) {
+            nextValues[definition.name] = JSON.stringify(
+              parsed.map((item) => (typeof item === 'string' ? t(item) : item)),
+              null,
+              2,
+            );
+            return;
+          }
+        } catch {
+          // ignore invalid json
+        }
+      } else if (typeof currentVal === 'string' && !isJsonValueType(definition.value_type)) {
+        nextValues[definition.name] = t(currentVal);
+        return;
+      }
+      nextValues[definition.name] = currentVal;
+    });
+    if (Object.keys(nextValues).length > 0) {
+      form.setFieldsValue(nextValues);
+    }
+  }, [form, locale, t, visibleDefinitions]);
 
   const handleFinish = (values: Record<string, unknown>) => {
     void onFinish(transformJsonValues(values, visibleDefinitions));

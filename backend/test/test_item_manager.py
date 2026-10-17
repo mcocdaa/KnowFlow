@@ -417,3 +417,17 @@ class TestItemManager:
             await item_manager.search(key="category_name", key_value="backend_core")
             query = mock_db_manager.find.call_args.kwargs["query"]
             assert query["category_name"] == "backend_core"
+
+    @pytest.mark.asyncio
+    async def test_search_bilingual_expansion(self, item_manager, mock_db_manager):
+        mock_db_manager.find.return_value = []
+        mock_db_manager.count_documents.return_value = 0
+
+        with patch("managers.item_manager.key_manager") as mock_key_manager:
+            mock_key_manager.get_all = AsyncMock(return_value=[])
+            await item_manager.search(q="architecture")
+            query = mock_db_manager.find.call_args.kwargs["query"]
+            or_clauses = query["$or"]
+            regex_patterns = {clause["name"]["$regex"] for clause in or_clauses if "name" in clause}
+            assert "architecture" in regex_patterns
+            assert "架构" in regex_patterns

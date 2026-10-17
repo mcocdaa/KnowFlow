@@ -29,7 +29,12 @@ class PluginManager:
     """
 
     def __init__(self):
-        self.plugins_dir: Path | None = Path(PLUGINS_DIR)
+        configured_dir = Path(PLUGINS_DIR)
+        fallback_dir = Path(__file__).resolve().parents[2] / "plugins"
+        if not (configured_dir / "plugins.yaml").exists() and (fallback_dir / "plugins.yaml").exists():
+            self.plugins_dir: Path | None = fallback_dir
+        else:
+            self.plugins_dir = configured_dir
         self.plugins: dict[str, Any] = {}
         self.loaded_plugins: dict[str, Any] = {}
         self.plugin_modules: dict[str, Any] = {}

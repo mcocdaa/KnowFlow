@@ -100,4 +100,33 @@ describe('LivePreviewPanel', () => {
     const link = container.querySelector('a');
     expect(link?.getAttribute('href') ?? '').not.toContain('javascript:');
   });
+
+  it('strips YAML frontmatter before rendering markdown preview', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: () =>
+          Promise.resolve(
+            '---\nname: find-skills\ndescription: Agent skills discovery\n---\n\n# Find Skills\n\nBody text.',
+          ),
+      }),
+    );
+
+    const item: KnowledgeItem = {
+      id: 'i-skill',
+      name: '自定义研发规范与技能手册.md',
+      keyValues: {
+        file_path: '/api/v1/uploads/SKILL.md',
+        file_type: 'markdown',
+      },
+    };
+
+    const { container } = renderWithProviders(
+      <LivePreviewPanel item={item} categories={[]} keys={[]} onClose={vi.fn()} />,
+    );
+
+    expect(await screen.findByText('Find Skills')).toBeInTheDocument();
+    expect(container.textContent).not.toContain('name: find-skills');
+  });
 });
