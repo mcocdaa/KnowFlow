@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Col, Empty, Flex, Pagination, Popconfirm, Rate, Row, Space, Tag, Tooltip, Typography, theme } from 'antd';
+import { Card, Empty, Flex, Pagination, Popconfirm, Rate, Space, Tag, Tooltip, Typography, theme } from 'antd';
 import {
   CalendarOutlined,
   DeleteOutlined,
@@ -47,8 +47,14 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
   }
 
   return (
-    <Flex vertical gap={16}>
-      <Row gutter={[16, 16]}>
+    <Flex vertical gap={12}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+          gap: 10,
+        }}
+      >
         {items.map((item) => {
           const isSelected = selectedId === item.id;
           const fileType = typeof item.keyValues.file_type === 'string' ? item.keyValues.file_type : '';
@@ -62,131 +68,127 @@ export const ItemCardGrid: React.FC<ItemCardGridProps> = ({
               : [];
 
           return (
-            <Col xs={24} sm={12} md={8} lg={8} xl={6} key={item.id}>
-              <Card
-                hoverable
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('text/plain', item.id);
-                  e.dataTransfer.effectAllowed = 'copyMove';
-                }}
-                onClick={() => onOpen(item)}
-                style={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  borderRadius: 8,
-                  borderColor: isSelected ? token.colorPrimary : token.colorBorderSecondary,
-                  boxShadow: isSelected ? `0 0 0 2px ${token.colorPrimaryBorder}` : undefined,
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  cursor: 'grab',
-                }}
-                bodyStyle={{
-                  padding: 14,
+            <Card
+              key={item.id}
+              hoverable
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', item.id);
+                e.dataTransfer.effectAllowed = 'copyMove';
+              }}
+              onClick={() => onOpen(item)}
+              style={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: 8,
+                borderColor: isSelected ? token.colorPrimary : token.colorBorderSecondary,
+                boxShadow: isSelected ? `0 0 0 2px ${token.colorPrimaryBorder}` : undefined,
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'grab',
+              }}
+              styles={{
+                body: {
+                  padding: '10px 14px',
                   display: 'flex',
                   flexDirection: 'column',
                   flex: 1,
                   justifyContent: 'space-between',
-                }}
-              >
-                <div>
-                  {/* Header: Icon + Title + Drag handle */}
-                  <Flex justify="space-between" align="start" gap={8} style={{ marginBottom: 8 }}>
-                    <span style={{ fontSize: 24, lineHeight: 1, marginTop: 2 }}>
-                      <FileIcon fileType={fileType} />
-                    </span>
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <Tooltip title={item.name}>
-                        <Typography.Text
-                          strong
-                          ellipsis
-                          style={{
-                            fontSize: 14,
-                            display: 'block',
-                            color: isSelected ? token.colorPrimary : token.colorTextHeading,
-                          }}
-                        >
-                          {item.name}
-                        </Typography.Text>
-                      </Tooltip>
-                      {categoryTitle && (
-                        <Tag color="cyan" style={{ fontSize: 11, padding: '0 6px', marginTop: 4 }}>
-                          {categoryTitle}
-                        </Tag>
-                      )}
-                    </div>
-                    <Tooltip title="按住拖拽至分类归档">
-                      <HolderOutlined style={{ color: token.colorTextQuaternary, cursor: 'grab' }} />
-                    </Tooltip>
-                  </Flex>
+                  gap: 6,
+                },
+              }}
+            >
+              <div>
+                {/* Header: Icon + Full Title + Drag handle */}
+                <Flex justify="space-between" align="center" gap={8} style={{ marginBottom: 6 }}>
+                  <span style={{ fontSize: 18, lineHeight: 1, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                    <FileIcon fileType={fileType} />
+                  </span>
+                  <div
+                    title={item.name}
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      color: isSelected ? token.colorPrimary : token.colorTextHeading,
+                    }}
+                  >
+                    {item.name}
+                  </div>
+                  <Tooltip title="按住拖拽至分类归档">
+                    <HolderOutlined style={{ color: token.colorTextQuaternary, cursor: 'grab', flexShrink: 0 }} />
+                  </Tooltip>
+                </Flex>
 
-                  {/* Rating */}
+                {/* Category + Rating + Tags */}
+                <Flex align="center" wrap="wrap" gap={4}>
+                  {categoryTitle && (
+                    <Tag color="cyan" style={{ fontSize: 11, padding: '0 5px', margin: 0 }}>
+                      {categoryTitle}
+                    </Tag>
+                  )}
                   {ratingVal > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                      <Rate disabled allowHalf value={ratingVal} style={{ fontSize: 13 }} />
-                    </div>
+                    <Rate disabled allowHalf value={ratingVal} style={{ fontSize: 11 }} />
                   )}
-
-                  {/* Tags */}
-                  {tags.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
-                      {tags.slice(0, 3).map((tag, idx) => (
-                        <Tag key={idx} bordered={false} style={{ fontSize: 11, margin: 0 }}>
-                          <TagOutlined style={{ marginRight: 3 }} />
-                          {tag}
-                        </Tag>
-                      ))}
-                      {tags.length > 3 && (
-                        <Tag bordered={false} style={{ fontSize: 11, margin: 0 }}>
-                          +{tags.length - 3}
-                        </Tag>
-                      )}
-                    </div>
+                  {tags.slice(0, 3).map((tag, idx) => (
+                    <Tag key={idx} bordered={false} style={{ fontSize: 11, margin: 0, padding: '0 5px' }}>
+                      <TagOutlined style={{ marginRight: 2 }} />
+                      {tag}
+                    </Tag>
+                  ))}
+                  {tags.length > 3 && (
+                    <Tag bordered={false} style={{ fontSize: 11, margin: 0, padding: '0 4px' }}>
+                      +{tags.length - 3}
+                    </Tag>
                   )}
-                </div>
+                </Flex>
+              </div>
 
-                {/* Footer: Date + Actions */}
-                <div style={{ borderTop: `1px solid ${token.colorSplit}`, paddingTop: 8, marginTop: 8 }}>
-                  <Flex justify="space-between" align="center">
-                    <span style={{ fontSize: 12, color: token.colorTextTertiary, display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <CalendarOutlined />
-                      {item.createdAt ? formatDateTime(item.createdAt) : '-'}
-                    </span>
-                    <Space size={4} onClick={(e) => e.stopPropagation()}>
-                      <Tooltip title="查看详情与预览">
-                        <Typography.Link onClick={() => onOpen(item)} style={{ padding: '2px 4px' }} aria-label="查看">
-                          <EyeOutlined />
-                        </Typography.Link>
-                      </Tooltip>
-                      <Tooltip title="编辑">
-                        <Typography.Link onClick={() => onEdit(item)} style={{ padding: '2px 4px' }} aria-label="编辑">
-                          <EditOutlined />
-                        </Typography.Link>
-                      </Tooltip>
-                      <Popconfirm
-                        title="确定删除此记录吗？"
-                        description="仅删除记录，不会删除已上传的文件。"
-                        okText="删除"
-                        cancelText="取消"
-                        okButtonProps={{ danger: true }}
-                        onConfirm={() => onDelete(item.id)}
+              {/* Footer: Date + Actions */}
+              <div style={{ borderTop: `1px solid ${token.colorSplit}`, paddingTop: 6 }}>
+                <Flex justify="space-between" align="center">
+                  <span style={{ fontSize: 12, color: token.colorTextTertiary, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <CalendarOutlined />
+                    {item.createdAt ? formatDateTime(item.createdAt) : '-'}
+                  </span>
+                  <Space size={4} onClick={(e) => e.stopPropagation()}>
+                    <Tooltip title="查看详情与预览">
+                      <Typography.Link onClick={() => onOpen(item)} style={{ padding: '2px 4px' }} aria-label="查看">
+                        <EyeOutlined />
+                      </Typography.Link>
+                    </Tooltip>
+                    <Tooltip title="编辑">
+                      <Typography.Link onClick={() => onEdit(item)} style={{ padding: '2px 4px' }} aria-label="编辑">
+                        <EditOutlined />
+                      </Typography.Link>
+                    </Tooltip>
+                    <Popconfirm
+                      title="确定删除此记录吗？"
+                      description="仅删除记录，不会删除已上传的文件。"
+                      okText="删除"
+                      cancelText="取消"
+                      okButtonProps={{ danger: true }}
+                      onConfirm={() => onDelete(item.id)}
+                    >
+                      <Typography.Link
+                        aria-label="删除"
+                        type="danger"
+                        style={{ padding: '2px 4px' }}
                       >
-                        <Typography.Link
-                          aria-label="删除"
-                          type="danger"
-                          style={{ padding: '2px 4px' }}
-                        >
-                          <DeleteOutlined />
-                        </Typography.Link>
-                      </Popconfirm>
-                    </Space>
-                  </Flex>
-                </div>
-              </Card>
-            </Col>
+                        <DeleteOutlined />
+                      </Typography.Link>
+                    </Popconfirm>
+                  </Space>
+                </Flex>
+              </div>
+            </Card>
           );
         })}
-      </Row>
+      </div>
 
       <Flex justify="end">
         <Pagination

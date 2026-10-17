@@ -108,7 +108,7 @@ const KeyFormModal = ({
           name="name"
           label="标识"
           rules={[{ required: true, message: '请输入标识' }]}
-          extra={mode === 'edit' ? '重命名后存量记录仍以旧 Key 存储（后端不迁移数据）' : '唯一标识，使用英文与下划线'}
+          extra={mode === 'edit' ? '修改标识不会自动迁移存量记录中的历史字段' : '唯一标识，使用英文与下划线'}
         >
           <Input placeholder="例如 project_owner" />
         </Form.Item>

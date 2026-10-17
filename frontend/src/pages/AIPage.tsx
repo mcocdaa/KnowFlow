@@ -30,7 +30,7 @@ const AIPage = () => {
   const nameById = new Map((corpus?.items ?? []).map((item) => [item.id, item.name]));
 
   const tagColumns: TableColumnsType<TagRow> = [
-    { title: '记录', dataIndex: 'name', width: 240 },
+    { title: '记录', dataIndex: 'name', width: 360 },
     {
       title: '生成的标签',
       dataIndex: 'tags',
@@ -63,7 +63,7 @@ const AIPage = () => {
       <Alert
         type="info"
         showIcon
-        message={`AI 功能需要后端配置 DOUBAO_API_KEY；每次最多处理最近 ${AI_CORPUS_SIZE} 条记录（后端上限）。`}
+        message={`支持基于自然语言的知识库语义检索与智能标签提取（单次处理范围涵盖最近 ${AI_CORPUS_SIZE} 条记录）。`}
       />
 
       {error ? <Alert type="error" showIcon message={error} /> : null}
@@ -131,7 +131,7 @@ const AIPage = () => {
                     开始打标签
                   </Button>
                   <Typography.Text type="secondary">
-                    对最近 {AI_CORPUS_SIZE} 条记录生成中文标签，结果由后端持久化保存。
+                    为最近 {AI_CORPUS_SIZE} 条知识记录智能生成中文分类标签并自动保存。
                   </Typography.Text>
                 </Space>
 

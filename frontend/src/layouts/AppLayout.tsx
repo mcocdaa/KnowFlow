@@ -15,7 +15,9 @@ const AppLayout = () => {
           display: 'flex',
           alignItems: 'center',
           gap: 12,
-          paddingInline: 24,
+          height: 54,
+          lineHeight: '54px',
+          paddingInline: 20,
           background: token.colorBgContainer,
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
         }}
@@ -24,10 +26,10 @@ const AppLayout = () => {
         <span style={{ fontSize: 18, fontWeight: 600, color: token.colorTextHeading }}>KnowFlow</span>
       </Header>
       <Layout>
-        <Sider theme="light" width={220} breakpoint="lg" collapsedWidth={0}>
+        <Sider theme="light" width={156} breakpoint="lg" collapsedWidth={0}>
           <SideNav />
         </Sider>
-        <Content style={{ padding: 24 }}>
+        <Content style={{ padding: '12px 14px', minWidth: 0, overflowX: 'hidden' }}>
           <Outlet />
         </Content>
       </Layout>

@@ -176,26 +176,39 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         borderRadius: 8,
         border: `1px solid ${token.colorBorderSecondary}`,
       }}
-      bodyStyle={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      styles={{ body: { padding: 12, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' } }}
     >
       {/* Header */}
-      <Flex justify="space-between" align="start" gap={8} style={{ marginBottom: 12 }}>
-        <div style={{ flex: 1, overflow: 'hidden' }}>
-          <Flex align="center" gap={8} style={{ marginBottom: 4 }}>
-            <FileIcon fileType={fileType} />
-            <Typography.Text strong ellipsis style={{ fontSize: 15, maxWidth: 220 }}>
+      <Flex justify="space-between" align="start" gap={4} style={{ marginBottom: 10 }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+          <Flex align="center" gap={6} style={{ marginBottom: 4 }}>
+            <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+              <FileIcon fileType={fileType} />
+            </span>
+            <div
+              title={item.name}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                fontSize: 13,
+                fontWeight: 600,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {item.name}
-            </Typography.Text>
+            </div>
           </Flex>
           <Space size={6} wrap>
-            {categoryTitle && <Tag color="blue">{categoryTitle}</Tag>}
-            {ext && <Tag color="cyan">.{ext.toUpperCase()}</Tag>}
+            {categoryTitle && <Tag color="blue" style={{ margin: 0 }}>{categoryTitle}</Tag>}
+            {ext && <Tag color="cyan" style={{ margin: 0 }}>.{ext.toUpperCase()}</Tag>}
             {item.keyValues.rating !== undefined && (
               <Rate disabled allowHalf value={Number(item.keyValues.rating)} style={{ fontSize: 12 }} />
             )}
           </Space>
         </div>
-        <Space size={4}>
+        <Space size={2} style={{ flexShrink: 0 }}>
           {onEdit && (
             <Tooltip title="编辑知识项">
               <Button type="text" size="small" icon={<EditOutlined />} onClick={() => onEdit(item)} />
@@ -216,7 +229,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
           { label: '实时极速预览', value: 'preview', icon: <EyeOutlined /> },
           { label: '属性与插件', value: 'meta', icon: <InfoCircleOutlined /> },
         ]}
-        style={{ marginBottom: 12 }}
+        style={{ marginBottom: 10 }}
       />
 
       {/* Content Area */}
@@ -240,18 +253,20 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
               <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div
                   style={{
-                    padding: '6px 12px',
+                    padding: '6px 10px',
                     background: token.colorFillSecondary,
                     fontSize: 12,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    gap: 8,
+                    flexWrap: 'nowrap',
                   }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <FilePdfOutlined style={{ color: '#ff4d4f' }} /> PDF.js 原生极速预览
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                    <FilePdfOutlined style={{ color: '#ff4d4f', flexShrink: 0 }} /> PDF.js 原生极速预览
                   </span>
-                  <a href={fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12 }}>
+                  <a href={fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}>
                     新标签页打开
                   </a>
                 </div>
@@ -265,20 +280,29 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
               <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div
                   style={{
-                    padding: '6px 12px',
+                    padding: '6px 10px',
                     background: token.colorFillSecondary,
                     fontSize: 12,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    gap: 8,
+                    flexWrap: 'nowrap',
                   }}
                 >
-                  <span>Markdown 语法排版渲染</span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                    Markdown 语法排版渲染
+                  </span>
                   {fileContent && (
-                    <Typography.Text copyable={{ text: fileContent }}>复制 Markdown</Typography.Text>
+                    <Typography.Text
+                      copyable={{ text: fileContent }}
+                      style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}
+                    >
+                      复制 Markdown
+                    </Typography.Text>
                   )}
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: 16, background: token.colorBgContainer }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', background: token.colorBgContainer }}>
                   {loadingContent ? (
                     <Flex justify="center" align="center" style={{ height: 200 }}>
                       <Spin tip="加载渲染中..." />
@@ -287,7 +311,8 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                     <Empty description={contentError} />
                   ) : (
                     <div
-                      style={{ fontSize: 14, lineHeight: 1.6 }}
+                      className="knowflow-markdown-body"
+                      style={{ fontSize: 13, lineHeight: 1.55 }}
                       dangerouslySetInnerHTML={{ __html: renderedMarkdown }}
                     />
                   )}
@@ -297,17 +322,26 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
               <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div
                   style={{
-                    padding: '6px 12px',
+                    padding: '6px 10px',
                     background: token.colorFillSecondary,
                     fontSize: 12,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    gap: 8,
+                    flexWrap: 'nowrap',
                   }}
                 >
-                  <span>Monaco 代码高亮预览 ({codeLanguage})</span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                    Monaco 代码高亮预览 ({codeLanguage})
+                  </span>
                   {fileContent && (
-                    <Typography.Text copyable={{ text: fileContent }}>复制代码</Typography.Text>
+                    <Typography.Text
+                      copyable={{ text: fileContent }}
+                      style={{ fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}
+                    >
+                      复制代码
+                    </Typography.Text>
                   )}
                 </div>
                 <div style={{ flex: 1, minHeight: 300 }}>
@@ -394,9 +428,9 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                 {item.updatedAt ? formatDateTime(item.updatedAt) : '-'}
               </Descriptions.Item>
               {filePath && (
-                <Descriptions.Item label="文件路径">
-                  <Typography.Text ellipsis copyable style={{ maxWidth: 160 }}>
-                    {filePath}
+                <Descriptions.Item label="关联附件">
+                  <Typography.Text ellipsis copyable={{ text: filePath }} style={{ maxWidth: 160 }}>
+                    {filePath.split('/').pop() || filePath}
                   </Typography.Text>
                   {onOpenLocation && (
                     <Button
@@ -438,7 +472,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
 
               {/* Other Key Values */}
               {Object.entries(item.keyValues)
-                .filter(([k]) => !['name', 'category_name', 'rating', 'file_path', 'file_type'].includes(k))
+                .filter(([k]) => !['name', 'category_name', 'rating', 'file_path', 'file_type', 'created_at', 'updated_at'].includes(k))
                 .map(([key, val]) => {
                   const keyDef = keyMap.get(key);
                   const displayTitle = keyDef?.title || key;

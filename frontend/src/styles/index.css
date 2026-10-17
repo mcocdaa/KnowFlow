@@ -46,3 +46,124 @@ body {
 ::selection {
   background: rgba(37, 99, 235, 0.15);
 }
+
+.ant-btn,
+.ant-tabs-tab-btn,
+.ant-segmented-item-label,
+.ant-tag,
+.ant-descriptions-item-label {
+  white-space: nowrap !important;
+}
+
+.ant-rate-star {
+  margin-inline-end: 4px !important;
+}
+
+.knowflow-category-tree .ant-tree-treenode {
+  width: 100%;
+  padding: 2px 0 !important;
+  align-items: center;
+}
+
+.knowflow-category-tree .ant-tree-draggable-icon {
+  display: none !important;
+}
+
+.knowflow-category-tree .ant-tree-indent-unit {
+  width: 10px !important;
+}
+
+.knowflow-category-tree .ant-tree-switcher {
+  width: 16px !important;
+  margin-inline-end: 0 !important;
+  flex-shrink: 0;
+}
+
+.knowflow-category-tree .ant-tree-switcher-noop {
+  width: 4px !important;
+}
+
+.knowflow-category-tree .ant-tree-node-content-wrapper {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  padding: 0 2px !important;
+  overflow: hidden;
+}
+
+.knowflow-category-tree .ant-tree-title {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.knowflow-markdown-body h1 {
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.knowflow-markdown-body h2 {
+  font-size: 13.5px;
+  line-height: 1.4;
+  margin: 12px 0 6px 0;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.knowflow-markdown-body h3 {
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 10px 0 4px 0;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.knowflow-markdown-body p,
+.knowflow-markdown-body ul,
+.knowflow-markdown-body ol {
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+
+.knowflow-markdown-body ul,
+.knowflow-markdown-body ol {
+  padding-left: 18px;
+}
+
+.knowflow-markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  margin: 8px 0 10px 0;
+}
+
+.knowflow-markdown-body th,
+.knowflow-markdown-body td {
+  padding: 4px 6px;
+  border: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.knowflow-markdown-body th {
+  background: #f1f5f9;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.knowflow-markdown-body pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.knowflow-markdown-body code {
+  font-family: Consolas, 'Fira Code', monospace;
+}
