@@ -25,10 +25,10 @@
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| Python | 3.8+ | 运行环境 |
+| Python | 3.12+ | 运行环境 |
 | FastAPI | - | Web 框架 |
 | Uvicorn | - | ASGI 服务器 |
-| MongoDB | 4.4+ | 数据库 |
+| MongoDB | 7 | 数据库 |
 | pymongo | - | MongoDB 异步驱动（AsyncMongoClient） |
 
 ---
@@ -64,8 +64,8 @@
 
 ### 5. AI 集成
 
-- **语义检索**: 自然语言查询知识库
-- **自动标签**: AI 自动生成标签（预留功能）
+- **语义检索** (`POST /api/v1/ai/search`): 自然语言混合语义查询知识库（支持豆包 AI 与本地 `fastembed` 向量回退）
+- **自动标签** (`POST /api/v1/ai/auto-tag`): 基于知识项内容与已有分类/Key 自动提取并推荐结构化标签（已上线）
 
 ---
 
@@ -160,8 +160,9 @@
 | 模块 | 接口 | 方法 | 说明 |
 |------|------|------|------|
 | 健康检查 | `/health` | GET | 服务状态检查 |
-| 知识项 | `/item` | GET/POST | 列表/创建 |
-| 知识项 | `/item/{id}` | GET/PUT/DELETE | 详情/更新/删除 |
+| 知识项 | `/item`（别名 `/items`） | GET/POST | 列表/创建 |
+| 知识项检索 | `/item/search`（别名 `/items/search`） | GET | 关键词/分面/分类分页检索 |
+| 知识项详情 | `/item/{id}`（别名 `/items/{id}`） | GET/PUT/DELETE | 详情/更新/删除 |
 | 文件上传 | `/upload` | POST | 文件上传 |
 | 分类 | `/categories` | GET/POST | 列表/创建 |
 | 分类 | `/categories/{id}` | GET/PUT/DELETE | 详情/更新/删除 |
@@ -169,6 +170,8 @@
 | Key | `/keys/{name}` | GET/PUT/DELETE | 详情/更新/删除 |
 | 插件 | `/plugins/manifests` | GET | 插件清单 |
 | 插件 | `/plugins/{name}/frontend` | GET | 插件前端代码 |
+| AI 语义检索 | `/ai/search` | POST | 混合语义检索 |
+| AI 自动标签 | `/ai/auto-tag` | POST | 自动生成推荐标签 |
 
 ---
 
@@ -226,8 +229,8 @@ npm run electron:build
 
 ### 4. AI 增强
 
-- 语义检索能力
-- 自动标签生成（预留）
+- 语义检索能力（`POST /api/v1/ai/search`）
+- 自动标签生成（`POST /api/v1/ai/auto-tag`）
 
 ### 5. 桌面应用
 

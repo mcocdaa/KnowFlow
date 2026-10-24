@@ -58,7 +58,7 @@ KnowFlow exposes a RESTful JSON API for headless automation, ingestion pipelines
 
 ```bash
 # 1. Create a knowledge item with dynamic Key-Value facets
-curl -s -X POST http://localhost:3002/api/v1/items \
+curl -s -X POST http://localhost:3002/api/v1/item \
   -H "Content-Type: application/json" \
   -d '{
     "name": "RAG Architecture Notes",
@@ -71,7 +71,8 @@ curl -s -X POST http://localhost:3002/api/v1/items \
   }'
 
 # 2. List / query knowledge items
-curl -s "http://localhost:3002/api/v1/items"
+curl -s "http://localhost:3002/api/v1/item"
+curl -s "http://localhost:3002/api/v1/item/search?q=RAG&sort=recent"
 
 # 3. Hybrid AI semantic search across candidate items
 curl -s -X POST http://localhost:3002/api/v1/ai/search \
@@ -88,7 +89,7 @@ curl -s -X POST http://localhost:3002/api/v1/ai/search \
   }'
 ```
 
-> Note: Single-resource CRUD endpoints are also mounted at `/api/v1/item` and `/api/v1/item/search`.
+> Note: Both singular (`/api/v1/item`, `/api/v1/item/search`, `/api/v1/item/{id}`) and plural (`/api/v1/items`, `/api/v1/items/search`, `/api/v1/items/{id}`) endpoints are mounted and supported identically.
 
 ## ⚙️ Configuration & Structure
 

@@ -23,10 +23,10 @@ KnowFlow 采用前后端分离架构，以下是项目使用的核心技术。
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| Python | 3.8+ | 运行环境 |
+| Python | 3.12+ | 运行环境 |
 | FastAPI | - | Web 框架 |
 | Uvicorn | - | ASGI 服务器 |
-| MongoDB | 4.4+ | 数据库 |
+| MongoDB | 7 | 数据库 |
 | pymongo | - | MongoDB 异步驱动（AsyncMongoClient） |
 | httpx | - | HTTP 客户端（AI API） |
 | PyYAML | - | YAML 配置解析 |

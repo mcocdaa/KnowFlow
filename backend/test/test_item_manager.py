@@ -431,3 +431,23 @@ class TestItemManager:
             regex_patterns = {clause["name"]["$regex"] for clause in or_clauses if "name" in clause}
             assert "architecture" in regex_patterns
             assert "架构" in regex_patterns
+
+    def test_item_router_registers_singular_and_plural_aliases(self):
+        from api.v1.item import router
+
+        registered = {(route.path, tuple(sorted(route.methods or ()))) for route in router.routes}
+        for path, methods in [
+            ("/item", ("GET",)),
+            ("/items", ("GET",)),
+            ("/item/search", ("GET",)),
+            ("/items/search", ("GET",)),
+            ("/item/{item_id}", ("GET",)),
+            ("/items/{item_id}", ("GET",)),
+            ("/item", ("POST",)),
+            ("/items", ("POST",)),
+            ("/item/{item_id}", ("PUT",)),
+            ("/items/{item_id}", ("PUT",)),
+            ("/item/{item_id}", ("DELETE",)),
+            ("/items/{item_id}", ("DELETE",)),
+        ]:
+            assert (path, methods) in registered

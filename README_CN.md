@@ -58,7 +58,7 @@ KnowFlow 提供标准 RESTful JSON 接口，便于自动化脚本、数据管道
 
 ```bash
 # 1. 创建携带动态 Key-Value 分面属性的知识项
-curl -s -X POST http://localhost:3002/api/v1/items \
+curl -s -X POST http://localhost:3002/api/v1/item \
   -H "Content-Type: application/json" \
   -d '{
     "name": "RAG 架构设计笔记",
@@ -70,8 +70,9 @@ curl -s -X POST http://localhost:3002/api/v1/items \
     }
   }'
 
-# 2. 获取/查询知识项列表
-curl -s "http://localhost:3002/api/v1/items"
+# 2. 获取/查询知识项列表与分页检索
+curl -s "http://localhost:3002/api/v1/item"
+curl -s "http://localhost:3002/api/v1/item/search?q=RAG&sort=recent"
 
 # 3. 混合 AI 语义检索
 curl -s -X POST http://localhost:3002/api/v1/ai/search \
@@ -88,7 +89,7 @@ curl -s -X POST http://localhost:3002/api/v1/ai/search \
   }'
 ```
 
-> 注：单资源 CRUD 与分页检索同时挂载于 `/api/v1/item` 与 `/api/v1/item/search`。
+> 注：单复数路由（`/api/v1/item`、`/api/v1/item/search`、`/api/v1/item/{id}` 与 `/api/v1/items`、`/api/v1/items/search`、`/api/v1/items/{id}`）均已同步挂载并完全兼容。
 
 ## ⚙️ 配置与目录结构
 

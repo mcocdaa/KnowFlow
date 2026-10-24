@@ -12,11 +12,13 @@ router = APIRouter()
 
 
 @router.get("/item")
+@router.get("/items")
 async def list_items(manager: ItemManager = Depends(get_item_manager)):
     return ok(await manager.get_all())
 
 
 @router.get("/item/search")
+@router.get("/items/search")
 async def search_items(
     manager: ItemManager = Depends(get_item_manager),
     q: str = Query("", max_length=100),
@@ -41,6 +43,7 @@ async def search_items(
 
 
 @router.get("/item/{item_id}")
+@router.get("/items/{item_id}")
 async def get_item(item_id: str, manager: ItemManager = Depends(get_item_manager)):
     item = await manager.get_by_id(item_id)
     if item is None:
@@ -49,11 +52,13 @@ async def get_item(item_id: str, manager: ItemManager = Depends(get_item_manager
 
 
 @router.post("/item")
+@router.post("/items")
 async def add_item(item: dict, manager: ItemManager = Depends(get_item_manager)):
     return ok(await manager.create(item))
 
 
 @router.put("/item/{item_id}")
+@router.put("/items/{item_id}")
 async def update_item(item_id: str, item: dict, manager: ItemManager = Depends(get_item_manager)):
     updated = await manager.update(item_id, item)
     if updated is None:
@@ -62,6 +67,7 @@ async def update_item(item_id: str, item: dict, manager: ItemManager = Depends(g
 
 
 @router.delete("/item/{item_id}")
+@router.delete("/items/{item_id}")
 async def delete_item(item_id: str, manager: ItemManager = Depends(get_item_manager)):
     deleted = await manager.delete(item_id)
     if not deleted:

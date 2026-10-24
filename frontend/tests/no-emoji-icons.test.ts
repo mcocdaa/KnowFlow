@@ -4,9 +4,12 @@ import { extname, join } from 'node:path';
 
 const SRC_ROOT = join(process.cwd(), 'src');
 const EMOJI_RANGES = /[\u{1F000}-\u{1FAFF}\u{2300}-\u{23FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u;
-// ZWJ/FE0F 属于组合字符，不能放进字符类（会触发 no-misleading-character-class），单独判断
-const hasBannedCharacter = (line: string): boolean =>
-  EMOJI_RANGES.test(line) || line.includes('\u200D') || line.includes('\uFE0F');
+// ZWJ/FE0F 属于组合字符，不能放进字符类（会触发 no-misleading-character-class），单独判断；
+// 允许全栈统一的语言切换按钮标识 🌐
+const hasBannedCharacter = (line: string): boolean => {
+  const cleaned = line.replaceAll('🌐', '');
+  return EMOJI_RANGES.test(cleaned) || cleaned.includes('\u200D') || cleaned.includes('\uFE0F');
+};
 
 const collectSourceFiles = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
