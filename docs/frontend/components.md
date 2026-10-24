@@ -23,7 +23,8 @@ description: 前端组件清单与职责说明
 | `BrandLogo` | [common/BrandLogo.tsx](../../frontend/src/components/common/BrandLogo.tsx) | 内联渐变 SVG 品牌标志，`useId` 生成渐变 ID 避免冲突。 |
 | `ErrorBoundary` | [common/ErrorBoundary.tsx](../../frontend/src/components/common/ErrorBoundary.tsx) | 捕获渲染异常并展示 `Result` 兜底页，支持重试。 |
 | `StatePlaceholder` | [common/StatePlaceholder.tsx](../../frontend/src/components/common/StatePlaceholder.tsx) | 统一 loading（Skeleton）/ empty（Empty）/ error（Result + 重试）三态占位。 |
-| `DynamicKeyForm` | [common/DynamicKeyForm.tsx](../../frontend/src/components/common/DynamicKeyForm.tsx) | 根据可见 Key 定义动态生成表单：布尔→Switch、数字→InputNumber、数组/对象→JSON 文本域，其余→TextArea；提交时反序列化 JSON。 |
+| `DynamicKeyForm` | [common/DynamicKeyForm.tsx](../../frontend/src/components/common/DynamicKeyForm.tsx) | 根据可见 Key 定义动态生成表单：布尔→Switch、数字→InputNumber、数组→`ArrayTagInput`、对象→JSON 文本域，其余→TextArea；提交时反序列化 JSON。 |
+| `ArrayTagInput` | [common/ArrayTagInput.tsx](../../frontend/src/components/common/ArrayTagInput.tsx) | 数组类型 Key 的交互式标签输入控件：支持回车/逗号添加标签、去重、逐项删除及原始 JSON 编辑兜底。 |
 | `FileIcon` | [common/FileIcon.tsx](../../frontend/src/components/common/FileIcon.tsx) | 按 MIME 类型（image/video/pdf/text/excel/zip）选择对应线性图标。 |
 | `JsonBlock` | [common/JsonBlock.tsx](../../frontend/src/components/common/JsonBlock.tsx) | 只读展示对象/数组字段，等宽格式化并限制最大高度。 |
 
@@ -31,8 +32,12 @@ description: 前端组件清单与职责说明
 
 | 组件 | 文件 | 用途 |
 |------|------|------|
-| `SearchToolbar` | [library/SearchToolbar.tsx](../../frontend/src/components/library/SearchToolbar.tsx) | 搜索框（400ms 防抖）、排序、高级筛选（Key + 值）、每页条数，以及上传/新建入口；本地输入与 URL 参数在渲染期校正同步。 |
+| `SearchToolbar` | [library/SearchToolbar.tsx](../../frontend/src/components/library/SearchToolbar.tsx) | 搜索框（400ms 防抖）、排序、高级筛选（Key + 值）、视图模式切换（表格/卡片）、每页条数，以及上传/新建入口；本地输入与 URL 参数在渲染期校正同步。 |
+| `CategorySidebarTree` | [library/CategorySidebarTree.tsx](../../frontend/src/components/library/CategorySidebarTree.tsx) | 知识库左侧分类导航树：展示全部分类层级与计数徽标，支持点击按分类过滤知识项。 |
+| `FacetFilterChips` | [library/FacetFilterChips.tsx](../../frontend/src/components/library/FacetFilterChips.tsx) | 分面快捷筛选标签栏：汇总高频标签、星级评分与文件类型分面，支持一键过滤与清除。 |
 | `ItemTable` | [library/ItemTable.tsx](../../frontend/src/components/library/ItemTable.tsx) | 知识记录表格：文件图标 + 名称、评分、更新时间、查看/编辑/删除操作与分页。 |
+| `ItemCardGrid` | [library/ItemCardGrid.tsx](../../frontend/src/components/library/ItemCardGrid.tsx) | 知识记录卡片网格视图：展示文件类型图标、分类、星级、分面标签及快捷操作（预览/详情/编辑/删除）。 |
+| `LivePreviewPanel` | [library/LivePreviewPanel.tsx](../../frontend/src/components/library/LivePreviewPanel.tsx) | 知识库右侧常驻实时预览面板：展示当前选中知识项的 Markdown 正文/媒体预览、核心属性、分面标签及快捷操作入口。 |
 | `ItemDetailDrawer` | [library/ItemDetailDrawer.tsx](../../frontend/src/components/library/ItemDetailDrawer.tsx) | 右侧详情抽屉：按分类分组展示 Key-Value，插件字段走 `PluginRenderer`，支持媒体预览、打开文件所在文件夹、编辑与删除。 |
 | `ItemFormModal` | [library/ItemFormModal.tsx](../../frontend/src/components/library/ItemFormModal.tsx) | 新建/编辑记录弹窗，内部复用 `DynamicKeyForm` 并维护提交态。 |
 | `UploadModal` | [library/UploadModal.tsx](../../frontend/src/components/library/UploadModal.tsx) | 文件上传弹窗：拖拽选择单个文件、填写动态属性、展示上传进度。 |

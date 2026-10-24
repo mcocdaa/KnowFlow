@@ -531,7 +531,7 @@ export interface I18nContextValue {
   t: (keyOrZh: string, enFallback?: string) => string;
 }
 
-const I18nContext = createContext<I18nContextValue | null>(null);
+export const I18nContext = createContext<I18nContextValue | null>(null);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [locale, setLocaleState] = useState<Locale>(() => getInitialLocale());

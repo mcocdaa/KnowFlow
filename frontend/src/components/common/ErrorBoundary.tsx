@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Result } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
-import { tr } from '../../i18n';
+import { I18nContext, tr } from '../../i18n';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -12,6 +12,9 @@ interface ErrorBoundaryState {
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  static contextType = I18nContext;
+  declare context: React.ContextType<typeof I18nContext>;
+
   state: ErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(): ErrorBoundaryState {
@@ -28,14 +31,15 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   render() {
     if (this.state.hasError) {
+      const t = this.context?.t ?? tr;
       return (
         <Result
           status="warning"
-          title={tr('页面出现异常', 'Page Error')}
-          subTitle={tr('请重试，或检查后端服务是否正常', 'Please retry or check if the backend service is running')}
+          title={t('页面出现异常', 'Page Error')}
+          subTitle={t('请重试，或检查后端服务是否正常', 'Please retry or check if the backend service is running')}
           extra={
             <Button type="primary" icon={<ReloadOutlined />} onClick={this.handleRetry}>
-              {tr('重试', 'Retry')}
+              {t('重试', 'Retry')}
             </Button>
           }
         />

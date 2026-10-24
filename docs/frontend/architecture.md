@@ -30,16 +30,19 @@ KnowFlow 前端是一个多页单页应用（SPA）：`react-router` 负责页�
 ```
 frontend/
 ├── src/
-│   ├── App.tsx                     # 路由表 + ErrorBoundary
+│   ├── App.tsx                     # LanguageProvider + 动态 ConfigProvider(zhCN/enUS) + 路由表 + ErrorBoundary
 │   ├── main.tsx                    # 应用装配入口
+│   ├── i18n/
+│   │   └── index.tsx               # 中英双语上下文 (LanguageProvider/useI18n/I18nContext/tr)
 │   ├── layouts/
-│   │   └── AppLayout.tsx           # Header + Sider + Content(Outlet)
+│   │   └── AppLayout.tsx           # Header(含双语切换按钮) + Sider + Content(Outlet)
 │   ├── components/
 │   │   ├── layout/SideNav.tsx      # 左侧导航菜单
 │   │   ├── common/                 # BrandLogo/ErrorBoundary/StatePlaceholder/
-│   │   │                           # DynamicKeyForm/FileIcon/JsonBlock
-│   │   ├── library/                # SearchToolbar/ItemTable/ItemDetailDrawer/
-│   │   │                           # ItemFormModal/UploadModal/MediaPreviewModal
+│   │   │                           # DynamicKeyForm/ArrayTagInput/FileIcon/JsonBlock
+│   │   ├── library/                # SearchToolbar/CategorySidebarTree/FacetFilterChips/
+│   │   │                           # ItemTable/ItemCardGrid/LivePreviewPanel/
+│   │   │                           # ItemDetailDrawer/ItemFormModal/UploadModal/MediaPreviewModal
 │   │   ├── categories/CategoryFormModal.tsx
 │   │   └── keys/KeyFormModal.tsx
 │   ├── pages/                      # LibraryPage/CategoriesPage/KeysPage/
@@ -61,20 +64,23 @@ frontend/
 └── Dockerfile / nginx.conf
 ```
 
-## 应用装配
+## 应用装配与国际化（i18n）
 
-[frontend/src/main.tsx](../../frontend/src/main.tsx) 的 Provider 顺序固定为：
+[frontend/src/main.tsx](../../frontend/src/main.tsx) 与 [frontend/src/App.tsx](../../frontend/src/App.tsx) 的 Provider 顺序固定为：
 
 ```
 StrictMode
-└── ConfigProvider(theme=antdTheme, locale=zhCN)
-    └── AntdApp（message/modal 上下文）
-        └── Provider(store)
-            └── BrowserRouter
-                └── App
+└── Provider(store)
+    └── BrowserRouter
+        └── LanguageProvider (src/i18n/index.tsx)
+            └── ConfigProvider(theme=antdTheme, locale=locale === 'zh' ? zhCN : enUS)
+                └── AntdApp（message/modal 上下文）
+                    └── ErrorBoundary
+                        └── Routes
 ```
 
-[frontend/src/App.tsx](../../frontend/src/App.tsx) 在模块加载时调用 `initializePlugins()` 注册内置插件组件，随后渲染 `ErrorBoundary` 包裹的路由树。所有业务页面都作为 `AppLayout` 的子路由通过 `<Outlet />` 渲染。
+- **国际化（`src/i18n/index.tsx`）**：`LanguageProvider` 管理当前语言（`zh` / `en`，持久化于 `localStorage['knowflow_lang']`），向全应用暴露 `useI18n()` Hook、`I18nContext`（供类组件 `ErrorBoundary` 订阅）与 `tr(zh, en)` 翻译函数。切换语言时，`App.tsx` 动态切换 Ant Design `ConfigProvider` 的 `zhCN` / `enUS` 语言包，实现零刷新中英双语切换。
+- **插件初始化**：[frontend/src/App.tsx](../../frontend/src/App.tsx) 在模块加载时调用 `initializePlugins()` 注册内置插件组件，随后渲染 `ErrorBoundary` 包裹的路由树。所有业务页面都作为 `AppLayout` 的子路由通过 `<Outlet />` 渲染。
 
 ## 路由表
 
