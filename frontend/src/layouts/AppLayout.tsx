@@ -52,7 +52,7 @@ const AppLayout = () => {
             borderRadius: 6,
           }}
         >
-          {locale === 'zh' ? '🌐 EN' : '🌐 中文'}
+          <span>{locale === 'zh' ? 'EN' : '中文'}</span>
         </Button>
       </Header>
       <Layout>
