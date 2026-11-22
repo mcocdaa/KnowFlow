@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,7 +23,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify backend and frontend versions match
+        shell: bash
+        run: |
+          set -euo pipefail
+          backend_version="$(python3 -c "import pathlib, tomllib; print(tomllib.loads(pathlib.Path('backend/pyproject.toml').read_text(encoding='utf-8'))['project']['version'])")"
+          frontend_version="$(python3 -c "import json, pathlib; print(json.loads(pathlib.Path('frontend/package.json').read_text(encoding='utf-8'))['version'])")"
+          if [[ "$backend_version" != "$frontend_version" ]]; then
+            echo "Version mismatch: backend=$backend_version frontend=$frontend_version" >&2
+            exit 1
+          fi
+
       - name: Verify tag matches backend and frontend versions
+        if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
         run: |
           set -euo pipefail
@@ -33,11 +46,6 @@ jobs:
           expected_version="${GITHUB_REF_NAME#v}"
           expected_base="${expected_version%%-*}"
           backend_version="$(python3 -c "import pathlib, tomllib; print(tomllib.loads(pathlib.Path('backend/pyproject.toml').read_text(encoding='utf-8'))['project']['version'])")"
-          frontend_version="$(python3 -c "import json, pathlib; print(json.loads(pathlib.Path('frontend/package.json').read_text(encoding='utf-8'))['version'])")"
-          if [[ "$backend_version" != "$frontend_version" ]]; then
-            echo "Version mismatch: backend=$backend_version frontend=$frontend_version" >&2
-            exit 1
-          fi
           if [[ "$expected_version" != "$backend_version" && "$expected_base" != "$backend_version" ]]; then
             echo "Tag $GITHUB_REF_NAME does not match project version v$backend_version" >&2
             exit 1
@@ -137,6 +145,7 @@ jobs:
       - uses: docker/setup-buildx-action@v4
 
       - uses: docker/login-action@v4
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -145,14 +154,14 @@ jobs:
       - uses: docker/metadata-action@v6
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}-${{ matrix.image }}
+          images: ghcr.io/${{ github.repository_owner }}/knowflow-${{ matrix.image }}
           flavor: |
             latest=false
           tags: |
             type=ref,event=tag
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-') }}
             type=sha,prefix=
 
       - name: Build and push image
@@ -160,7 +169,7 @@ jobs:
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.context }}/Dockerfile
-          push: true
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.image }}
@@ -168,6 +177,7 @@ jobs:
 
   release:
     name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: [validate-version, backend, frontend, docker]
     runs-on: ubuntu-latest
     timeout-minutes: 5
