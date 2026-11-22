@@ -122,7 +122,7 @@ jobs:
           exit 1
 
       - name: Run API e2e checks
-        run: python test/e2e_api_check.py
+        run: python test/e2e_api_check.py --timeout 120
 
       - name: Upload backend log on failure
         if: failure()
